@@ -18,7 +18,8 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "db:deploy": "supabase db push"
+    "db:deploy": "supabase db push",
+    "install:global": "npm run build && npm install -g ."
   },
   "keywords": [],
   "author": "",

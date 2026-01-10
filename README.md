@@ -110,7 +110,12 @@ npm run dev         # Watch mode
 ### Install Globally
 
 ```bash
-npm link            # Makes `tt` command available globally
+npm run install:global   # Build and install `tt` command globally
+```
+
+For development (auto-updates on rebuild):
+```bash
+npm link
 ```
 
 ## Production Setup
