@@ -8,9 +8,13 @@ A CLI application for tracking time spent on projects.
 
 ## Data Model
 
-Hierarchy: **Client > Project > Task**
+Hierarchy: **Client > Project > Task (optional) > TimeEntry**
 
 - **Client**: Top-level entity (company/individual you work for)
 - **Project**: Belongs to a client
-- **Task**: Belongs to a project, has time entries
+- **Task**: Optional, belongs to a project
 - **TimeEntry**: Start/end timestamps for work sessions
+
+## Development Approach
+
+Spec-based development. Specs live in `/specs` and define features before implementation.
