@@ -35,6 +35,25 @@ Names are matched by string. If not found, prompts to create.
 - Docker (for local Supabase)
 - Supabase CLI (`brew install supabase/tap/supabase`)
 
+### Environment Setup
+
+Create a `.env` file in the project root:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your Supabase credentials:
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
+```
+
+Get these values from your Supabase project dashboard under Settings > API.
+
+**Note:** Tests use local Supabase (configured in `vitest.config.ts`), so `.env` is only needed for running the CLI against production.
+
 ### Local Database Setup
 
 Start the local Supabase instance (runs PostgreSQL and API in Docker):

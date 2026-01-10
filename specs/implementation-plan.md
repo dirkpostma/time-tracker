@@ -19,7 +19,7 @@
 1. Create Supabase project
 2. Create database schema (clients, projects, tasks, time_entries tables)
 3. Set up Supabase client in the app
-4. Configure environment variables (SUPABASE_URL, SUPABASE_ANON_KEY)
+4. Configure environment variables (SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
 ## Phase 3: Client Management
 
