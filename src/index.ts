@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 import { program } from 'commander';
+import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './commands/client.js';
+import { addProject, listProjects, findClientByName } from './commands/project.js';
 
 program
   .name('tt')
   .description('Time tracking CLI')
   .version('1.0.0');
 
+// Client commands
 const clientCmd = program
   .command('client')
   .description('Manage clients');
@@ -39,6 +42,56 @@ clientCmd
       });
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to list clients');
+      process.exit(1);
+    }
+  });
+
+// Project commands
+const projectCmd = program
+  .command('project')
+  .description('Manage projects');
+
+projectCmd
+  .command('add <name>')
+  .description('Add a new project')
+  .requiredOption('--client <client>', 'Client name')
+  .action(async (name: string, options: { client: string }) => {
+    try {
+      let client = await findClientByName(options.client);
+      if (!client) {
+        const shouldCreate = await confirm({
+          message: `Client "${options.client}" doesn't exist. Create it?`,
+        });
+        if (!shouldCreate) {
+          console.log('Cancelled');
+          process.exit(0);
+        }
+        client = await addClient(options.client);
+        console.log(`Client "${client.name}" created (id: ${client.id})`);
+      }
+      const project = await addProject(name, client.id);
+      console.log(`Project "${project.name}" created for client "${options.client}" (id: ${project.id})`);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Failed to create project');
+      process.exit(1);
+    }
+  });
+
+projectCmd
+  .command('list')
+  .description('List all projects')
+  .action(async () => {
+    try {
+      const projects = await listProjects();
+      if (projects.length === 0) {
+        console.log('No projects found');
+        return;
+      }
+      projects.forEach(project => {
+        console.log(`${project.name} (id: ${project.id})`);
+      });
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Failed to list projects');
       process.exit(1);
     }
   });

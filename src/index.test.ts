@@ -42,3 +42,34 @@ describe('tt client', () => {
     expect(output).toContain(testClientName);
   });
 });
+
+describe('tt project', () => {
+  const testClientName = `CLI Project Test Client ${Date.now()}`;
+  const testProjectName = `CLI Test Project ${Date.now()}`;
+
+  afterAll(async () => {
+    const supabase = getSupabaseClient();
+    await supabase.from('projects').delete().eq('name', testProjectName);
+    await supabase.from('clients').delete().eq('name', testClientName);
+  });
+
+  it('should have project command', () => {
+    const output = execSync('node dist/index.js project --help').toString();
+    expect(output).toContain('add');
+    expect(output).toContain('list');
+  });
+
+  it('should add a project', () => {
+    // First create client
+    execSync(`node dist/index.js client add "${testClientName}"`);
+
+    const output = execSync(`node dist/index.js project add "${testProjectName}" --client "${testClientName}"`).toString();
+    expect(output).toContain(testProjectName);
+    expect(output).toContain('created');
+  });
+
+  it('should list projects', () => {
+    const output = execSync('node dist/index.js project list').toString();
+    expect(output).toContain(testProjectName);
+  });
+});
