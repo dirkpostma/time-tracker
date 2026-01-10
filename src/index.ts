@@ -4,7 +4,7 @@ import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './commands/client.js';
 import { addProject, listProjects, findClientByName } from './commands/project.js';
 import { listTasks, findProjectByName, addTask } from './commands/task.js';
-import { startTimer, stopTimer, getStatus } from './commands/timeEntry.js';
+import { startTimer, stopTimer, getStatus, getRunningTimer } from './commands/timeEntry.js';
 
 program
   .name('tt')
@@ -142,8 +142,45 @@ program
   .option('--project <project>', 'Project name')
   .option('--task <task>', 'Task name')
   .option('--description <description>', 'Description')
-  .action(async (options: { client: string; project?: string; task?: string; description?: string }) => {
+  .option('--force', 'Stop running timer without confirmation')
+  .action(async (options: { client: string; project?: string; task?: string; description?: string; force?: boolean }) => {
     try {
+      // Check if a timer is already running
+      const runningStatus = await getStatus();
+      let forceStart = options.force || false;
+
+      if (runningStatus && !forceStart) {
+        // Check if we can prompt (interactive terminal)
+        if (!process.stdin.isTTY) {
+          console.error('Timer already running. Use --force to stop it and start a new one.');
+          process.exit(1);
+        }
+
+        const hours = Math.floor(runningStatus.duration / 3600);
+        const minutes = Math.floor((runningStatus.duration % 3600) / 60);
+        const durationStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+        console.log('A timer is already running:');
+        console.log(`  Client: ${runningStatus.client.name}`);
+        if (runningStatus.project) {
+          console.log(`  Project: ${runningStatus.project.name}`);
+        }
+        if (runningStatus.task) {
+          console.log(`  Task: ${runningStatus.task.name}`);
+        }
+        console.log(`  Duration: ${durationStr}`);
+        console.log('');
+
+        const shouldSwitch = await confirm({
+          message: 'Stop it and start a new one?',
+        });
+
+        if (!shouldSwitch) {
+          console.log('Keeping current timer running.');
+          return;
+        }
+        forceStart = true;
+      }
       // Find or create client
       let client = await findClientByName(options.client);
       if (!client) {
@@ -213,11 +250,22 @@ program
         taskId = existingTask?.id;
       }
 
-      const entry = await startTimer(client.id, projectId, taskId, options.description);
+      // Show stopped timer info if we're switching
+      if (forceStart && runningStatus) {
+        const hours = Math.floor(runningStatus.duration / 3600);
+        const minutes = Math.floor((runningStatus.duration % 3600) / 60);
+        const durationStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        let stoppedPath = runningStatus.client.name;
+        if (runningStatus.project) stoppedPath += ` / ${runningStatus.project.name}`;
+        if (runningStatus.task) stoppedPath += ` / ${runningStatus.task.name}`;
+        console.log(`Stopped timer for ${stoppedPath} (${durationStr})`);
+      }
+
+      const entry = await startTimer(client.id, projectId, taskId, options.description, forceStart);
       let timerPath = options.client;
       if (options.project) timerPath += ` > ${options.project}`;
       if (options.task) timerPath += ` > ${options.task}`;
-      console.log(`Timer started for ${timerPath}`);
+      console.log(`Started timer for ${timerPath}`);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to start timer');
       process.exit(1);

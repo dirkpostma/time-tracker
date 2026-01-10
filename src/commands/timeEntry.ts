@@ -43,14 +43,23 @@ export async function startTimer(
   clientId: string,
   projectId?: string,
   taskId?: string,
-  description?: string
+  description?: string,
+  force?: boolean
 ): Promise<TimeEntry> {
   const supabase = getSupabaseClient();
 
   // Check if timer already running
   const running = await getRunningTimer();
   if (running) {
-    throw new Error('Timer already running. Stop it first.');
+    if (force) {
+      // Stop the running timer first
+      await supabase
+        .from('time_entries')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('id', running.id);
+    } else {
+      throw new Error('Timer already running. Stop it first.');
+    }
   }
 
   const { data, error } = await supabase

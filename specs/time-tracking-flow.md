@@ -6,7 +6,7 @@
 
 ## Starting a Timer
 
-1. If a timer is already running, error and tell user to stop it first
+1. If a timer is already running, prompt to stop it and start the new one (see `timer-switch-confirmation.md`)
 2. If client doesn't exist, prompt to create it
 3. If project is provided and doesn't exist, prompt to create it
 4. If task is provided and doesn't exist, prompt to create it

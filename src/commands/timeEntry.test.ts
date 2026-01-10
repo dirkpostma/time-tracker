@@ -25,9 +25,12 @@ describe('time entry commands', () => {
   });
 
   beforeEach(async () => {
-    // Stop any running timer before each test
+    // Stop any running timer for THIS test client only (avoids parallel test interference)
     const supabase = getSupabaseClient();
-    await supabase.from('time_entries').update({ ended_at: new Date().toISOString() }).is('ended_at', null);
+    await supabase.from('time_entries')
+      .update({ ended_at: new Date().toISOString() })
+      .eq('client_id', testClientId)
+      .is('ended_at', null);
   });
 
   describe('startTimer', () => {
@@ -57,10 +60,33 @@ describe('time entry commands', () => {
       expect(entry.description).toBe('Working on feature');
     });
 
-    it('should throw if timer already running', async () => {
+    it('should throw if timer already running and force is false', async () => {
       await startTimer(testClientId, testProjectId);
 
       await expect(startTimer(testClientId)).rejects.toThrow('Timer already running');
+    });
+
+    it('should stop current timer and start new one when force is true', async () => {
+      // Start first timer
+      const firstEntry = await startTimer(testClientId, testProjectId);
+      expect(firstEntry.ended_at).toBeNull();
+
+      // Start second timer with force
+      const secondEntry = await startTimer(testClientId, undefined, undefined, undefined, true);
+
+      // Second timer should be running
+      expect(secondEntry.ended_at).toBeNull();
+      expect(secondEntry.id).not.toBe(firstEntry.id);
+
+      // First timer should be stopped
+      const supabase = getSupabaseClient();
+      const { data: stoppedEntry } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('id', firstEntry.id)
+        .single();
+
+      expect(stoppedEntry?.ended_at).not.toBeNull();
     });
   });
 

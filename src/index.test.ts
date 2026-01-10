@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { execSync } from 'child_process';
 import { getSupabaseClient } from './db/client.js';
 
@@ -102,18 +102,22 @@ describe('tt task', () => {
 describe('tt time tracking', () => {
   const testClientName = `CLI Time Test Client ${Date.now()}`;
   const testProjectName = `CLI Time Test Project ${Date.now()}`;
+  let testClientId: string;
 
   beforeAll(async () => {
-    // Stop any running timer from other tests
+    // Create client first so we can use its ID for cleanup
+    execSync(`node dist/index.js client add "${testClientName}"`);
     const supabase = getSupabaseClient();
-    await supabase.from('time_entries').update({ ended_at: new Date().toISOString() }).is('ended_at', null);
+    const { data: client } = await supabase.from('clients').select('id').eq('name', testClientName).single();
+    testClientId = client?.id;
   });
 
   afterAll(async () => {
     const supabase = getSupabaseClient();
-    // Stop any running timer
-    await supabase.from('time_entries').update({ ended_at: new Date().toISOString() }).is('ended_at', null);
-    await supabase.from('time_entries').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    // Only clean up this test's data
+    if (testClientId) {
+      await supabase.from('time_entries').delete().eq('client_id', testClientId);
+    }
     await supabase.from('projects').delete().eq('name', testProjectName);
     await supabase.from('clients').delete().eq('name', testClientName);
   });
@@ -126,12 +130,11 @@ describe('tt time tracking', () => {
   });
 
   it('should start a timer', () => {
-    // First create client and project
-    execSync(`node dist/index.js client add "${testClientName}"`);
+    // Create project (client already created in beforeAll)
     execSync(`node dist/index.js project add "${testProjectName}" --client "${testClientName}"`);
 
     const output = execSync(`node dist/index.js start --client "${testClientName}" --project "${testProjectName}"`).toString();
-    expect(output).toContain('Timer started');
+    expect(output).toContain('Started timer');
   });
 
   it('should show status with running timer', () => {
@@ -143,5 +146,37 @@ describe('tt time tracking', () => {
   it('should stop the timer', () => {
     const output = execSync('node dist/index.js stop').toString();
     expect(output).toContain('Timer stopped');
+  });
+
+  it('should error when starting timer while one is running (non-TTY)', () => {
+    // Start a timer first
+    execSync(`node dist/index.js start --client "${testClientName}" --project "${testProjectName}"`);
+
+    // Try to start another without --force (non-TTY should error)
+    try {
+      execSync(`node dist/index.js start --client "${testClientName}"`);
+      expect.fail('Should have thrown');
+    } catch (error: unknown) {
+      const stderr = (error as { stderr?: Buffer }).stderr?.toString() || '';
+      expect(stderr).toContain('Timer already running');
+      expect(stderr).toContain('--force');
+    }
+
+    // Clean up
+    execSync('node dist/index.js stop');
+  });
+
+  it('should switch timers with --force flag', () => {
+    // Start first timer
+    execSync(`node dist/index.js start --client "${testClientName}" --project "${testProjectName}"`);
+
+    // Start second timer with --force
+    const output = execSync(`node dist/index.js start --client "${testClientName}" --force`).toString();
+
+    expect(output).toContain('Stopped timer');
+    expect(output).toContain('Started timer');
+
+    // Clean up - stop the timer we just started
+    execSync('node dist/index.js stop');
   });
 });
