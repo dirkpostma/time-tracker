@@ -17,7 +17,23 @@ Hierarchy: **Client > Project > Task (optional) > TimeEntry**
 
 Storage: Supabase (PostgreSQL)
 
+## Commands
+
+```bash
+npm run build      # Build the CLI
+npm run dev        # Build in watch mode
+npm test           # Run tests in watch mode
+npm run test:run   # Run tests once
+```
+
 ## Development Approach
 
 - Spec-based development. Specs live in `/specs` and define features before implementation.
-- Test-driven development. All features should be implemented test-first.
+
+## Development Workflow
+
+1. Write failing test first
+2. Implement minimal code to pass
+3. Refactor if needed
+4. Never write implementation code without a test
+5. All tests must pass before committing
