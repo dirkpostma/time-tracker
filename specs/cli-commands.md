@@ -5,7 +5,7 @@ Command name: `tt`
 ## Time Tracking
 
 ```
-tt start --client <client> --project <project> [--task <task>] [--description <description>]
+tt start --client <client> [--project <project>] [--task <task>] [--description <description>]
 tt stop [--description <description>]
 tt status
 ```

@@ -33,13 +33,14 @@ Duplicate names allowed (e.g., same project name under different clients).
 
 ## TimeEntry
 
-| Field       | Type     | Notes                |
-|-------------|----------|----------------------|
-| id          | uuid     | PK                   |
-| project_id  | uuid     | FK to Project        |
-| task_id     | uuid     | FK to Task, optional |
-| description | string   | optional             |
-| started_at  | datetime | required             |
-| ended_at    | datetime | null if running      |
-| created_at  | datetime |                      |
-| updated_at  | datetime |                      |
+| Field       | Type     | Notes                   |
+|-------------|----------|-------------------------|
+| id          | uuid     | PK                      |
+| client_id   | uuid     | FK to Client            |
+| project_id  | uuid     | FK to Project, optional |
+| task_id     | uuid     | FK to Task, optional    |
+| description | string   | optional                |
+| started_at  | datetime | required                |
+| ended_at    | datetime | null if running         |
+| created_at  | datetime |                         |
+| updated_at  | datetime |                         |

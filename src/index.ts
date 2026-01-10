@@ -139,10 +139,10 @@ program
   .command('start')
   .description('Start a timer')
   .requiredOption('--client <client>', 'Client name')
-  .requiredOption('--project <project>', 'Project name')
+  .option('--project <project>', 'Project name')
   .option('--task <task>', 'Task name')
   .option('--description <description>', 'Description')
-  .action(async (options: { client: string; project: string; task?: string; description?: string }) => {
+  .action(async (options: { client: string; project?: string; task?: string; description?: string }) => {
     try {
       // Find or create client
       let client = await findClientByName(options.client);
@@ -158,48 +158,66 @@ program
         console.log(`Client "${client.name}" created`);
       }
 
-      // Find or create project
-      let project = await findProjectByName(options.project, client.id);
-      if (!project) {
-        const shouldCreate = await confirm({
-          message: `Project "${options.project}" doesn't exist. Create it?`,
-        });
-        if (!shouldCreate) {
-          console.log('Cancelled');
-          process.exit(0);
-        }
-        project = await addProject(options.project, client.id);
-        console.log(`Project "${project.name}" created`);
-      }
-
-      // Find or create task if provided
-      let taskId: string | undefined;
-      if (options.task) {
-        const { data: existingTask } = await (await import('./db/client.js')).getSupabaseClient()
-          .from('tasks')
-          .select('*')
-          .eq('name', options.task)
-          .eq('project_id', project.id)
-          .maybeSingle();
-
-        if (existingTask) {
-          taskId = existingTask.id;
-        } else {
+      // Find or create project if provided
+      let projectId: string | undefined;
+      if (options.project) {
+        let project = await findProjectByName(options.project, client.id);
+        if (!project) {
           const shouldCreate = await confirm({
-            message: `Task "${options.task}" doesn't exist. Create it?`,
+            message: `Project "${options.project}" doesn't exist. Create it?`,
           });
           if (!shouldCreate) {
             console.log('Cancelled');
             process.exit(0);
           }
-          const task = await addTask(options.task, project.id);
-          taskId = task.id;
-          console.log(`Task "${task.name}" created`);
+          project = await addProject(options.project, client.id);
+          console.log(`Project "${project.name}" created`);
         }
+        projectId = project.id;
+
+        // Find or create task if provided (requires project)
+        if (options.task) {
+          const { data: existingTask } = await (await import('./db/client.js')).getSupabaseClient()
+            .from('tasks')
+            .select('*')
+            .eq('name', options.task)
+            .eq('project_id', projectId)
+            .maybeSingle();
+
+          if (!existingTask) {
+            const shouldCreate = await confirm({
+              message: `Task "${options.task}" doesn't exist. Create it?`,
+            });
+            if (!shouldCreate) {
+              console.log('Cancelled');
+              process.exit(0);
+            }
+            const task = await addTask(options.task, projectId);
+            console.log(`Task "${task.name}" created`);
+          }
+        }
+      } else if (options.task) {
+        console.error('Task requires a project. Use --project to specify one.');
+        process.exit(1);
       }
 
-      const entry = await startTimer(project.id, taskId, options.description);
-      console.log(`Timer started for ${options.client} > ${options.project}${options.task ? ` > ${options.task}` : ''}`);
+      // Find task ID if provided
+      let taskId: string | undefined;
+      if (options.task && projectId) {
+        const { data: existingTask } = await (await import('./db/client.js')).getSupabaseClient()
+          .from('tasks')
+          .select('*')
+          .eq('name', options.task)
+          .eq('project_id', projectId)
+          .maybeSingle();
+        taskId = existingTask?.id;
+      }
+
+      const entry = await startTimer(client.id, projectId, taskId, options.description);
+      let timerPath = options.client;
+      if (options.project) timerPath += ` > ${options.project}`;
+      if (options.task) timerPath += ` > ${options.task}`;
+      console.log(`Timer started for ${timerPath}`);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to start timer');
       process.exit(1);
@@ -250,7 +268,9 @@ program
       const durationStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
       console.log(`Client: ${status.client.name}`);
-      console.log(`Project: ${status.project.name}`);
+      if (status.project) {
+        console.log(`Project: ${status.project.name}`);
+      }
       if (status.task) {
         console.log(`Task: ${status.task.name}`);
       }

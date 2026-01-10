@@ -5,7 +5,8 @@ import { Task } from './task.js';
 
 export interface TimeEntry {
   id: string;
-  project_id: string;
+  client_id: string;
+  project_id: string | null;
   task_id: string | null;
   description: string | null;
   started_at: string;
@@ -16,8 +17,8 @@ export interface TimeEntry {
 
 export interface TimerStatus {
   entry: TimeEntry;
-  project: Project;
   client: Client;
+  project: Project | null;
   task: Task | null;
   duration: number; // in seconds
 }
@@ -39,7 +40,8 @@ export async function getRunningTimer(): Promise<TimeEntry | null> {
 }
 
 export async function startTimer(
-  projectId: string,
+  clientId: string,
+  projectId?: string,
   taskId?: string,
   description?: string
 ): Promise<TimeEntry> {
@@ -54,7 +56,8 @@ export async function startTimer(
   const { data, error } = await supabase
     .from('time_entries')
     .insert({
-      project_id: projectId,
+      client_id: clientId,
+      project_id: projectId || null,
       task_id: taskId || null,
       description: description || null,
       started_at: new Date().toISOString(),
@@ -108,26 +111,30 @@ export async function getStatus(): Promise<TimerStatus | null> {
     return null;
   }
 
-  // Get project
-  const { data: project, error: projectError } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', running.project_id)
-    .single();
-
-  if (projectError || !project) {
-    throw new Error('Failed to get project info');
-  }
-
   // Get client
   const { data: client, error: clientError } = await supabase
     .from('clients')
     .select('*')
-    .eq('id', project.client_id)
+    .eq('id', running.client_id)
     .single();
 
   if (clientError || !client) {
     throw new Error('Failed to get client info');
+  }
+
+  // Get project if present
+  let project: Project | null = null;
+  if (running.project_id) {
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', running.project_id)
+      .single();
+
+    if (projectError || !projectData) {
+      throw new Error('Failed to get project info');
+    }
+    project = projectData;
   }
 
   // Get task if present
@@ -148,8 +155,8 @@ export async function getStatus(): Promise<TimerStatus | null> {
 
   return {
     entry: running,
-    project,
     client,
+    project,
     task,
     duration,
   };
