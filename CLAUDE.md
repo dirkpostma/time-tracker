@@ -15,6 +15,9 @@ Hierarchy: **Client > Project > Task (optional) > TimeEntry**
 - **Task**: Optional, belongs to a project
 - **TimeEntry**: Start/end timestamps for work sessions
 
+Storage: Supabase (PostgreSQL)
+
 ## Development Approach
 
-Spec-based development. Specs live in `/specs` and define features before implementation.
+- Spec-based development. Specs live in `/specs` and define features before implementation.
+- Test-driven development. All features should be implemented test-first.
