@@ -2,20 +2,53 @@
 
 A command-line tool for tracking time spent on projects.
 
+## Quick Start (Local Development)
+
+```bash
+# 1. Clone and install
+git clone <repo-url>
+cd time-tracker
+npm install
+
+# 2. Start local database (requires Docker)
+npm run db:start
+
+# 3. Build and run
+npm run build
+./dist/index.js
+```
+
+That's it! No Supabase account needed for local development.
+
 ## Data Structure
 
 - **Client** - Company or individual you work for
-- **Project** - Belongs to a client
-- **Task** - Optional, belongs to a project
-- **TimeEntry** - Time session on a project/task
+- **Project** - Belongs to a client (optional)
+- **Task** - Belongs to a project (optional)
+- **TimeEntry** - Time session with start/end timestamps
 
 ## Commands
 
+### Interactive Mode
+
+```bash
+tt                    # Launch interactive mode (arrow-key selection)
 ```
-tt start --client <client> --project <project> [--task <task>] [--description <description>]
+
+When a timer is running, shows options to Stop/Switch/Cancel.
+When no timer, walks through: Client > Project > Task > Description.
+
+### Time Tracking
+
+```bash
+tt start --client <client> [--project <project>] [--task <task>] [--description <desc>]
 tt stop [--description <description>]
 tt status
+```
 
+### Entity Management
+
+```bash
 tt client add <name>
 tt client list
 
@@ -27,6 +60,22 @@ tt task list --client <client> --project <project>
 
 Names are matched by string. If not found, prompts to create.
 
+### Examples
+
+```bash
+# Start tracking time for a client
+tt start --client "Acme Corp"
+
+# Start with project and description
+tt start --client "Acme Corp" --project "Website" --description "Working on homepage"
+
+# Check current timer
+tt status
+
+# Stop and add/update description
+tt stop --description "Finished header section"
+```
+
 ## Development
 
 ### Prerequisites
@@ -35,41 +84,12 @@ Names are matched by string. If not found, prompts to create.
 - Docker (for local Supabase)
 - Supabase CLI (`brew install supabase/tap/supabase`)
 
-### Environment Setup
-
-Create a `.env` file in the project root:
+### Local Database
 
 ```bash
-cp .env.example .env
-```
-
-Then edit `.env` with your Supabase credentials:
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
-```
-
-Get these values from your Supabase project dashboard under Settings > API.
-
-**Note:** Tests use local Supabase (configured in `vitest.config.ts`), so `.env` is only needed for running the CLI against production.
-
-### Local Database Setup
-
-Start the local Supabase instance (runs PostgreSQL and API in Docker):
-
-```bash
-npm run db:start
-```
-
-This starts PostgreSQL on port 54322 and Supabase API on port 54321, then runs all migrations.
-
-Other database commands:
-
-```bash
+npm run db:start    # Start local Supabase (PostgreSQL + API in Docker)
 npm run db:stop     # Stop Docker containers
 npm run db:reset    # Reset database and re-run migrations
-npm run db:deploy   # Deploy migrations to production
 ```
 
 ### Running Tests
@@ -80,13 +100,60 @@ npm run test:run    # Run tests once
 npm test            # Run tests in watch mode
 ```
 
-### Workflow
+### Building
 
 ```bash
-# Development
-npm run db:start         # Start local Supabase
-npm run test:run         # Run tests locally
-
-# After changes pass
-npm run db:deploy        # Deploy migrations to production
+npm run build       # Compile TypeScript to dist/
+npm run dev         # Watch mode
 ```
+
+### Install Globally
+
+```bash
+npm link            # Makes `tt` command available globally
+```
+
+## Production Setup
+
+To use with a hosted Supabase instance:
+
+### 1. Create Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a free account
+2. Create a new project
+3. Wait for the database to be provisioned
+
+### 2. Get Credentials
+
+1. In your Supabase project, go to **Settings > API**
+2. Copy the **Project URL** and **publishable key** (also called anon key)
+
+### 3. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here
+```
+
+### 4. Deploy Migrations
+
+```bash
+npm run db:deploy   # Push migrations to production Supabase
+```
+
+### 5. Run
+
+```bash
+npm run build
+./dist/index.js
+```
+
+## License
+
+MIT
