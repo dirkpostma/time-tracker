@@ -73,3 +73,28 @@ describe('tt project', () => {
     expect(output).toContain(testProjectName);
   });
 });
+
+describe('tt task', () => {
+  const testClientName = `CLI Task Test Client ${Date.now()}`;
+  const testProjectName = `CLI Task Test Project ${Date.now()}`;
+
+  afterAll(async () => {
+    const supabase = getSupabaseClient();
+    await supabase.from('projects').delete().eq('name', testProjectName);
+    await supabase.from('clients').delete().eq('name', testClientName);
+  });
+
+  it('should have task command', () => {
+    const output = execSync('node dist/index.js task --help').toString();
+    expect(output).toContain('list');
+  });
+
+  it('should list tasks (empty)', () => {
+    // First create client and project
+    execSync(`node dist/index.js client add "${testClientName}"`);
+    execSync(`node dist/index.js project add "${testProjectName}" --client "${testClientName}"`);
+
+    const output = execSync(`node dist/index.js task list --client "${testClientName}" --project "${testProjectName}"`).toString();
+    expect(output).toContain('No tasks found');
+  });
+});

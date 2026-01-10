@@ -3,6 +3,7 @@ import { program } from 'commander';
 import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './commands/client.js';
 import { addProject, listProjects, findClientByName } from './commands/project.js';
+import { listTasks, findProjectByName } from './commands/task.js';
 
 program
   .name('tt')
@@ -92,6 +93,42 @@ projectCmd
       });
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to list projects');
+      process.exit(1);
+    }
+  });
+
+// Task commands
+const taskCmd = program
+  .command('task')
+  .description('Manage tasks');
+
+taskCmd
+  .command('list')
+  .description('List tasks for a project')
+  .requiredOption('--client <client>', 'Client name')
+  .requiredOption('--project <project>', 'Project name')
+  .action(async (options: { client: string; project: string }) => {
+    try {
+      const client = await findClientByName(options.client);
+      if (!client) {
+        console.error(`Client "${options.client}" not found`);
+        process.exit(1);
+      }
+      const project = await findProjectByName(options.project, client.id);
+      if (!project) {
+        console.error(`Project "${options.project}" not found`);
+        process.exit(1);
+      }
+      const tasks = await listTasks(project.id);
+      if (tasks.length === 0) {
+        console.log('No tasks found');
+        return;
+      }
+      tasks.forEach(task => {
+        console.log(`${task.name} (id: ${task.id})`);
+      });
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Failed to list tasks');
       process.exit(1);
     }
   });
