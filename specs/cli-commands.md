@@ -30,11 +30,15 @@ tt project list
 tt task list --client <client> --project <project>
 ```
 
+## Interactive Mode
+
+See `interactive-mode.md` for details.
+
+```
+tt                # Launch interactive selection flow
+```
+
 ## Name Matching
 
 - `--client`, `--project`, and `--task` match by name
 - If not found, prompt user: "<Entity> 'X' doesn't exist. Create it? [y/n]"
-
-## Future
-
-- Interactive mode: `tt` without flags walks user through client → project selection
