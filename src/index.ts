@@ -1,10 +1,29 @@
 #!/usr/bin/env node
+
+/**
+ * FORCE_TTY: Enables interactive mode testing without a real terminal.
+ *
+ * Problem: inquirer prompts check `process.stdin.isTTY` and refuse to run
+ * when stdin is a pipe (e.g., in tests or CI).
+ *
+ * Solution: Set FORCE_TTY=1 to override isTTY checks. This allows integration
+ * tests to spawn the CLI with piped stdin and send arrow keys / enter to
+ * simulate user interaction.
+ *
+ * Usage: FORCE_TTY=1 node dist/index.js
+ */
+if (process.env.FORCE_TTY === '1') {
+  Object.defineProperty(process.stdin, 'isTTY', { value: true });
+  Object.defineProperty(process.stdout, 'isTTY', { value: true });
+}
+
 import { program } from 'commander';
 import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './commands/client.js';
 import { addProject, listProjects, findClientByName } from './commands/project.js';
 import { listTasks, findProjectByName, addTask } from './commands/task.js';
 import { startTimer, stopTimer, getStatus, getRunningTimer } from './commands/timeEntry.js';
+import { runInteractiveMode } from './commands/interactive.js';
 
 program
   .name('tt')
@@ -331,5 +350,19 @@ program
       process.exit(1);
     }
   });
+
+// Default action (interactive mode)
+program.action(async () => {
+  try {
+    if (!process.stdin.isTTY) {
+      console.error('Interactive mode requires a TTY. Use `tt start --client <client>` instead.');
+      process.exit(1);
+    }
+    await runInteractiveMode();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : 'Failed');
+    process.exit(1);
+  }
+});
 
 program.parse();

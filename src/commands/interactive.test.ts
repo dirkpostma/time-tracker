@@ -1,0 +1,366 @@
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { runInteractiveMode, InteractiveResult } from './interactive.js';
+import { getSupabaseClient } from '../db/client.js';
+import { addClient, Client } from './client.js';
+import { addProject, Project } from './project.js';
+import { addTask, Task } from './task.js';
+import { getRunningTimer, stopTimer } from './timeEntry.js';
+import { saveLastUsed, loadLastUsed } from '../config.js';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
+describe('interactive mode', () => {
+  const testId = Date.now();
+  let testClient: Client;
+  let testClient2: Client;
+  let testProject: Project;
+  let testTask: Task;
+
+  beforeAll(async () => {
+    // Create test data
+    testClient = await addClient(`Interactive Test Client ${testId}`);
+    testClient2 = await addClient(`Interactive Test Client 2 ${testId}`);
+    testProject = await addProject(`Interactive Test Project ${testId}`, testClient.id);
+    testTask = await addTask(`Interactive Test Task ${testId}`, testProject.id);
+  });
+
+  afterAll(async () => {
+    const supabase = getSupabaseClient();
+
+    // Stop any running timer
+    const running = await getRunningTimer();
+    if (running) {
+      await stopTimer();
+    }
+
+    // Clean up test data
+    await supabase.from('tasks').delete().eq('id', testTask.id);
+    await supabase.from('projects').delete().eq('id', testProject.id);
+    await supabase.from('clients').delete().eq('id', testClient.id);
+    await supabase.from('clients').delete().eq('id', testClient2.id);
+  });
+
+  beforeEach(async () => {
+    // Stop any running timer before each test
+    const running = await getRunningTimer();
+    if (running) {
+      await stopTimer();
+    }
+  });
+
+  describe('no timer running', () => {
+    it('starts timer after selecting client, project, and task', async () => {
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return testProject.id;
+        if (opts.message.includes('task')) return testTask.id;
+        return '';
+      };
+
+      const mockInput = async () => 'Test description';
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      expect(result.action).toBe('started');
+      expect(result.timerStarted).toBe(true);
+
+      const running = await getRunningTimer();
+      expect(running).not.toBeNull();
+      expect(running?.client_id).toBe(testClient.id);
+      expect(running?.project_id).toBe(testProject.id);
+      expect(running?.task_id).toBe(testTask.id);
+      expect(running?.description).toBe('Test description');
+    });
+
+    it('starts timer with only client (skip project and task)', async () => {
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return '__skip__';
+        return '__skip__';
+      };
+
+      const mockInput = async () => '';
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      expect(result.action).toBe('started');
+
+      const running = await getRunningTimer();
+      expect(running).not.toBeNull();
+      expect(running?.client_id).toBe(testClient.id);
+      expect(running?.project_id).toBeNull();
+      expect(running?.task_id).toBeNull();
+    });
+
+    it('creates new client when selected', async () => {
+      let createClientPromptShown = false;
+      const newClientName = `New Client ${testId}`;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return '__new__';
+        if (opts.message.includes('project')) return '__skip__';
+        return '__skip__';
+      };
+
+      const mockInput = async (opts: { message: string }) => {
+        if (opts.message.includes('client') || opts.message.includes('Client')) {
+          createClientPromptShown = true;
+          return newClientName;
+        }
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      expect(createClientPromptShown).toBe(true);
+      expect(result.action).toBe('started');
+
+      // Clean up new client
+      const supabase = getSupabaseClient();
+      await supabase.from('time_entries').delete().eq('client_id', result.clientId!);
+      await supabase.from('clients').delete().eq('name', newClientName);
+    });
+
+    it('creates new project when [+ New project] is selected', async () => {
+      let createProjectPromptShown = false;
+      const newProjectName = `New Project ${testId}`;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return '__new__';
+        if (opts.message.includes('task')) return '__skip__';
+        return '';
+      };
+
+      const mockInput = async (opts: { message: string }) => {
+        if (opts.message.includes('Project')) {
+          createProjectPromptShown = true;
+          return newProjectName;
+        }
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      expect(createProjectPromptShown).toBe(true);
+      expect(result.action).toBe('started');
+      expect(result.projectId).toBeDefined();
+
+      // Verify project was created
+      const supabase = getSupabaseClient();
+      const { data: project } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', result.projectId!)
+        .single();
+      expect(project?.name).toBe(newProjectName);
+
+      // Clean up
+      await supabase.from('time_entries').delete().eq('project_id', result.projectId!);
+      await supabase.from('projects').delete().eq('id', result.projectId!);
+    });
+
+    it('creates new task when [+ New task] is selected', async () => {
+      let createTaskPromptShown = false;
+      const newTaskName = `New Task ${testId}`;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return testProject.id;
+        if (opts.message.includes('task')) return '__new__';
+        return '';
+      };
+
+      const mockInput = async (opts: { message: string }) => {
+        if (opts.message.includes('Task')) {
+          createTaskPromptShown = true;
+          return newTaskName;
+        }
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      expect(createTaskPromptShown).toBe(true);
+      expect(result.action).toBe('started');
+      expect(result.taskId).toBeDefined();
+
+      // Verify task was created
+      const supabase = getSupabaseClient();
+      const { data: task } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', result.taskId!)
+        .single();
+      expect(task?.name).toBe(newTaskName);
+
+      // Clean up
+      await supabase.from('time_entries').delete().eq('task_id', result.taskId!);
+      await supabase.from('tasks').delete().eq('id', result.taskId!);
+    });
+  });
+
+  describe('timer running', () => {
+    beforeEach(async () => {
+      // Start a timer
+      const supabase = getSupabaseClient();
+      await supabase.from('time_entries').insert({
+        client_id: testClient.id,
+        project_id: testProject.id,
+        started_at: new Date().toISOString(),
+      });
+    });
+
+    it('stops timer when Stop is selected', async () => {
+      const mockSelect = async (opts: { message: string }) => {
+        if (opts.message.includes('What would you like to do')) return 'stop';
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      expect(result.action).toBe('stopped');
+
+      const running = await getRunningTimer();
+      expect(running).toBeNull();
+    });
+
+    it('switches timer when Switch is selected', async () => {
+      const mockSelect = async (opts: { message: string }) => {
+        if (opts.message.includes('What would you like to do')) return 'switch';
+        if (opts.message.includes('client')) return testClient2.id;
+        if (opts.message.includes('project')) return '__skip__';
+        if (opts.message.includes('task')) return '__skip__';
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      expect(result.action).toBe('switched');
+
+      const running = await getRunningTimer();
+      expect(running).not.toBeNull();
+      expect(running?.client_id).toBe(testClient2.id);
+    });
+
+    it('cancels without changes when Cancel is selected', async () => {
+      const runningBefore = await getRunningTimer();
+
+      const mockSelect = async (opts: { message: string }) => {
+        if (opts.message.includes('What would you like to do')) return 'cancel';
+        return '';
+      };
+
+      const result = await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      expect(result.action).toBe('cancelled');
+
+      const runningAfter = await getRunningTimer();
+      expect(runningAfter?.id).toBe(runningBefore?.id);
+    });
+  });
+
+  describe('smart defaults (last-used pre-selection)', () => {
+    const configPath = path.join(os.tmpdir(), `.tt-config-test-${Date.now()}.json`);
+
+    afterEach(() => {
+      // Clean up test config file
+      if (fs.existsSync(configPath)) {
+        fs.unlinkSync(configPath);
+      }
+    });
+
+    it('saves last-used client and project after starting timer', async () => {
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return testProject.id;
+        if (opts.message.includes('task')) return '__skip__';
+        return '';
+      };
+
+      await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      // Verify last-used was saved (check actual config file)
+      const lastUsed = loadLastUsed();
+      expect(lastUsed.clientId).toBe(testClient.id);
+      expect(lastUsed.projectId).toBe(testProject.id);
+    });
+
+    it('pre-selects last-used client in choices', async () => {
+      // Save a last-used client
+      saveLastUsed({ clientId: testClient.id });
+
+      let clientChoicesDefault: string | undefined;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[]; default?: string }) => {
+        if (opts.message.includes('client')) {
+          clientChoicesDefault = opts.default;
+          return testClient.id;
+        }
+        if (opts.message.includes('project')) return '__skip__';
+        return '__skip__';
+      };
+
+      await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      // The default should be the last-used client ID
+      expect(clientChoicesDefault).toBe(testClient.id);
+    });
+
+    it('pre-selects last-used project in choices', async () => {
+      // Save last-used client and project
+      saveLastUsed({ clientId: testClient.id, projectId: testProject.id });
+
+      let projectChoicesDefault: string | undefined;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[]; default?: string }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) {
+          projectChoicesDefault = opts.default;
+          return testProject.id;
+        }
+        if (opts.message.includes('task')) return '__skip__';
+        return '';
+      };
+
+      await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: (async () => '') as never,
+      });
+
+      // The default should be the last-used project ID
+      expect(projectChoicesDefault).toBe(testProject.id);
+    });
+  });
+});

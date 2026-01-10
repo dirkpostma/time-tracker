@@ -55,3 +55,19 @@ export async function listProjects(): Promise<Project[]> {
 
   return data || [];
 }
+
+export async function listProjectsByClient(clientId: string): Promise<Project[]> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('name');
+
+  if (error) {
+    throw new Error(`Failed to list projects: ${error.message}`);
+  }
+
+  return data || [];
+}
