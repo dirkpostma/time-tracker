@@ -1,11 +1,11 @@
-# Config Spec
+# Recent Spec
 
-User preferences persisted across CLI sessions.
+Stores recently used selections for smart defaults in interactive mode.
 
 ## File Location
 
 ```
-~/.tt-config.json
+~/.tt-recent.json
 ```
 
 ## Format

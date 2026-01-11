@@ -21,7 +21,7 @@ import { listClients, addClient, Client } from './client.js';
 import { listProjectsByClient, addProject, Project } from './project.js';
 import { listTasks, addTask, Task } from './task.js';
 import { getStatus, startTimer, stopTimer, TimerStatus } from './timeEntry.js';
-import { loadLastUsed, saveLastUsed } from '../config.js';
+import { loadRecent, saveRecent } from '../recent.js';
 
 /** Result returned by runInteractiveMode() for testing/verification */
 export interface InteractiveResult {
@@ -183,7 +183,7 @@ async function runSelectionFlow(
   taskId: string | undefined;
   description: string | undefined;
 }> {
-  const lastUsed = loadLastUsed();
+  const lastUsed = loadRecent();
 
   // Select or create client
   const clients = await listClients();
@@ -232,7 +232,7 @@ async function runSelectionFlow(
   const description = await inputFn({ message: 'Description (optional):' });
 
   // Save last used
-  saveLastUsed({ clientId, projectId: projectId || undefined });
+  saveRecent({ clientId, projectId: projectId || undefined });
 
   return {
     clientId,

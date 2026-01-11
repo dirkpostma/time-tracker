@@ -4,7 +4,7 @@ import { getSupabaseClient } from '../db/client.js';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';
-import { saveLastUsed } from '../config.js';
+import { saveRecent } from '../recent.js';
 import path from 'path';
 
 const CLI_PATH = path.join(process.cwd(), 'dist', 'index.js');
@@ -120,8 +120,8 @@ describe('interactive mode integration', () => {
     if (running) {
       await stopTimer();
     }
-    // Clear last-used config to avoid interference from other tests
-    saveLastUsed({});
+    // Clear recent config to avoid interference from other tests
+    saveRecent({});
   });
 
   it('starts timer by selecting client and accepting defaults', async () => {

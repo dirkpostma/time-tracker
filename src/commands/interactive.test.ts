@@ -5,7 +5,7 @@ import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { addTask, Task } from './task.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';
-import { saveLastUsed, loadLastUsed } from '../config.js';
+import { saveRecent, loadRecent } from '../recent.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -286,12 +286,12 @@ describe('interactive mode', () => {
   });
 
   describe('smart defaults (last-used pre-selection)', () => {
-    const configPath = path.join(os.tmpdir(), `.tt-config-test-${Date.now()}.json`);
+    const recentPath = path.join(os.tmpdir(), `.tt-recent-test-${Date.now()}.json`);
 
     afterEach(() => {
       // Clean up test config file
-      if (fs.existsSync(configPath)) {
-        fs.unlinkSync(configPath);
+      if (fs.existsSync(recentPath)) {
+        fs.unlinkSync(recentPath);
       }
     });
 
@@ -309,14 +309,14 @@ describe('interactive mode', () => {
       });
 
       // Verify last-used was saved (check actual config file)
-      const lastUsed = loadLastUsed();
-      expect(lastUsed.clientId).toBe(testClient.id);
-      expect(lastUsed.projectId).toBe(testProject.id);
+      const recent = loadRecent();
+      expect(recent.clientId).toBe(testClient.id);
+      expect(recent.projectId).toBe(testProject.id);
     });
 
     it('pre-selects last-used client in choices', async () => {
-      // Save a last-used client
-      saveLastUsed({ clientId: testClient.id });
+      // Save a recent client
+      saveRecent({ clientId: testClient.id });
 
       let clientChoicesDefault: string | undefined;
 
@@ -339,8 +339,8 @@ describe('interactive mode', () => {
     });
 
     it('pre-selects last-used project in choices', async () => {
-      // Save last-used client and project
-      saveLastUsed({ clientId: testClient.id, projectId: testProject.id });
+      // Save recent client and project
+      saveRecent({ clientId: testClient.id, projectId: testProject.id });
 
       let projectChoicesDefault: string | undefined;
 
