@@ -24,7 +24,8 @@ describe('recent', () => {
   describe('getRecentPath', () => {
     it('returns path in home directory', () => {
       const recentPath = getRecentPath();
-      expect(recentPath).toContain('.tt-recent.json');
+      expect(recentPath).toContain('.tt');
+      expect(recentPath).toContain('recent.json');
       expect(recentPath).toContain(os.homedir());
     });
   });

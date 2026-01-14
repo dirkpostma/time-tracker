@@ -5,7 +5,7 @@
  * the client/project the user chose last time. This saves them from
  * navigating through the list every time they start a timer.
  *
- * Storage: Simple JSON file at ~/.tt-recent.json
+ * Storage: JSON file at ~/.tt/recent.json
  * Format: { "clientId": "uuid", "projectId": "uuid" }
  */
 
@@ -23,7 +23,7 @@ export interface Recent {
  * @param recentPath - Optional override for testing (avoids touching real file)
  */
 export function getRecentPath(): string {
-  return path.join(os.homedir(), '.tt-recent.json');
+  return path.join(os.homedir(), '.tt', 'recent.json');
 }
 
 /**
@@ -52,5 +52,9 @@ export function loadRecent(recentPath?: string): Recent {
  */
 export function saveRecent(data: Recent, recentPath?: string): void {
   const filePath = recentPath ?? getRecentPath();
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   fs.writeFileSync(filePath, JSON.stringify(data));
 }

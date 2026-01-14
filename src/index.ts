@@ -24,6 +24,7 @@ import { addProject, listProjects, findClientByName } from './commands/project.j
 import { listTasks, findProjectByName, addTask } from './commands/task.js';
 import { startTimer, stopTimer, getStatus, getRunningTimer } from './commands/timeEntry.js';
 import { runInteractiveMode } from './commands/interactive.js';
+import { configCommand } from './commands/config.js';
 
 program
   .name('tt')
@@ -347,6 +348,19 @@ program
       console.log(`Duration: ${durationStr}`);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to get status');
+      process.exit(1);
+    }
+  });
+
+// Config command
+program
+  .command('config')
+  .description('Configure Supabase credentials')
+  .action(async () => {
+    try {
+      await configCommand();
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Failed to configure');
       process.exit(1);
     }
   });
