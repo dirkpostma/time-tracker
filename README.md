@@ -91,18 +91,22 @@ The codebase is structured for sharing between CLI and future mobile app:
 
 ```
 src/
-├── core/                    # Pure business logic (shareable)
-│   ├── types.ts            # Shared types (Client, Project, Task, TimeEntry)
-│   ├── validation.ts       # Input validation functions
-│   └── timer.ts            # Timer state and operations
-├── repositories/           # Data access layer (shareable)
-│   ├── types.ts            # Repository interfaces
-│   └── supabase/           # Supabase implementations
-├── cli/                    # CLI-specific code
-│   └── commands/           # Command handlers
-├── config.ts               # Credential management
-├── recent.ts               # Last-used selections
-└── index.ts                # CLI entry point
+├── core/                   # Pure business logic (shareable)
+│   ├── types.ts           # Shared types (Client, Project, Task, TimeEntry)
+│   ├── validation.ts      # Input validation functions
+│   └── timer.ts           # Timer state and operations
+├── repositories/          # Data access layer (shareable)
+│   ├── types.ts           # Repository interfaces
+│   └── supabase/          # Supabase implementations
+│       ├── connection.ts  # Supabase client singleton
+│       ├── client.ts      # Client repository
+│       ├── project.ts     # Project repository
+│       ├── task.ts        # Task repository
+│       └── timeEntry.ts   # TimeEntry repository
+├── cli/commands/          # CLI command handlers
+├── config.ts              # Credential management
+├── recent.ts              # Last-used selections
+└── index.ts               # CLI entry point
 ```
 
 **Core layer** - Pure functions with no I/O, easy to test, can be used by CLI, mobile app, or API.

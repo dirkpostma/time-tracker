@@ -16,10 +16,13 @@ src/
 │   └── timer.ts            # Timer state and operations
 ├── repositories/           # Data access (shareable)
 │   ├── types.ts            # Repository interfaces
-│   └── supabase/           # Supabase implementations
-├── cli/                    # CLI-specific (not shared)
-│   └── commands/           # Command handlers
-├── commands/               # Backward compatibility re-exports
+│   └── supabase/
+│       ├── connection.ts   # Supabase client singleton
+│       ├── client.ts       # Client repository
+│       ├── project.ts      # Project repository
+│       ├── task.ts         # Task repository
+│       └── timeEntry.ts    # TimeEntry repository
+├── cli/commands/           # CLI command handlers
 ├── config.ts               # Credential management
 ├── recent.ts               # Last-used selections
 └── index.ts                # CLI entry point
@@ -67,7 +70,7 @@ src/
 ### Phase 4: Restructure CLI ✓
 - [x] Move commands to `src/cli/commands/`
 - [x] Update imports in index.ts
-- [x] Backward compatibility via re-exports
+- [x] Remove old `src/commands/` folder
 
 ## Future Work
 
@@ -95,7 +98,7 @@ const result = await startTimer(repo, { clientId, description });
 
 ## Success Criteria
 
-- [x] All existing tests pass (287 tests)
+- [x] All existing tests pass (223 tests)
 - [x] Core layer has no CLI dependencies
 - [x] Repository layer is interface-based
 - [x] CLI commands are thin wrappers

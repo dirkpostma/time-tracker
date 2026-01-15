@@ -7,7 +7,7 @@
  * - Handle errors with user-friendly messages
  */
 
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from '../../repositories/supabase/connection.js';
 import { SupabaseTimeEntryRepository } from '../../repositories/supabase/timeEntry.js';
 import { RepositoryError } from '../../repositories/types.js';
 import { Client } from './client.js';

@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from './connection.js';
 import { RepositoryError, type ProjectRepository } from '../types.js';
 import type { Project, CreateProjectInput } from '../../core/types.js';
 

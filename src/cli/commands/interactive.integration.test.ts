@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from '../../repositories/supabase/connection.js';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';

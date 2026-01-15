@@ -239,7 +239,7 @@ program
 
         // Find or create task if provided (requires project)
         if (options.task) {
-          const { data: existingTask } = await (await import('./db/client.js')).getSupabaseClient()
+          const { data: existingTask } = await (await import('./repositories/supabase/connection.js')).getSupabaseClient()
             .from('tasks')
             .select('*')
             .eq('name', options.task)
@@ -266,7 +266,7 @@ program
       // Find task ID if provided
       let taskId: string | undefined;
       if (options.task && projectId) {
-        const { data: existingTask } = await (await import('./db/client.js')).getSupabaseClient()
+        const { data: existingTask } = await (await import('./repositories/supabase/connection.js')).getSupabaseClient()
           .from('tasks')
           .select('*')
           .eq('name', options.task)

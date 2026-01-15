@@ -4,7 +4,7 @@ import { RepositoryError } from '../types.js';
 import type { TimeEntry, CreateTimeEntryInput, UpdateTimeEntryInput } from '../../core/types.js';
 
 // Mock the Supabase client module
-vi.mock('../../db/client.js', () => ({
+vi.mock('./connection.js', () => ({
   getSupabaseClient: vi.fn(),
   formatSupabaseError: vi.fn((err: Error | string) => {
     const message = err instanceof Error ? err.message : err;
@@ -12,7 +12,7 @@ vi.mock('../../db/client.js', () => ({
   }),
 }));
 
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from './connection.js';
 
 describe('SupabaseTimeEntryRepository', () => {
   let repository: SupabaseTimeEntryRepository;

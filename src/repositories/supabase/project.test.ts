@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from './connection.js';
 import { SupabaseProjectRepository } from './project.js';
 import { RepositoryError } from '../types.js';
 import type { Project } from '../../core/types.js';

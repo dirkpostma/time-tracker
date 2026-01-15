@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from './connection.js';
 import type { Client, CreateClientInput } from '../../core/types.js';
 import type { ClientRepository } from '../types.js';
 import { RepositoryError } from '../types.js';

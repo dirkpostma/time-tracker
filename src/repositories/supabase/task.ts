@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from './connection.js';
 import type { Task, CreateTaskInput } from '../../core/types.js';
 import type { TaskRepository } from '../types.js';
 import { RepositoryError } from '../types.js';

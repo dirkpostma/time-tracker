@@ -1,4 +1,4 @@
-import { getSupabaseClient, formatSupabaseError } from '../../db/client.js';
+import { getSupabaseClient, formatSupabaseError } from './connection.js';
 import { RepositoryError, type TimeEntryRepository } from '../types.js';
 import type {
   TimeEntry,

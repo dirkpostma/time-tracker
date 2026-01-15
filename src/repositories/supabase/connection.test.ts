@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getSupabaseClient, formatSupabaseError } from './client.js';
+import { getSupabaseClient, formatSupabaseError } from './connection.js';
 
 describe('Supabase client', () => {
   it('should create a client', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { runInteractiveMode, InteractiveResult } from './interactive.js';
-import { getSupabaseClient } from '../../db/client.js';
+import { getSupabaseClient } from '../../repositories/supabase/connection.js';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { addTask, Task } from './task.js';
