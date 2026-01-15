@@ -37,3 +37,5 @@ npm run test:run   # Run tests once
 3. Refactor if needed
 4. Never write implementation code without a test
 5. All tests must pass before committing
+6. Check if tests match the specifications in /specs
+7. Check if docs need updating (README.md, specs/)

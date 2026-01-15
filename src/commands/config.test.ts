@@ -6,6 +6,7 @@ import os from 'os';
 // Mock @inquirer/prompts before importing the module
 vi.mock('@inquirer/prompts', () => ({
   input: vi.fn(),
+  confirm: vi.fn(),
 }));
 
 // Mock @supabase/supabase-js
@@ -13,10 +14,19 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(),
 }));
 
-import { configCommand, validateCredentials } from './config.js';
+import { configCommand, validateCredentials, ensureConfig } from './config.js';
 import { getConfig, saveConfig } from '../config.js';
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
+
+// Mock ../config.js for ensureConfig tests
+vi.mock('../config.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../config.js')>();
+  return {
+    ...original,
+    getConfig: vi.fn(original.getConfig),
+  };
+});
 
 describe('validateCredentials', () => {
   beforeEach(() => {
@@ -75,6 +85,44 @@ describe('validateCredentials', () => {
     const result = await validateCredentials('https://myproject.supabase.co', 'some-key');
     expect(result.valid).toBe(false);
     expect(result.error).toContain('Could not connect to Supabase');
+  });
+});
+
+describe('showConfig', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows config with masked key when config exists', async () => {
+    const { showConfig } = await import('./config.js');
+    vi.mocked(getConfig).mockReturnValue({
+      supabaseUrl: 'https://myproject.supabase.co',
+      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret',
+    });
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await showConfig();
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('https://myproject.supabase.co'));
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('****'));
+    // Should NOT show the full key
+    expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('secret'));
+
+    consoleSpy.mockRestore();
+  });
+
+  it('shows message when no config exists', async () => {
+    const { showConfig } = await import('./config.js');
+    vi.mocked(getConfig).mockReturnValue(null);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await showConfig();
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No configuration found'));
+
+    consoleSpy.mockRestore();
   });
 });
 
@@ -214,5 +262,69 @@ describe('configCommand', () => {
 
     consoleSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+  });
+});
+
+describe('ensureConfig', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns config when it exists', async () => {
+    const existingConfig = { supabaseUrl: 'https://test.supabase.co', supabaseKey: 'test-key' };
+    vi.mocked(getConfig).mockReturnValue(existingConfig);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const result = await ensureConfig();
+
+    expect(result).toEqual(existingConfig);
+    expect(confirm).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('prompts to set up when no config exists and user accepts', async () => {
+    vi.mocked(getConfig)
+      .mockReturnValueOnce(null) // First call: no config
+      .mockReturnValue({ supabaseUrl: 'https://new.supabase.co', supabaseKey: 'new-key' }); // After setup
+
+    vi.mocked(confirm).mockResolvedValue(true);
+    vi.mocked(input)
+      .mockResolvedValueOnce('https://new.supabase.co')
+      .mockResolvedValueOnce('new-key');
+
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const result = await ensureConfig();
+
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.stringContaining('No configuration found'),
+    }));
+    expect(result).toEqual({ supabaseUrl: 'https://new.supabase.co', supabaseKey: 'new-key' });
+
+    consoleSpy.mockRestore();
+  });
+
+  it('exits when no config and user declines setup', async () => {
+    vi.mocked(getConfig).mockReturnValue(null);
+    vi.mocked(confirm).mockResolvedValue(false);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+
+    await expect(ensureConfig()).rejects.toThrow('process.exit(0)');
+
+    expect(consoleSpy).toHaveBeenCalledWith("Run 'tt config' when ready.");
+
+    consoleSpy.mockRestore();
+    mockExit.mockRestore();
   });
 });

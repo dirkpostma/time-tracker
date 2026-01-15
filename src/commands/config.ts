@@ -1,6 +1,6 @@
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
-import { getConfig, saveConfig, getConfigPath } from '../config.js';
+import { getConfig, saveConfig, getConfigPath, Config } from '../config.js';
 
 export interface ValidationResult {
   valid: boolean;
@@ -59,6 +59,28 @@ export async function validateCredentials(url: string, key: string): Promise<Val
   }
 }
 
+/**
+ * Shows current configuration with masked key.
+ */
+export async function showConfig(): Promise<void> {
+  const config = getConfig();
+
+  if (!config) {
+    console.log('No configuration found. Run `tt config` to set up.');
+    return;
+  }
+
+  // Mask the key, showing only first 8 and last 4 chars
+  const key = config.supabaseKey;
+  const maskedKey = key.length > 12
+    ? `${key.slice(0, 8)}****${key.slice(-4)}`
+    : '****';
+
+  console.log(`Supabase URL: ${config.supabaseUrl}`);
+  console.log(`Supabase Key: ${maskedKey}`);
+  console.log(`Config file:  ${getConfigPath()}`);
+}
+
 export async function configCommand(): Promise<void> {
   const existing = getConfig();
 
@@ -85,4 +107,36 @@ export async function configCommand(): Promise<void> {
 
   saveConfig({ supabaseUrl: url, supabaseKey: key });
   console.log(`\nConfiguration saved to ${getConfigPath()}`);
+}
+
+/**
+ * Ensures configuration exists, prompting user to set up if missing.
+ * Returns the config or exits if user declines setup.
+ */
+export async function ensureConfig(): Promise<Config> {
+  const config = getConfig();
+
+  if (config) {
+    return config;
+  }
+
+  const shouldSetup = await confirm({
+    message: 'No configuration found. Set up now?',
+    default: true,
+  });
+
+  if (!shouldSetup) {
+    console.log("Run 'tt config' when ready.");
+    process.exit(0);
+  }
+
+  await configCommand();
+
+  const newConfig = getConfig();
+  if (!newConfig) {
+    console.log("Configuration not saved. Run 'tt config' when ready.");
+    process.exit(1);
+  }
+
+  return newConfig;
 }

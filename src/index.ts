@@ -24,12 +24,17 @@ import { addProject, listProjects, findClientByName } from './commands/project.j
 import { listTasks, findProjectByName, addTask } from './commands/task.js';
 import { startTimer, stopTimer, getStatus, getRunningTimer } from './commands/timeEntry.js';
 import { runInteractiveMode } from './commands/interactive.js';
-import { configCommand } from './commands/config.js';
+import { configCommand, ensureConfig, showConfig } from './commands/config.js';
 
 program
   .name('tt')
   .description('Time tracking CLI')
-  .version('1.0.0');
+  .version('1.0.0')
+  .hook('preAction', async (thisCommand) => {
+    // Skip config check for the config command itself
+    if (thisCommand.name() === 'config') return;
+    await ensureConfig();
+  });
 
 // Client commands
 const clientCmd = program
@@ -356,9 +361,14 @@ program
 program
   .command('config')
   .description('Configure Supabase credentials')
-  .action(async () => {
+  .option('--show', 'Show current configuration')
+  .action(async (options: { show?: boolean }) => {
     try {
-      await configCommand();
+      if (options.show) {
+        await showConfig();
+      } else {
+        await configCommand();
+      }
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to configure');
       process.exit(1);

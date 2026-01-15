@@ -156,5 +156,17 @@ describe('config', () => {
       const savedContent = fs.readFileSync(testConfigPath, 'utf-8');
       expect(savedContent).toContain('\n'); // Has newlines (formatted)
     });
+
+    it('sets file permissions to 0600 (user read/write only)', () => {
+      const config = { supabaseUrl: 'https://test.co', supabaseKey: 'key' };
+
+      saveConfig(config, testConfigPath);
+
+      const stats = fs.statSync(testConfigPath);
+      // 0o600 = 384 in decimal, but mode includes file type bits
+      // We mask with 0o777 to get just the permission bits
+      const permissions = stats.mode & 0o777;
+      expect(permissions).toBe(0o600);
+    });
   });
 });

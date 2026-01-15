@@ -76,5 +76,26 @@ When running any command with invalid stored credentials:
 
 | Scenario | Error Message |
 |----------|---------------|
-| No config found | `Missing configuration. Run 'tt config' to set up your credentials.` |
 | Stored credentials invalid | `Supabase authentication failed. Run 'tt config' to update your credentials.` |
+
+## First-Run Setup
+
+When no configuration exists and the user runs any command:
+
+1. Detect missing config before executing the command
+2. Prompt: "No configuration found. Set up now? [Y/n]"
+3. If yes: run `tt config` flow, then continue with original command
+4. If no: exit with message "Run 'tt config' when ready."
+
+### Example
+
+```
+$ tt
+No configuration found. Set up now? (Y/n) y
+Supabase URL: https://myproject.supabase.co
+Supabase Key: my-anon-key
+Validating credentials...
+Credentials saved to ~/.tt/config.json
+
+[continues with interactive mode]
+```

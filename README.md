@@ -60,6 +60,15 @@ tt task list --client <client> --project <project>
 
 Names are matched by string. If not found, prompts to create.
 
+### Configuration
+
+```bash
+tt config            # Interactive credential setup (validates before saving)
+tt config --show     # Show current config (key masked)
+```
+
+Credentials are stored in `~/.tt/config.json` with secure permissions (0600).
+
 ### Examples
 
 ```bash
@@ -131,32 +140,29 @@ To use with a hosted Supabase instance:
 ### 2. Get Credentials
 
 1. In your Supabase project, go to **Settings > API**
-2. Copy the **Project URL** and **publishable key** (also called anon key)
+2. Copy the **Project URL** and **anon key** (publishable key)
 
-### 3. Configure Environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here
-```
-
-### 4. Deploy Migrations
+### 3. Deploy Migrations
 
 ```bash
-npm run db:deploy   # Push migrations to production Supabase
+# Set credentials temporarily to run migrations
+export SUPABASE_URL=https://your-project.supabase.co
+export SUPABASE_PUBLISHABLE_KEY=your-anon-key
+npm run db:deploy
 ```
 
-### 5. Run
+### 4. Configure CLI
 
 ```bash
-npm run build
-./dist/index.js
+tt config
+```
+
+Enter your Supabase URL and key when prompted. Credentials are validated before saving.
+
+### 5. Run from Anywhere
+
+```bash
+tt                   # Works from any directory
 ```
 
 ## License
