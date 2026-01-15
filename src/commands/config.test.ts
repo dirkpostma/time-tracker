@@ -8,9 +8,75 @@ vi.mock('@inquirer/prompts', () => ({
   input: vi.fn(),
 }));
 
-import { configCommand } from './config.js';
+// Mock @supabase/supabase-js
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(),
+}));
+
+import { configCommand, validateCredentials } from './config.js';
 import { getConfig, saveConfig } from '../config.js';
 import { input } from '@inquirer/prompts';
+import { createClient } from '@supabase/supabase-js';
+
+describe('validateCredentials', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns error for invalid URL format', async () => {
+    const result = await validateCredentials('http://invalid-url.com', 'some-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('Invalid Supabase URL format');
+  });
+
+  it('returns error for URL without https', async () => {
+    const result = await validateCredentials('http://myproject.supabase.co', 'some-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('Invalid Supabase URL format');
+  });
+
+  it('returns valid:true when connection succeeds', async () => {
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const result = await validateCredentials('https://myproject.supabase.co', 'valid-key');
+    expect(result.valid).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it('returns error when API key is invalid', async () => {
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Invalid API key', code: 'PGRST301' },
+        }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const result = await validateCredentials('https://myproject.supabase.co', 'invalid-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('Invalid Supabase credentials');
+  });
+
+  it('returns connection error when fetch fails', async () => {
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockRejectedValue(new TypeError('fetch failed')),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const result = await validateCredentials('https://myproject.supabase.co', 'some-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('Could not connect to Supabase');
+  });
+});
 
 describe('configCommand', () => {
   const testConfigDir = path.join(os.tmpdir(), `.tt-config-cmd-test-${Date.now()}`);
@@ -48,6 +114,13 @@ describe('configCommand', () => {
 
   it('prompts for URL and key', async () => {
     const mockInput = vi.mocked(input);
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
     mockInput
       .mockResolvedValueOnce('https://prompted.supabase.co')
       .mockResolvedValueOnce('prompted-key');
@@ -69,24 +142,77 @@ describe('configCommand', () => {
     consoleSpy.mockRestore();
   });
 
-  it('shows existing values as defaults when config exists', async () => {
-    // Create existing config
-    fs.mkdirSync(testConfigDir, { recursive: true });
-    saveConfig({ supabaseUrl: 'https://existing.co', supabaseKey: 'existing-key' }, testConfigPath);
-
+  it('saves credentials when validation succeeds', async () => {
     const mockInput = vi.mocked(input);
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
     mockInput
-      .mockResolvedValueOnce('https://new.supabase.co')
-      .mockResolvedValueOnce('new-key');
+      .mockResolvedValueOnce('https://test.supabase.co')
+      .mockResolvedValueOnce('test-key');
 
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    // Note: configCommand uses real getConfig which won't find our test file
-    // This test verifies the prompt interaction pattern
     await configCommand();
 
-    expect(mockInput).toHaveBeenCalledTimes(2);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
 
     consoleSpy.mockRestore();
+  });
+
+  it('does not save credentials when validation fails', async () => {
+    const mockInput = vi.mocked(input);
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Invalid API key', code: 'PGRST301' },
+        }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    mockInput
+      .mockResolvedValueOnce('https://invalid.supabase.co')
+      .mockResolvedValueOnce('invalid-key');
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await configCommand();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid Supabase credentials'));
+    expect(consoleSpy).toHaveBeenCalledWith('Credentials not saved.');
+
+    consoleSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('shows connection error when network fails', async () => {
+    const mockInput = vi.mocked(input);
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockRejectedValue(new TypeError('fetch failed')),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    mockInput
+      .mockResolvedValueOnce('https://test.supabase.co')
+      .mockResolvedValueOnce('test-key');
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await configCommand();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Could not connect'));
+
+    consoleSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 });

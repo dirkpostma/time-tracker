@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../db/client.js';
+import { getSupabaseClient, formatSupabaseError } from '../db/client.js';
 import { Client } from './client.js';
 import { Project } from './project.js';
 import { Task } from './task.js';
@@ -26,17 +26,24 @@ export interface TimerStatus {
 export async function getRunningTimer(): Promise<TimeEntry | null> {
   const supabase = getSupabaseClient();
 
-  const { data, error } = await supabase
-    .from('time_entries')
-    .select('*')
-    .is('ended_at', null)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('*')
+      .is('ended_at', null)
+      .maybeSingle();
 
-  if (error) {
-    throw new Error(`Failed to get running timer: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to get running timer: ${formatSupabaseError(error.message)}`);
+    }
+
+    return data;
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('Failed to get running timer:')) {
+      throw err;
+    }
+    throw new Error(`Failed to get running timer: ${formatSupabaseError(err as Error)}`);
   }
-
-  return data;
 }
 
 export async function startTimer(
