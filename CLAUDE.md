@@ -45,6 +45,31 @@ npm run test:run   # Run tests once
 - Work items with acceptance criteria (`--acceptance`)
 - Design notes for specific features (`--design`, `--description`)
 
+## Plan Files
+
+Plans are stored in `history/` and committed to git.
+
+**Structure:**
+- Small features: `history/YYMMDD-feature-name.md` (single file)
+- Large features: `history/YYMMDD-feature-name/` (folder with multiple files)
+
+**Keep plans small and focused:**
+- Each file should be <100 lines
+- Split by concern: architecture, auth, screens, testing, etc.
+- Use README.md as index linking to other files
+
+**Example structure:**
+```
+history/260115-mobile-app/
+├── README.md           # Overview, decisions, verification checklist
+├── docs-strategy.md    # Documentation approach
+├── monorepo.md         # Phase 1: Monorepo setup
+├── auth.md             # Phase 2: Auth & database
+├── mobile.md           # Phases 3-5: Mobile app
+├── testing.md          # Phase 6: Testing
+└── beads-issues.md     # Issue creation commands
+```
+
 ## Feature Development Workflow
 
 **IMPORTANT: Always start with a planning phase before implementation.**
