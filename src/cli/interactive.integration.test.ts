@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
-import { getSupabaseClient } from '../../repositories/supabase/connection.js';
+import { getSupabaseClient } from '../repositories/supabase/connection.js';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';
-import { saveRecent } from '../../recent.js';
+import { saveRecent } from './recent.js';
 import path from 'path';
 
 const CLI_PATH = path.join(process.cwd(), 'dist', 'index.js');

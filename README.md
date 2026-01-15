@@ -97,16 +97,23 @@ src/
 │   └── timer.ts           # Timer state and operations
 ├── repositories/          # Data access layer (shareable)
 │   ├── types.ts           # Repository interfaces
-│   └── supabase/          # Supabase implementations
+│   └── supabase/
+│       ├── config.ts      # Supabase credentials
 │       ├── connection.ts  # Supabase client singleton
 │       ├── client.ts      # Client repository
 │       ├── project.ts     # Project repository
 │       ├── task.ts        # Task repository
 │       └── timeEntry.ts   # TimeEntry repository
-├── cli/commands/          # CLI command handlers
-├── config.ts              # Credential management
-├── recent.ts              # Last-used selections
-└── index.ts               # CLI entry point
+├── cli/                   # CLI layer
+│   ├── index.ts           # Commander setup
+│   ├── client.ts          # Client commands
+│   ├── project.ts         # Project commands
+│   ├── task.ts            # Task commands
+│   ├── timeEntry.ts       # Timer commands
+│   ├── interactive.ts     # Interactive mode
+│   ├── config.ts          # Config command
+│   └── recent.ts          # Last-used selections
+└── index.ts               # Entry point
 ```
 
 **Core layer** - Pure functions with no I/O, easy to test, can be used by CLI, mobile app, or API.

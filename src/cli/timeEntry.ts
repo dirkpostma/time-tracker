@@ -7,16 +7,16 @@
  * - Handle errors with user-friendly messages
  */
 
-import { getSupabaseClient } from '../../repositories/supabase/connection.js';
-import { SupabaseTimeEntryRepository } from '../../repositories/supabase/timeEntry.js';
-import { RepositoryError } from '../../repositories/types.js';
+import { getSupabaseClient } from '../repositories/supabase/connection.js';
+import { SupabaseTimeEntryRepository } from '../repositories/supabase/timeEntry.js';
+import { RepositoryError } from '../repositories/types.js';
 import { Client } from './client.js';
 import { Project } from './project.js';
 import { Task } from './task.js';
 
 // Re-export TimeEntry type from core types for backward compatibility
-export type { TimeEntry } from '../../core/types.js';
-import type { TimeEntry } from '../../core/types.js';
+export type { TimeEntry } from '../core/types.js';
+import type { TimeEntry } from '../core/types.js';
 
 export interface TimerStatus {
   entry: TimeEntry;

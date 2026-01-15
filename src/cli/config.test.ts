@@ -15,13 +15,13 @@ vi.mock('@supabase/supabase-js', () => ({
 }));
 
 import { configCommand, validateCredentials, ensureConfig } from './config.js';
-import { getConfig, saveConfig } from '../../config.js';
+import { getConfig, saveConfig } from '../repositories/supabase/config.js';
 import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
 
-// Mock ../../config.js for ensureConfig tests
-vi.mock('../../config.js', async (importOriginal) => {
-  const original = await importOriginal<typeof import('../../config.js')>();
+// Mock config.js for ensureConfig tests
+vi.mock('../repositories/supabase/config.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../repositories/supabase/config.js')>();
   return {
     ...original,
     getConfig: vi.fn(original.getConfig),

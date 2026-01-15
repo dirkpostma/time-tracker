@@ -7,11 +7,11 @@
  * - Handle errors with user-friendly messages
  */
 
-import type { Client } from '../../core/types.js';
-import { createClientRepository } from '../../repositories/supabase/client.js';
+import type { Client } from '../core/types.js';
+import { createClientRepository } from '../repositories/supabase/client.js';
 
 // Re-export Client type for backward compatibility
-export type { Client } from '../../core/types.js';
+export type { Client } from '../core/types.js';
 
 export async function addClient(name: string): Promise<Client> {
   const repository = createClientRepository();

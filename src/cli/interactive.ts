@@ -21,7 +21,7 @@ import { listClients, addClient, Client } from './client.js';
 import { listProjectsByClient, addProject, Project } from './project.js';
 import { listTasks, addTask, Task } from './task.js';
 import { getStatus, startTimer, stopTimer, TimerStatus } from './timeEntry.js';
-import { loadRecent, saveRecent } from '../../recent.js';
+import { loadRecent, saveRecent } from './recent.js';
 
 /** Result returned by runInteractiveMode() for testing/verification */
 export interface InteractiveResult {

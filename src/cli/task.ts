@@ -7,9 +7,9 @@
  * - Handle errors with user-friendly messages
  */
 
-import { createProjectRepository } from '../../repositories/supabase/project.js';
-import { SupabaseTaskRepository, createTaskRepository } from '../../repositories/supabase/task.js';
-import type { Task, Project } from '../../core/types.js';
+import { createProjectRepository } from '../repositories/supabase/project.js';
+import { SupabaseTaskRepository, createTaskRepository } from '../repositories/supabase/task.js';
+import type { Task, Project } from '../core/types.js';
 
 // Re-export Task type for backward compatibility
 export type { Task };

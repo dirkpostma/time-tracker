@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { runInteractiveMode, InteractiveResult } from './interactive.js';
-import { getSupabaseClient } from '../../repositories/supabase/connection.js';
+import { getSupabaseClient } from '../repositories/supabase/connection.js';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { addTask, Task } from './task.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';
-import { saveRecent, loadRecent } from '../../recent.js';
+import { saveRecent, loadRecent } from './recent.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';

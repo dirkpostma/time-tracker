@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import 'dotenv/config'; // Load .env if present (for local dev/testing)
-import { getConfig, getConfigPath } from '../../config.js';
+import { getConfig, getConfigPath } from './config.js';
 
 let client: SupabaseClient | null = null;
 

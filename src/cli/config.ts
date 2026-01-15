@@ -9,7 +9,7 @@
 
 import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
-import { getConfig, saveConfig, getConfigPath, Config } from '../../config.js';
+import { getConfig, saveConfig, getConfigPath, Config } from '../repositories/supabase/config.js';
 
 export interface ValidationResult {
   valid: boolean;
