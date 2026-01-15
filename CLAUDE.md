@@ -30,12 +30,32 @@ npm run test:run   # Run tests once
 
 - Spec-based development. Specs live in `/specs` and define features before implementation.
 
-## Development Workflow
+## Feature Development Workflow
 
-1. Write failing test first
-2. Implement minimal code to pass
-3. Refactor if needed
-4. Never write implementation code without a test
-5. All tests must pass before committing
-6. Check if tests match the specifications in /specs
-7. Check if docs need updating (README.md, specs/)
+**IMPORTANT: Always start with a planning phase before implementation.**
+
+### 1. Planning Phase (Required)
+- Ask clarifying questions to understand requirements fully
+- Don't assume - ask about edge cases, error handling, UI/UX preferences
+- Document requirements in a spec file (`/specs/<feature>.md`)
+- Get user approval on the spec before coding
+
+### 2. Implementation Phase
+- Write failing test first
+- Implement minimal code to pass
+- Refactor if needed
+- Never write implementation code without a test
+
+### 3. Verification Phase
+- All tests must pass before committing
+- Check if tests match the specifications in /specs
+- Check if docs need updating (README.md, specs/)
+
+## Questions to Ask Before Implementing
+
+- What is the expected input/output?
+- What are the edge cases?
+- How should errors be handled?
+- Are there performance requirements?
+- Does this need CLI commands, or just core logic?
+- How does this interact with existing features?

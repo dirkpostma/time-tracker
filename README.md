@@ -94,10 +94,7 @@ src/
 ├── core/                    # Pure business logic (shareable)
 │   ├── types.ts            # Shared types (Client, Project, Task, TimeEntry)
 │   ├── validation.ts       # Input validation functions
-│   ├── timer.ts            # Timer state and operations
-│   └── reporting/
-│       ├── summaries.ts    # Time aggregations (daily/weekly/monthly)
-│       └── exports.ts      # CSV/JSON export formatters
+│   └── timer.ts            # Timer state and operations
 ├── repositories/           # Data access layer (shareable)
 │   ├── types.ts            # Repository interfaces
 │   └── supabase/           # Supabase implementations
