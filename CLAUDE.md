@@ -47,7 +47,9 @@ npm run test:run   # Run tests once
 
 ## Plan Files
 
-Plans are stored in `history/` and committed to git.
+**IMPORTANT: Always write plans to `history/`, NOT `~/.claude/plans/`.**
+
+Plans are stored in `history/` and committed to git. This keeps planning artifacts with the codebase.
 
 **Structure:**
 - Small features: `history/YYMMDD-feature-name.md` (single file)
