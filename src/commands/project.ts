@@ -1,73 +1,11 @@
-import { getSupabaseClient } from '../db/client.js';
-import { Client } from './client.js';
-
-export interface Project {
-  id: string;
-  client_id: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export async function findClientByName(name: string): Promise<Client | null> {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('name', name)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Failed to find client: ${error.message}`);
-  }
-
-  return data;
-}
-
-export async function addProject(name: string, clientId: string): Promise<Project> {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from('projects')
-    .insert({ name, client_id: clientId })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create project: ${error.message}`);
-  }
-
-  return data;
-}
-
-export async function listProjects(): Promise<Project[]> {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .order('name');
-
-  if (error) {
-    throw new Error(`Failed to list projects: ${error.message}`);
-  }
-
-  return data || [];
-}
-
-export async function listProjectsByClient(clientId: string): Promise<Project[]> {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('client_id', clientId)
-    .order('name');
-
-  if (error) {
-    throw new Error(`Failed to list projects: ${error.message}`);
-  }
-
-  return data || [];
-}
+/**
+ * @deprecated This module is deprecated. Import from '../cli/commands/project.js' instead.
+ * This file re-exports from the new location for backward compatibility.
+ */
+export {
+  findClientByName,
+  addProject,
+  listProjects,
+  listProjectsByClient,
+} from '../cli/commands/project.js';
+export type { Project } from '../cli/commands/project.js';

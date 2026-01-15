@@ -19,12 +19,12 @@ if (process.env.FORCE_TTY === '1') {
 
 import { program } from 'commander';
 import { confirm } from '@inquirer/prompts';
-import { addClient, listClients } from './commands/client.js';
-import { addProject, listProjects, findClientByName } from './commands/project.js';
-import { listTasks, findProjectByName, addTask } from './commands/task.js';
-import { startTimer, stopTimer, getStatus, getRunningTimer } from './commands/timeEntry.js';
-import { runInteractiveMode } from './commands/interactive.js';
-import { configCommand, ensureConfig, showConfig } from './commands/config.js';
+import { addClient, listClients } from './cli/commands/client.js';
+import { addProject, listProjects, findClientByName } from './cli/commands/project.js';
+import { listTasks, findProjectByName, addTask } from './cli/commands/task.js';
+import { startTimer, stopTimer, getStatus, getRunningTimer } from './cli/commands/timeEntry.js';
+import { runInteractiveMode } from './cli/commands/interactive.js';
+import { configCommand, ensureConfig, showConfig } from './cli/commands/config.js';
 
 program
   .name('tt')

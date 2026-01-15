@@ -85,6 +85,35 @@ tt status
 tt stop --description "Finished header section"
 ```
 
+## Architecture
+
+The codebase is structured for sharing between CLI and future mobile app:
+
+```
+src/
+├── core/                    # Pure business logic (shareable)
+│   ├── types.ts            # Shared types (Client, Project, Task, TimeEntry)
+│   ├── validation.ts       # Input validation functions
+│   ├── timer.ts            # Timer state and operations
+│   └── reporting/
+│       ├── summaries.ts    # Time aggregations (daily/weekly/monthly)
+│       └── exports.ts      # CSV/JSON export formatters
+├── repositories/           # Data access layer (shareable)
+│   ├── types.ts            # Repository interfaces
+│   └── supabase/           # Supabase implementations
+├── cli/                    # CLI-specific code
+│   └── commands/           # Command handlers
+├── config.ts               # Credential management
+├── recent.ts               # Last-used selections
+└── index.ts                # CLI entry point
+```
+
+**Core layer** - Pure functions with no I/O, easy to test, can be used by CLI, mobile app, or API.
+
+**Repository layer** - Interface-based data access. Currently implements Supabase, but can be swapped.
+
+**CLI layer** - Thin wrappers that handle user interaction and output formatting.
+
 ## Development
 
 ### Prerequisites
