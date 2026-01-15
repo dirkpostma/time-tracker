@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * CLI entry point - Commander setup and command registration.
  */
@@ -10,16 +11,27 @@ import { listTasks, findProjectByName, addTask } from './task.js';
 import { startTimer, stopTimer, getStatus, getRunningTimer } from './timeEntry.js';
 import { runInteractiveMode } from './interactive.js';
 import { configCommand, ensureConfig, showConfig } from './config.js';
+import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.js';
 import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
+
+// Commands that don't require authentication
+const AUTH_EXEMPT = ['config', 'login', 'logout', 'whoami'];
 
 program
   .name('tt')
   .description('Time tracking CLI')
   .version('1.0.0')
-  .hook('preAction', async (thisCommand) => {
+  .hook('preAction', async (thisCommand, actionCommand) => {
+    // actionCommand is the actual command being executed
+    const cmdName = actionCommand.name();
+
     // Skip config check for the config command itself
-    if (thisCommand.name() === 'config') return;
+    if (cmdName === 'config') return;
     await ensureConfig();
+
+    // Skip auth check for exempt commands
+    if (AUTH_EXEMPT.includes(cmdName)) return;
+    await ensureAuth();
   });
 
 // Client commands
@@ -361,6 +373,28 @@ program
     }
   });
 
+// Auth commands
+program
+  .command('login')
+  .description('Log in to your account')
+  .action(async () => {
+    await loginCommand();
+  });
+
+program
+  .command('logout')
+  .description('Log out of your account')
+  .action(async () => {
+    await logoutCommand();
+  });
+
+program
+  .command('whoami')
+  .description('Show current logged-in user')
+  .action(async () => {
+    await whoamiCommand();
+  });
+
 // Default action (interactive mode)
 program.action(async () => {
   try {
@@ -374,5 +408,7 @@ program.action(async () => {
     process.exit(1);
   }
 });
+
+program.parse();
 
 export { program };

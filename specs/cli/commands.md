@@ -30,6 +30,16 @@ tt project list
 tt task list --client <client> --project <project>
 ```
 
+## Authentication
+
+```
+tt login          # Log in with email/password
+tt logout         # Log out and clear session
+tt whoami         # Show current logged-in user
+```
+
+All commands except `config`, `login`, `logout`, and `whoami` require authentication.
+
 ## Interactive Mode
 
 See `interactive-mode.md` for details.

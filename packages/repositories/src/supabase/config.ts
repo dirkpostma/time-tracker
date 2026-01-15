@@ -15,9 +15,16 @@ import { homedir } from 'os';
 const CONFIG_DIR = join(homedir(), '.tt');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+}
+
 export interface Config {
   supabaseUrl: string;
   supabaseKey: string;
+  auth?: AuthTokens;
 }
 
 /**
@@ -69,4 +76,55 @@ export function saveConfig(config: Config, configPath?: string): void {
     mkdirSync(dir, { recursive: true });
   }
   writeFileSync(filePath, JSON.stringify(config, null, 2), { mode: 0o600 });
+}
+
+/**
+ * Gets auth tokens from config file.
+ * @param configPath - Optional override for testing
+ */
+export function getAuthTokens(configPath?: string): AuthTokens | null {
+  const filePath = configPath ?? CONFIG_FILE;
+  if (!existsSync(filePath)) return null;
+
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    const config = JSON.parse(content);
+    return config.auth ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saves auth tokens to config file.
+ * @param configPath - Optional override for testing
+ */
+export function saveAuthTokens(tokens: AuthTokens, configPath?: string): void {
+  const filePath = configPath ?? CONFIG_FILE;
+  if (!existsSync(filePath)) {
+    throw new Error('Config file not found. Run `tt config` first.');
+  }
+
+  const content = readFileSync(filePath, 'utf-8');
+  const config = JSON.parse(content);
+  config.auth = tokens;
+  writeFileSync(filePath, JSON.stringify(config, null, 2), { mode: 0o600 });
+}
+
+/**
+ * Clears auth tokens from config file.
+ * @param configPath - Optional override for testing
+ */
+export function clearAuthTokens(configPath?: string): void {
+  const filePath = configPath ?? CONFIG_FILE;
+  if (!existsSync(filePath)) return;
+
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    const config = JSON.parse(content);
+    delete config.auth;
+    writeFileSync(filePath, JSON.stringify(config, null, 2), { mode: 0o600 });
+  } catch {
+    // Ignore errors when clearing
+  }
 }

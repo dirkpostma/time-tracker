@@ -14,9 +14,16 @@ The `tt config` command manages Supabase credentials for the CLI. Credentials ar
 ```json
 {
   "supabaseUrl": "https://your-project.supabase.co",
-  "supabaseKey": "your-anon-key"
+  "supabaseKey": "your-anon-key",
+  "auth": {
+    "accessToken": "...",
+    "refreshToken": "...",
+    "expiresAt": 1700000000
+  }
 }
 ```
+
+The `auth` field is optional and managed by the `tt login`/`tt logout` commands. It stores Supabase session tokens for authenticated API requests.
 
 ## Commands
 
@@ -77,6 +84,21 @@ When running any command with invalid stored credentials:
 | Scenario | Error Message |
 |----------|---------------|
 | Stored credentials invalid | `Supabase authentication failed. Run 'tt config' to update your credentials.` |
+
+## Authentication Required
+
+Most commands require user authentication. When a user runs a command without being logged in:
+
+1. CLI checks for valid auth session in config
+2. If not logged in: exit with message "Not logged in. Run `tt login` to sign in."
+
+Commands exempt from authentication: `config`, `login`, `logout`, `whoami`
+
+### Token Refresh
+
+- Sessions are automatically refreshed when tokens expire
+- Refreshed tokens are saved back to config
+- Invalid/expired tokens that can't be refreshed are cleared, requiring re-login
 
 ## First-Run Setup
 

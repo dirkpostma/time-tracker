@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getConfig, saveConfig, getConfigPath } from './config.js';
+import { getConfig, saveConfig, getConfigPath, getAuthTokens, saveAuthTokens, clearAuthTokens, AuthTokens } from './config.js';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -167,6 +167,142 @@ describe('config', () => {
       // We mask with 0o777 to get just the permission bits
       const permissions = stats.mode & 0o777;
       expect(permissions).toBe(0o600);
+    });
+  });
+
+  describe('getAuthTokens', () => {
+    it('returns null when no config file exists', () => {
+      const tokens = getAuthTokens(testConfigPath);
+      expect(tokens).toBeNull();
+    });
+
+    it('returns null when config exists but has no auth tokens', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+      }));
+
+      const tokens = getAuthTokens(testConfigPath);
+      expect(tokens).toBeNull();
+    });
+
+    it('returns auth tokens when they exist in config', () => {
+      const authTokens: AuthTokens = {
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456',
+        expiresAt: 1700000000,
+      };
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+        auth: authTokens,
+      }));
+
+      const tokens = getAuthTokens(testConfigPath);
+
+      expect(tokens).toEqual(authTokens);
+    });
+  });
+
+  describe('saveAuthTokens', () => {
+    it('saves auth tokens to existing config file', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+      }));
+
+      const authTokens: AuthTokens = {
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456',
+        expiresAt: 1700000000,
+      };
+
+      saveAuthTokens(authTokens, testConfigPath);
+
+      const savedContent = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+      expect(savedContent.auth).toEqual(authTokens);
+      expect(savedContent.supabaseUrl).toBe('https://test.co');
+      expect(savedContent.supabaseKey).toBe('key');
+    });
+
+    it('overwrites existing auth tokens', () => {
+      const oldTokens: AuthTokens = {
+        accessToken: 'old-access',
+        refreshToken: 'old-refresh',
+        expiresAt: 1600000000,
+      };
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+        auth: oldTokens,
+      }));
+
+      const newTokens: AuthTokens = {
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        expiresAt: 1700000000,
+      };
+
+      saveAuthTokens(newTokens, testConfigPath);
+
+      const savedContent = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+      expect(savedContent.auth).toEqual(newTokens);
+    });
+
+    it('throws error when config file does not exist', () => {
+      const authTokens: AuthTokens = {
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456',
+        expiresAt: 1700000000,
+      };
+
+      expect(() => saveAuthTokens(authTokens, testConfigPath)).toThrow('Config file not found');
+    });
+  });
+
+  describe('clearAuthTokens', () => {
+    it('removes auth tokens from config file', () => {
+      const authTokens: AuthTokens = {
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456',
+        expiresAt: 1700000000,
+      };
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+        auth: authTokens,
+      }));
+
+      clearAuthTokens(testConfigPath);
+
+      const savedContent = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+      expect(savedContent.auth).toBeUndefined();
+      expect(savedContent.supabaseUrl).toBe('https://test.co');
+      expect(savedContent.supabaseKey).toBe('key');
+    });
+
+    it('does nothing when no auth tokens exist', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, JSON.stringify({
+        supabaseUrl: 'https://test.co',
+        supabaseKey: 'key',
+      }));
+
+      clearAuthTokens(testConfigPath);
+
+      const savedContent = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+      expect(savedContent.auth).toBeUndefined();
+      expect(savedContent.supabaseUrl).toBe('https://test.co');
+    });
+
+    it('does nothing when config file does not exist', () => {
+      // Should not throw
+      expect(() => clearAuthTokens(testConfigPath)).not.toThrow();
     });
   });
 });
