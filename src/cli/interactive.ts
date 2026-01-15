@@ -2,8 +2,8 @@
  * Interactive mode handler for the `tt` command (no arguments).
  *
  * Flow:
- * 1. If a timer is running → show menu: Stop / Switch / Cancel
- * 2. If no timer → walk user through: Client → Project → Task → Description → Start
+ * 1. If a timer is running -> show menu: Stop / Switch / Cancel
+ * 2. If no timer -> walk user through: Client -> Project -> Task -> Description -> Start
  *
  * Features:
  * - Arrow-key selection via inquirer's `select` prompt
@@ -21,7 +21,7 @@ import { listClients, addClient, Client } from './client.js';
 import { listProjectsByClient, addProject, Project } from './project.js';
 import { listTasks, addTask, Task } from './task.js';
 import { getStatus, startTimer, stopTimer, TimerStatus } from './timeEntry.js';
-import { loadRecent, saveRecent } from '../recent.js';
+import { loadRecent, saveRecent } from './recent.js';
 
 /** Result returned by runInteractiveMode() for testing/verification */
 export interface InteractiveResult {

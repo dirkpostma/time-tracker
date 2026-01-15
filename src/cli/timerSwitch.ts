@@ -1,3 +1,12 @@
+/**
+ * CLI command handlers for timer switching operations.
+ * These are thin wrappers that:
+ * - Parse CLI input
+ * - Call timer functions
+ * - Format and print output
+ * - Handle errors with user-friendly messages
+ */
+
 import { confirm } from '@inquirer/prompts';
 import { getStatus, startTimer, TimerStatus } from './timeEntry.js';
 

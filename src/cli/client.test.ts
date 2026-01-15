@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getSupabaseClient } from '../db/client.js';
+import { getSupabaseClient } from '../repositories/supabase/connection.js';
 import { addClient, listClients } from './client.js';
 
 describe('client commands', () => {

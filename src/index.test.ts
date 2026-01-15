@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { execSync } from 'child_process';
-import { getSupabaseClient } from './db/client.js';
+import { getSupabaseClient } from './repositories/supabase/connection.js';
 
 describe('tt CLI', () => {
   it('should show help', () => {

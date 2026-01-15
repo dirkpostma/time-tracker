@@ -1,19 +1,22 @@
-import { getSupabaseClient, formatSupabaseError } from '../db/client.js';
+/**
+ * CLI command handlers for time entry operations.
+ * These are thin wrappers that:
+ * - Parse CLI input
+ * - Call repository functions
+ * - Format and print output
+ * - Handle errors with user-friendly messages
+ */
+
+import { getSupabaseClient } from '../repositories/supabase/connection.js';
+import { SupabaseTimeEntryRepository } from '../repositories/supabase/timeEntry.js';
+import { RepositoryError } from '../repositories/types.js';
 import { Client } from './client.js';
 import { Project } from './project.js';
 import { Task } from './task.js';
 
-export interface TimeEntry {
-  id: string;
-  client_id: string;
-  project_id: string | null;
-  task_id: string | null;
-  description: string | null;
-  started_at: string;
-  ended_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export TimeEntry type from core types for backward compatibility
+export type { TimeEntry } from '../core/types.js';
+import type { TimeEntry } from '../core/types.js';
 
 export interface TimerStatus {
   entry: TimeEntry;
@@ -23,26 +26,17 @@ export interface TimerStatus {
   duration: number; // in seconds
 }
 
+// Create repository instance
+const timeEntryRepository = new SupabaseTimeEntryRepository();
+
 export async function getRunningTimer(): Promise<TimeEntry | null> {
-  const supabase = getSupabaseClient();
-
   try {
-    const { data, error } = await supabase
-      .from('time_entries')
-      .select('*')
-      .is('ended_at', null)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(`Failed to get running timer: ${formatSupabaseError(error.message)}`);
-    }
-
-    return data;
+    return await timeEntryRepository.findRunning();
   } catch (err) {
-    if (err instanceof Error && err.message.startsWith('Failed to get running timer:')) {
-      throw err;
+    if (err instanceof RepositoryError) {
+      throw new Error(`Failed to get running timer: ${err.message}`);
     }
-    throw new Error(`Failed to get running timer: ${formatSupabaseError(err as Error)}`);
+    throw new Error(`Failed to get running timer: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -53,70 +47,54 @@ export async function startTimer(
   description?: string,
   force?: boolean
 ): Promise<TimeEntry> {
-  const supabase = getSupabaseClient();
-
   // Check if timer already running
   const running = await getRunningTimer();
   if (running) {
     if (force) {
       // Stop the running timer first
-      await supabase
-        .from('time_entries')
-        .update({ ended_at: new Date().toISOString() })
-        .eq('id', running.id);
+      await timeEntryRepository.stop(running.id);
     } else {
       throw new Error('Timer already running. Stop it first.');
     }
   }
 
-  const { data, error } = await supabase
-    .from('time_entries')
-    .insert({
+  try {
+    return await timeEntryRepository.create({
       client_id: clientId,
       project_id: projectId || null,
       task_id: taskId || null,
       description: description || null,
-      started_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to start timer: ${error.message}`);
+    });
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      throw new Error(`Failed to start timer: ${err.message}`);
+    }
+    throw new Error(`Failed to start timer: ${err instanceof Error ? err.message : String(err)}`);
   }
-
-  return data;
 }
 
 export async function stopTimer(description?: string): Promise<TimeEntry> {
-  const supabase = getSupabaseClient();
-
   const running = await getRunningTimer();
   if (!running) {
     throw new Error('No timer running');
   }
 
-  const updateData: { ended_at: string; description?: string } = {
-    ended_at: new Date().toISOString(),
-  };
-
-  // Set description if provided (overwrites existing)
-  if (description !== undefined) {
-    updateData.description = description;
+  try {
+    if (description !== undefined) {
+      // Update with description and stop in one operation
+      return await timeEntryRepository.update(running.id, {
+        description,
+        ended_at: new Date().toISOString(),
+      });
+    } else {
+      return await timeEntryRepository.stop(running.id);
+    }
+  } catch (err) {
+    if (err instanceof RepositoryError) {
+      throw new Error(`Failed to stop timer: ${err.message}`);
+    }
+    throw new Error(`Failed to stop timer: ${err instanceof Error ? err.message : String(err)}`);
   }
-
-  const { data, error } = await supabase
-    .from('time_entries')
-    .update(updateData)
-    .eq('id', running.id)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to stop timer: ${error.message}`);
-  }
-
-  return data;
 }
 
 export async function getStatus(): Promise<TimerStatus | null> {

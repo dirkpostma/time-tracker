@@ -1,6 +1,15 @@
+/**
+ * CLI command handlers for configuration operations.
+ * These are thin wrappers that:
+ * - Parse CLI input
+ * - Call config functions
+ * - Format and print output
+ * - Handle errors with user-friendly messages
+ */
+
 import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
-import { getConfig, saveConfig, getConfigPath, Config } from '../config.js';
+import { getConfig, saveConfig, getConfigPath, Config } from '../repositories/supabase/config.js';
 
 export interface ValidationResult {
   valid: boolean;
