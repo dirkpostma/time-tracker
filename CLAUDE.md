@@ -59,3 +59,30 @@ npm run test:run   # Run tests once
 - Are there performance requirements?
 - Does this need CLI commands, or just core logic?
 - How does this interact with existing features?
+
+## Issue Tracking
+
+This project uses **bd (beads)** for issue tracking.
+
+**Quick reference:**
+- `bd ready` - Find unblocked work
+- `bd create "Title" --type task --priority 2` - Create issue
+- `bd close <id>` - Complete work
+- `bd sync` - Sync with git (run at session end)
+
+For full workflow context, run: `bd prime`
+
+### Session Completion
+
+When ending a work session, complete ALL steps:
+
+1. **File issues** for remaining work
+2. **Run quality gates** (if code changed) - tests, linters, builds
+3. **Update issue status** - Close finished work
+4. **Push to remote**:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   ```
+5. **Verify** - `git status` shows "up to date with origin"
