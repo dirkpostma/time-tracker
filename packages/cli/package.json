@@ -1,0 +1,25 @@
+{
+  "name": "@time-tracker/cli",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "tt": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "@inquirer/prompts": "^8.1.0",
+    "dotenv": "^17.2.3",
+    "@time-tracker/core": "*",
+    "@time-tracker/repositories": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4",
+    "@types/node": "^22.10.5"
+  }
+}

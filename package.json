@@ -3,36 +3,28 @@
   "version": "1.0.0",
   "description": "A command-line tool for tracking time spent on projects.",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "tt": "dist/index.js"
-  },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "build": "npm run build -w @time-tracker/core && npm run build -w @time-tracker/repositories && npm run build -w @time-tracker/cli",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cli": "node packages/cli/dist/index.js",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "db:deploy": "supabase db push",
-    "install:global": "npm run build && npm install -g ."
+    "db:deploy": "supabase db push"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "@inquirer/prompts": "^8.1.0",
-    "@supabase/supabase-js": "^2.90.1",
-    "@types/node": "^25.0.5",
-    "commander": "^14.0.2",
-    "dotenv": "^17.2.3",
-    "typescript": "^5.9.3"
-  },
   "devDependencies": {
+    "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   }
 }

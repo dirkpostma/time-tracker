@@ -1,0 +1,57 @@
+{
+  "name": "@time-tracker/repositories",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./supabase/config": {
+      "types": "./dist/supabase/config.d.ts",
+      "import": "./dist/supabase/config.js"
+    },
+    "./supabase/connection": {
+      "types": "./dist/supabase/connection.d.ts",
+      "import": "./dist/supabase/connection.js"
+    },
+    "./supabase/client": {
+      "types": "./dist/supabase/client.d.ts",
+      "import": "./dist/supabase/client.js"
+    },
+    "./supabase/project": {
+      "types": "./dist/supabase/project.d.ts",
+      "import": "./dist/supabase/project.js"
+    },
+    "./supabase/task": {
+      "types": "./dist/supabase/task.d.ts",
+      "import": "./dist/supabase/task.js"
+    },
+    "./supabase/timeEntry": {
+      "types": "./dist/supabase/timeEntry.d.ts",
+      "import": "./dist/supabase/timeEntry.js"
+    },
+    "./supabase/auth": {
+      "types": "./dist/supabase/auth.d.ts",
+      "import": "./dist/supabase/auth.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "@time-tracker/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  }
+}
