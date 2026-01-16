@@ -23,7 +23,39 @@ Storage: Supabase (PostgreSQL)
 npm run build      # Build the CLI
 npm run dev        # Build in watch mode
 npm test           # Run tests in watch mode
-npm run test:run   # Run tests once
+npm test -- --run  # Run tests once
+```
+
+## Local Development with Docker Supabase
+
+**IMPORTANT: Always test against local Docker Supabase, not cloud.**
+
+### Prerequisites
+1. Start local Supabase: `npx supabase start`
+2. Verify it's running: `npx supabase status`
+
+### Configuration
+The `.env` file is configured for local Docker Supabase:
+```
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_PUBLISHABLE_KEY=<from supabase status>
+TEST_USER_EMAIL=test@example.com
+TEST_USER_PASSWORD=Test1234
+```
+
+### Test User Setup
+Create a test user in local Supabase (if not exists):
+```bash
+npx supabase db execute --sql "
+  SELECT create_user('test@example.com', 'Test1234');
+"
+```
+Or via Supabase Studio at http://127.0.0.1:54323 > Authentication > Users
+
+### Running Tests
+```bash
+npm test -- --run              # All tests against local Docker
+npm test -- --run auth         # Auth tests only
 ```
 
 ## Documentation Strategy
