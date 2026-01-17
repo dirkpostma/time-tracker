@@ -58,24 +58,79 @@ npm test -- --run              # All tests against local Docker
 npm test -- --run auth         # Auth tests only
 ```
 
-## Documentation Strategy
+## Specifications
 
-**Hybrid approach - two types of documentation:**
+**IMPORTANT: Follow the spec-first workflow.**
 
-| Type | Location | Purpose | Examples |
-|------|----------|---------|----------|
-| **Specs** | `/specs/*.md` | Stable architecture & design docs | Data model, API contracts, CLI commands |
-| **Beads** | `bd` issues | Work items & task descriptions | Features, bugs, tasks with acceptance criteria |
+```
+Idea → Spec → Test → Implementation
+```
 
-**When to use specs:**
-- Documenting "what the system IS" (architecture, data model, contracts)
-- Reference documentation that outlives individual tasks
-- Decisions that affect multiple features
+### Hybrid Structure
 
-**When to use beads:**
-- Tracking "what to DO" (tasks, bugs, features)
-- Work items with acceptance criteria (`--acceptance`)
-- Design notes for specific features (`--design`, `--description`)
+Specs live in two places:
+
+| Type | Location | Purpose |
+|------|----------|---------|
+| Architecture | `specs/architecture/` | System design, data model, layers |
+| Features | `specs/features/` | End-to-end flows (cross-cutting) |
+| Package specs | `packages/*/spec.md` | Requirements, colocated with code |
+
+### Finding the Right Spec
+
+| Looking for... | Go to |
+|----------------|-------|
+| System overview | `specs/README.md` |
+| Data model | `specs/architecture/data-model.md` |
+| Layer architecture | `specs/architecture/layers.md` |
+| Feature flow | `specs/features/*.md` |
+| Core requirements | `packages/core/spec.md` |
+| Repository interfaces | `packages/repositories/spec.md` |
+| CLI commands | `packages/cli/spec.md` |
+
+### Updating Specs
+
+**Before writing code, update the relevant spec:**
+
+| Change Type | Update Location |
+|-------------|-----------------|
+| New entity/field | `specs/architecture/data-model.md` + `packages/core/spec.md` |
+| New business rule | `packages/core/spec.md` |
+| New repository method | `packages/repositories/spec.md` |
+| New CLI command | `packages/cli/spec.md` |
+| New feature flow | `specs/features/*.md` |
+| Architecture change | `specs/architecture/*.md` |
+
+### Requirement IDs
+
+Use lowercase requirement IDs for traceability:
+
+```
+req-{package}-{number}
+
+req-core-001    # Core package requirement
+req-repo-001    # Repository requirement
+req-cli-001     # CLI requirement
+req-feat-001    # Feature requirement
+req-arch-001    # Architecture requirement
+```
+
+## Issue Tracking with Beads
+
+Use **bd (beads)** for tracking work items:
+
+| Use Case | Tool |
+|----------|------|
+| "What the system IS" | Specs (spec.md files) |
+| "What to DO" | Beads (bd issues) |
+
+**Quick reference:**
+- `bd ready` - Find unblocked work
+- `bd create "Title" --type task --priority 2` - Create issue
+- `bd close <id>` - Complete work
+- `bd sync` - Sync with git (run at session end)
+
+For full workflow context, run: `bd prime`
 
 ## Plan Files
 
@@ -106,47 +161,51 @@ history/260115-mobile-app/
 
 ## Feature Development Workflow
 
-**IMPORTANT: Always start with a planning phase before implementation.**
+**IMPORTANT: Follow the spec-first workflow: Idea → Spec → Test → Implementation**
 
-### 1. Planning Phase (Required)
-- Ask clarifying questions to understand requirements fully
-- Don't assume - ask about edge cases, error handling, UI/UX preferences
-- Create beads issue with description: `bd create "Feature" --type feature --description "..."`
-- For architecture changes, also update relevant spec in `/specs/`
-- Get user approval before coding
+### 1. Understand (Ask Questions)
 
-### 2. Implementation Phase
-- Write failing test first
-- Implement minimal code to pass
-- Refactor if needed
-- Never write implementation code without a test
-
-### 3. Verification Phase
-- All tests must pass before committing
-- Check if tests match the specifications in /specs
-- Check if docs need updating (README.md, specs/)
-- Close completed beads issues: `bd close <id>`
-
-## Questions to Ask Before Implementing
-
+Before anything else, clarify requirements:
 - What is the expected input/output?
 - What are the edge cases?
 - How should errors be handled?
-- Are there performance requirements?
 - Does this need CLI commands, or just core logic?
 - How does this interact with existing features?
 
-## Issue Tracking
+### 2. Spec (Write Requirements)
 
-This project uses **bd (beads)** for issue tracking.
+**Before writing code:**
+1. Create beads issue: `bd create "Feature" --type feature --description "..."`
+2. Update the relevant spec file (see "Updating Specs" table above)
+3. Add requirement IDs (req-xxx-nnn) for each requirement
+4. Get user approval on the spec
 
-**Quick reference:**
-- `bd ready` - Find unblocked work
-- `bd create "Title" --type task --priority 2` - Create issue
-- `bd close <id>` - Complete work
-- `bd sync` - Sync with git (run at session end)
+### 3. Test (TDD)
 
-For full workflow context, run: `bd prime`
+Write tests BEFORE implementation:
+```typescript
+describe('req-core-001: One timer at a time', () => {
+  it('should error when starting timer while one runs', () => {
+    // ...
+  });
+});
+```
+
+### 4. Implement
+
+Only after spec exists and test fails:
+1. Write minimal code to pass test
+2. Refactor if needed
+3. Verify spec requirements are met
+
+### 5. Verify
+
+Before marking complete:
+- [ ] All tests pass
+- [ ] Spec requirements have corresponding tests
+- [ ] Implementation matches spec
+- [ ] spec.md updated if API changed
+- [ ] Close beads issue: `bd close <id>`
 
 ### Session Completion
 
