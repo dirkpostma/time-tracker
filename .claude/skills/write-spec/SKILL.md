@@ -1,3 +1,8 @@
+---
+name: write-spec
+description: Convert a plan file into spec documentation for TDD. Use when user invokes /write-spec or asks to convert a plan to specs.
+---
+
 # Write Spec Skill
 
 When the user invokes `/write-spec [plan-file]` or asks to convert a plan to specs, follow this workflow.

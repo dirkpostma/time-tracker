@@ -1,3 +1,8 @@
+---
+name: start-feature
+description: Start a new feature with branch creation, requirements gathering, and planning. Use when user invokes /start-feature or asks to start a new feature.
+---
+
 # Start Feature Skill
 
 When the user invokes `/start-feature [feature-name]` or asks to start a new feature, follow this workflow.
