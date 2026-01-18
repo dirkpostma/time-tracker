@@ -58,24 +58,9 @@ npm test -- --run              # All tests against local Docker
 npm test -- --run auth         # Auth tests only
 ```
 
-## Documentation Strategy
+## Documentation
 
-**Hybrid approach - two types of documentation:**
-
-| Type | Location | Purpose | Examples |
-|------|----------|---------|----------|
-| **Specs** | `/specs/*.md` | Stable architecture & design docs | Data model, API contracts, CLI commands |
-| **Beads** | `bd` issues | Work items & task descriptions | Features, bugs, tasks with acceptance criteria |
-
-**When to use specs:**
-- Documenting "what the system IS" (architecture, data model, contracts)
-- Reference documentation that outlives individual tasks
-- Decisions that affect multiple features
-
-**When to use beads:**
-- Tracking "what to DO" (tasks, bugs, features)
-- Work items with acceptance criteria (`--acceptance`)
-- Design notes for specific features (`--design`, `--description`)
+Specs are stored in `/specs/*.md` for stable architecture and design documentation (data model, API contracts, CLI commands).
 
 ## Plan Files
 
@@ -100,8 +85,7 @@ history/260115-mobile-app/
 ├── monorepo.md         # Phase 1: Monorepo setup
 ├── auth.md             # Phase 2: Auth & database
 ├── mobile.md           # Phases 3-5: Mobile app
-├── testing.md          # Phase 6: Testing
-└── beads-issues.md     # Issue creation commands
+└── testing.md          # Phase 6: Testing
 ```
 
 ## Feature Development Workflow
@@ -111,8 +95,7 @@ history/260115-mobile-app/
 ### 1. Planning Phase (Required)
 - Ask clarifying questions to understand requirements fully
 - Don't assume - ask about edge cases, error handling, UI/UX preferences
-- Create beads issue with description: `bd create "Feature" --type feature --description "..."`
-- For architecture changes, also update relevant spec in `/specs/`
+- For architecture changes, update relevant spec in `/specs/`
 - Get user approval before coding
 
 ### 2. Implementation Phase
@@ -125,7 +108,6 @@ history/260115-mobile-app/
 - All tests must pass before committing
 - Check if tests match the specifications in /specs
 - Check if docs need updating (README.md, specs/)
-- Close completed beads issues: `bd close <id>`
 
 ## Questions to Ask Before Implementing
 
@@ -136,29 +118,14 @@ history/260115-mobile-app/
 - Does this need CLI commands, or just core logic?
 - How does this interact with existing features?
 
-## Issue Tracking
-
-This project uses **bd (beads)** for issue tracking.
-
-**Quick reference:**
-- `bd ready` - Find unblocked work
-- `bd create "Title" --type task --priority 2` - Create issue
-- `bd close <id>` - Complete work
-- `bd sync` - Sync with git (run at session end)
-
-For full workflow context, run: `bd prime`
-
-### Session Completion
+## Session Completion
 
 When ending a work session, complete ALL steps:
 
-1. **File issues** for remaining work
-2. **Run quality gates** (if code changed) - tests, linters, builds
-3. **Update issue status** - Close finished work
-4. **Push to remote**:
+1. **Run quality gates** (if code changed) - tests, linters, builds
+2. **Push to remote**:
    ```bash
    git pull --rebase
-   bd sync
    git push
    ```
-5. **Verify** - `git status` shows "up to date with origin"
+3. **Verify** - `git status` shows "up to date with origin"

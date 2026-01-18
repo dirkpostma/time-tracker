@@ -1,9 +1,8 @@
 # Documentation Strategy
 
-## Hybrid Approach
+## Approach
 
 - `specs/` - Stable documentation (Screaming Architecture by domain)
-- `beads` - Work items (tasks, bugs, features)
 
 ## Specs Reorganization
 

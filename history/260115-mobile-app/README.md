@@ -25,10 +25,6 @@ Transform the CLI time-tracker into a monorepo supporting both CLI and Expo mobi
 | 3-5 | Mobile app | [mobile.md](mobile.md) |
 | 6 | Testing | [testing.md](testing.md) |
 
-## Beads Issues
-
-See [beads-issues.md](beads-issues.md) for issue creation commands.
-
 ## Verification Checklist
 
 - [ ] All specs written and reviewed
