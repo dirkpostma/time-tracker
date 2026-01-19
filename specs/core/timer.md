@@ -1,12 +1,22 @@
-# Time Tracking Flow Spec
+# Timer Spec
+
+Core timer functionality for the time-tracking application.
 
 ## Constraints
 
 - Only one timer can run at a time
+- A timer is considered "running" when `ended_at` is null
+
+## Timer States
+
+| State | Condition |
+|-------|-----------|
+| Running | `ended_at` is null |
+| Stopped | `ended_at` is not null |
 
 ## Starting a Timer
 
-1. If a timer is already running, prompt to stop it and start the new one (see `timer-switch-confirmation.md`)
+1. If a timer is already running, prompt to stop it and start the new one (see `cli/timer-switch.md`)
 2. If client doesn't exist, prompt to create it
 3. If project is provided and doesn't exist, prompt to create it
 4. If task is provided and doesn't exist, prompt to create it
