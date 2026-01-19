@@ -27,12 +27,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .single();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to create task: ${error.message}`,
-        'create',
-        'task',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to create task: ${error.message}`);
     }
 
     return data;
@@ -54,12 +49,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .maybeSingle();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find task: ${error.message}`,
-        'findById',
-        'task',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find task: ${error.message}`);
     }
 
     return data;
@@ -83,12 +73,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .maybeSingle();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find task by name: ${error.message}`,
-        'findByName',
-        'task',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find task by name: ${error.message}`);
     }
 
     return data;
@@ -110,12 +95,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .order('name');
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find tasks by project: ${error.message}`,
-        'findByProjectId',
-        'task',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find tasks by project: ${error.message}`);
     }
 
     return data || [];
@@ -135,12 +115,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .order('name');
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find all tasks: ${error.message}`,
-        'findAll',
-        'task',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find all tasks: ${error.message}`);
     }
 
     return data || [];

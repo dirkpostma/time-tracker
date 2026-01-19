@@ -23,12 +23,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       .single();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to create project: ${error.message}`,
-        'create',
-        'project',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to create project: ${error.message}`);
     }
 
     return data;
@@ -50,12 +45,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       .maybeSingle();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find project: ${error.message}`,
-        'findById',
-        'project',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find project: ${error.message}`);
     }
 
     return data;
@@ -79,12 +69,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       .maybeSingle();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find project by name: ${error.message}`,
-        'findByName',
-        'project',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find project by name: ${error.message}`);
     }
 
     return data;
@@ -106,12 +91,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       .order('name');
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to find projects by client: ${error.message}`,
-        'findByClientId',
-        'project',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find projects by client: ${error.message}`);
     }
 
     return data || [];
@@ -131,12 +111,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
       .order('name');
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to list projects: ${error.message}`,
-        'findAll',
-        'project',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to list projects: ${error.message}`);
     }
 
     return data || [];

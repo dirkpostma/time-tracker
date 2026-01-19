@@ -16,23 +16,10 @@ export type {
 
 /**
  * Custom error class for repository operations.
- * Provides context about what operation failed and on which entity.
  */
 export class RepositoryError extends Error {
-  readonly operation?: string;
-  readonly entity?: string;
-  readonly cause?: Error;
-
-  constructor(
-    message: string,
-    operation?: string,
-    entity?: string,
-    cause?: Error
-  ) {
+  constructor(message: string) {
     super(message);
     this.name = 'RepositoryError';
-    this.operation = operation;
-    this.entity = entity;
-    this.cause = cause;
   }
 }
