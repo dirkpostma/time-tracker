@@ -86,6 +86,9 @@ See `.claude/skills/start-feature.md` for full workflow details.
 - Check if tests match specs in `/specs/`
 - Update docs if needed (README.md, specs/)
 
+### Git Commits
+- **Always ask for confirmation before committing** - never commit automatically
+
 ## Session Completion
 
 When ending a work session:
