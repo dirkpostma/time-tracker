@@ -23,6 +23,7 @@ describe('loginCommand', () => {
     vi.clearAllMocks();
   });
 
+  /** @spec auth.login.success */
   it('prompts for email and password on successful login', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     vi.mocked(input).mockResolvedValue('test@example.com');
@@ -81,6 +82,7 @@ describe('logoutCommand', () => {
     vi.clearAllMocks();
   });
 
+  /** @spec auth.logout.success */
   it('calls signOut and shows success message', async () => {
     vi.mocked(signOut).mockResolvedValue();
 
@@ -116,6 +118,7 @@ describe('whoamiCommand', () => {
     vi.clearAllMocks();
   });
 
+  /** @spec auth.whoami.logged-in */
   it('shows user email when logged in via initAuthSession', async () => {
     vi.mocked(initAuthSession).mockResolvedValue({ id: 'user-123', email: 'test@example.com' });
 
@@ -141,6 +144,7 @@ describe('whoamiCommand', () => {
     consoleSpy.mockRestore();
   });
 
+  /** @spec auth.whoami.not-logged-in */
   it('shows not logged in message when no user', async () => {
     vi.mocked(initAuthSession).mockResolvedValue(null);
     vi.mocked(getCurrentUser).mockResolvedValue(null);
@@ -182,6 +186,7 @@ describe('ensureAuth', () => {
     await expect(ensureAuth()).resolves.not.toThrow();
   });
 
+  /** @spec config.auth.not-logged-in */
   it('exits with error when not logged in', async () => {
     vi.mocked(initAuthSession).mockResolvedValue(null);
 

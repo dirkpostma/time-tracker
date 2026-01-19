@@ -119,11 +119,22 @@ Show user:
 When writing tests, subagents must follow:
 
 - **NEVER hardcode secrets**: Always use `process.env.VAR_NAME` for API keys, passwords, tokens. Check `.env.example` for available vars and add new ones if needed.
-- **Reference specs in comments**: `// See specs/cli/interactive-mode.md: "When timer IS running"`
+- **Include @spec annotation**: Add `/** @spec {id} */` JSDoc comment above each `it()` block to link to the spec scenario ID
 - **Match exact error messages**: Use the same messages shown in spec examples
 - **Follow existing patterns**: Match describe/it structure, setup/teardown, mocking
 - **Proper cleanup**: Reset state between tests
 - **Create new test file only when**: No suitable file exists for the spec
+
+**Example test with @spec annotation:**
+
+```typescript
+/** @spec config.validation.invalid-url */
+it('shows error for invalid URL format', async () => {
+  const result = await validateCredentials('http://invalid-url.com', 'key');
+  expect(result.valid).toBe(false);
+  expect(result.error).toContain('Invalid Supabase URL format');
+});
+```
 
 ## Example Usage
 

@@ -34,6 +34,7 @@ describe('time entry commands', () => {
   });
 
   describe('startTimer', () => {
+    /** @spec timer.start.success */
     it('should create a new time entry with client and project', async () => {
       const entry = await startTimer(testClientId, testProjectId);
 
@@ -60,6 +61,7 @@ describe('time entry commands', () => {
       expect(entry.description).toBe('Working on feature');
     });
 
+    /** @spec timer.start.running-exists */
     it('should throw if timer already running and force is false', async () => {
       await startTimer(testClientId, testProjectId);
 
@@ -106,6 +108,7 @@ describe('time entry commands', () => {
   });
 
   describe('stopTimer', () => {
+    /** @spec timer.stop.success */
     it('should stop running timer', async () => {
       await startTimer(testClientId, testProjectId);
 
@@ -115,6 +118,7 @@ describe('time entry commands', () => {
       expect(entry.ended_at).toBeDefined();
     });
 
+    /** @spec timer.stop.no-running */
     it('should throw if no timer running', async () => {
       await expect(stopTimer()).rejects.toThrow('No timer running');
     });
@@ -138,11 +142,13 @@ describe('time entry commands', () => {
   });
 
   describe('getStatus', () => {
+    /** @spec timer.status.not-running */
     it('should return null when no timer running', async () => {
       const status = await getStatus();
       expect(status).toBeNull();
     });
 
+    /** @spec timer.status.running */
     it('should return status with client and project info', async () => {
       await startTimer(testClientId, testProjectId);
 

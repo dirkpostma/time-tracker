@@ -51,12 +51,12 @@ When saving credentials via `tt config`, the CLI validates them by making a test
 
 ### Error Messages
 
-| Scenario | Error Message |
-|----------|---------------|
-| Invalid URL format | `Invalid Supabase URL format. Expected: https://<project>.supabase.co` |
-| Connection failed (network) | `Could not connect to Supabase. Check your URL and network connection.` |
-| Invalid credentials (401/403) | `Invalid Supabase credentials. Check your API key.` |
-| Other API error | `Supabase connection failed: <error details>` |
+| ID | Scenario | Error Message |
+|----|----------|---------------|
+| config.validation.invalid-url | Invalid URL format | `Invalid Supabase URL format. Expected: https://<project>.supabase.co` |
+| config.validation.network-error | Connection failed (network) | `Could not connect to Supabase. Check your URL and network connection.` |
+| config.validation.invalid-key | Invalid credentials (401/403) | `Invalid Supabase credentials. Check your API key.` |
+| config.validation.api-error | Other API error | `Supabase connection failed: <error details>` |
 
 ### Example Interaction
 
@@ -81,9 +81,9 @@ Credentials saved to ~/.tt/config.json
 
 When running any command with invalid stored credentials:
 
-| Scenario | Error Message |
-|----------|---------------|
-| Stored credentials invalid | `Supabase authentication failed. Run 'tt config' to update your credentials.` |
+| ID | Scenario | Error Message |
+|----|----------|---------------|
+| config.runtime.stored-invalid | Stored credentials invalid | `Supabase authentication failed. Run 'tt config' to update your credentials.` |
 
 ## Authentication Required
 
@@ -94,11 +94,17 @@ Most commands require user authentication. When a user runs a command without be
 
 Commands exempt from authentication: `config`, `login`, `logout`, `whoami`
 
+| ID | Scenario | Expected |
+|----|----------|----------|
+| config.auth.not-logged-in | User runs command without auth | Exit with "Not logged in. Run `tt login` to sign in." |
+| config.auth.exempt-commands | config/login/logout/whoami run without auth | Commands execute normally |
+
 ### Token Refresh
 
-- Sessions are automatically refreshed when tokens expire
-- Refreshed tokens are saved back to config
-- Invalid/expired tokens that can't be refreshed are cleared, requiring re-login
+| ID | Scenario | Expected |
+|----|----------|----------|
+| config.auth.token-refresh | Token expired but refreshable | Refresh token, save to config, continue |
+| config.auth.token-expired | Token expired and cannot refresh | Clear tokens, require re-login |
 
 ## First-Run Setup
 
@@ -108,6 +114,12 @@ When no configuration exists and the user runs any command:
 2. Prompt: "No configuration found. Set up now? [Y/n]"
 3. If yes: run `tt config` flow, then continue with original command
 4. If no: exit with message "Run 'tt config' when ready."
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| config.firstrun.no-config | No config exists, user runs command | Prompt "No configuration found. Set up now? [Y/n]" |
+| config.firstrun.user-confirms | User confirms setup (y) | Run config flow, then continue with original command |
+| config.firstrun.user-declines | User declines setup (n) | Exit with "Run 'tt config' when ready." |
 
 ### Example
 

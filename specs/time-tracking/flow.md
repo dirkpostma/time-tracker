@@ -24,3 +24,30 @@
 
 - Show the currently running timer (client, project if present, task if present, duration so far)
 - If no timer running, say so
+
+## Scenarios
+
+### Starting Timer
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| timer.start.running-exists | Timer already running | Prompt to stop and start new (see timer-switch.md) |
+| timer.start.client-missing | Client doesn't exist | Prompt to create it |
+| timer.start.project-missing | Project doesn't exist | Prompt to create it |
+| timer.start.task-missing | Task doesn't exist | Prompt to create it |
+| timer.start.success | All valid, no running timer | Create TimeEntry with started_at=now, ended_at=null |
+
+### Stopping Timer
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| timer.stop.no-running | No timer running | Notify user "No timer is running" |
+| timer.stop.desc-exists | Description provided, one already exists | Warn and prompt "overwrite? y/n" |
+| timer.stop.success | Timer running | Set ended_at=now |
+
+### Status Check
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| timer.status.running | Timer is running | Show client, project, task, duration |
+| timer.status.not-running | No timer running | Show "No timer running" |

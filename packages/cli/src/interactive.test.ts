@@ -50,6 +50,7 @@ describe('interactive mode', () => {
   });
 
   describe('no timer running', () => {
+    /** @spec interactive.select.start */
     it('starts timer after selecting client, project, and task', async () => {
       const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
         if (opts.message.includes('client')) return testClient.id;
@@ -99,6 +100,7 @@ describe('interactive mode', () => {
       expect(running?.task_id).toBeNull();
     });
 
+    /** @spec interactive.select.client */
     it('creates new client when selected', async () => {
       let createClientPromptShown = false;
       const newClientName = `New Client ${testId}`;
@@ -131,6 +133,7 @@ describe('interactive mode', () => {
       await supabase.from('clients').delete().eq('name', newClientName);
     });
 
+    /** @spec interactive.select.project */
     it('creates new project when [+ New project] is selected', async () => {
       let createProjectPromptShown = false;
       const newProjectName = `New Project ${testId}`;
@@ -173,6 +176,7 @@ describe('interactive mode', () => {
       await supabase.from('projects').delete().eq('id', result.projectId!);
     });
 
+    /** @spec interactive.select.task */
     it('creates new task when [+ New task] is selected', async () => {
       let createTaskPromptShown = false;
       const newTaskName = `New Task ${testId}`;
@@ -227,6 +231,7 @@ describe('interactive mode', () => {
       });
     });
 
+    /** @spec interactive.running.stop */
     it('stops timer when Stop is selected', async () => {
       const mockSelect = async (opts: { message: string }) => {
         if (opts.message.includes('What would you like to do')) return 'stop';
@@ -244,6 +249,7 @@ describe('interactive mode', () => {
       expect(running).toBeNull();
     });
 
+    /** @spec interactive.running.switch */
     it('switches timer when Switch is selected', async () => {
       const mockSelect = async (opts: { message: string }) => {
         if (opts.message.includes('What would you like to do')) return 'switch';
@@ -265,6 +271,7 @@ describe('interactive mode', () => {
       expect(running?.client_id).toBe(testClient2.id);
     });
 
+    /** @spec interactive.running.cancel */
     it('cancels without changes when Cancel is selected', async () => {
       const runningBefore = await getRunningTimer();
 
@@ -295,6 +302,7 @@ describe('interactive mode', () => {
       }
     });
 
+    /** @spec recent.save */
     it('saves last-used client and project after starting timer', async () => {
       const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
         if (opts.message.includes('client')) return testClient.id;
@@ -314,6 +322,7 @@ describe('interactive mode', () => {
       expect(recent.projectId).toBe(testProject.id);
     });
 
+    /** @spec interactive.defaults.client */
     it('pre-selects last-used client in choices', async () => {
       // Save a recent client
       saveRecent({ clientId: testClient.id });
@@ -338,6 +347,7 @@ describe('interactive mode', () => {
       expect(clientChoicesDefault).toBe(testClient.id);
     });
 
+    /** @spec interactive.defaults.project */
     it('pre-selects last-used project in choices', async () => {
       // Save recent client and project
       saveRecent({ clientId: testClient.id, projectId: testProject.id });

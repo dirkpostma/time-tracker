@@ -32,6 +32,15 @@ With `--force`:
 - Skip confirmation prompt
 - Automatically stop the running timer and start the new one
 
+## Scenarios
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| timer.switch.detect-running | Detect running timer on start | Show current timer info (client, project, task, duration) |
+| timer.switch.user-confirms | User confirms switch (y) | Stop old timer, start new timer, show confirmation of both |
+| timer.switch.user-declines | User declines switch (n) | Keep current running, show "Keeping current timer running." |
+| timer.switch.force-flag | --force flag used | Skip prompt, auto-switch |
+
 ## Example Interactions
 
 ### User Confirms Switch

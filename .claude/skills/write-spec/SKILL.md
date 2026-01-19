@@ -79,7 +79,7 @@ For each spec file:
 | field | type | notes |
 ```
 
-**Feature Specs** (use behavior + examples format):
+**Feature Specs** (use behavior + examples + scenario table format):
 ```markdown
 # [Feature Name] Spec
 
@@ -89,9 +89,25 @@ For each spec file:
 ## Behavior
 [Detailed behavior description - what happens, not how]
 
+## Scenarios
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| {domain}.{feature}.{scenario-name} | Description | Expected behavior |
+
 ## Example Interactions
 [Terminal examples showing inputs and outputs]
 ```
+
+**Scenario ID Format:** `{domain}.{feature}.{scenario}` (e.g., `timer.switch.user-confirms`)
+
+Common domains:
+- `config` - Configuration and credentials
+- `timer` - Timer start/stop/switch
+- `auth` - Authentication
+- `client`, `project`, `task` - Entity management
+- `interactive` - Interactive mode flows
+- `recent` - Recent selections storage
 
 **Security/System Specs**:
 ```markdown
@@ -153,6 +169,8 @@ Done! Created `row-level-security.md` and updated `data-model.md`.
 - **Specs drive tests**: Write specs first, then tests against specs, then implementation
 - **Be descriptive, not prescriptive**: Specs say what should happen, not how to implement
 - **Use tables for data**: Field/Type/Notes format for entities
+- **Include scenario tables with IDs**: Every behavioral spec should have a `## Scenarios` section with an `| ID |` column
+- **ID format**: `{domain}.{feature}.{scenario}` (e.g., `config.validation.invalid-url`)
 - **Include examples**: Show concrete terminal interactions (these become test cases)
 - **Keep focused**: One concern per spec file
 - **Reference related specs**: Link to related documentation

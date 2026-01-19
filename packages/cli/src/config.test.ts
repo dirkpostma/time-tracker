@@ -33,12 +33,14 @@ describe('validateCredentials', () => {
     vi.clearAllMocks();
   });
 
+  /** @spec config.validation.invalid-url */
   it('returns error for invalid URL format', async () => {
     const result = await validateCredentials('http://invalid-url.com', 'some-key');
     expect(result.valid).toBe(false);
     expect(result.error).toContain('Invalid Supabase URL format');
   });
 
+  /** @spec config.validation.invalid-url */
   it('returns error for URL without https', async () => {
     const result = await validateCredentials('http://myproject.supabase.co', 'some-key');
     expect(result.valid).toBe(false);
@@ -58,6 +60,7 @@ describe('validateCredentials', () => {
     expect(result.error).toBeUndefined();
   });
 
+  /** @spec config.validation.invalid-key */
   it('returns error when API key is invalid', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -74,6 +77,7 @@ describe('validateCredentials', () => {
     expect(result.error).toContain('Invalid Supabase credentials');
   });
 
+  /** @spec config.validation.network-error */
   it('returns connection error when fetch fails', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -282,6 +286,7 @@ describe('ensureConfig', () => {
     consoleSpy.mockRestore();
   });
 
+  /** @spec config.firstrun.user-confirms */
   it('prompts to set up when no config exists and user accepts', async () => {
     vi.mocked(getConfig)
       .mockReturnValueOnce(null) // First call: no config
@@ -311,6 +316,7 @@ describe('ensureConfig', () => {
     consoleSpy.mockRestore();
   });
 
+  /** @spec config.firstrun.user-declines */
   it('exits when no config and user declines setup', async () => {
     vi.mocked(getConfig).mockReturnValue(null);
     vi.mocked(confirm).mockResolvedValue(false);

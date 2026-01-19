@@ -38,47 +38,36 @@ If no spec path provided:
 - Scan all `specs/**/*.md` files
 - List found specs and confirm with user
 
-### Step 3: Launch Analysis Subagents
+### Step 3: Extract IDs and Match Tests
 
-For each spec file, launch a Task subagent (in parallel) that:
+For each spec file, perform ID-based matching (no subagent needed):
 
-1. **Reads the spec file** - Understand what the spec describes
-2. **Extracts testable scenarios** - Identify:
-   - Behaviors described
-   - Examples shown
-   - Error cases mentioned
-   - Constraints/rules specified
-3. **Discovers related test files** by:
-   - Searching for test files with matching names/keywords
-   - Searching test content for references to spec concepts
-   - Looking at directory structure and naming patterns
-4. **Reads discovered test files** - Extract test descriptions (`describe`/`it` blocks)
-5. **Returns coverage analysis** - For each scenario: covered or gap
+1. **Parse scenario tables** - Extract all IDs from tables with `| ID |` column
+2. **Grep test files for @spec annotations** - Search for `@spec {id}` in test files
+3. **Match IDs to determine coverage** - ID found in test = covered, not found = gap
 
-**Subagent Prompt Template:**
+**Implementation:**
 
-```
-Analyze test coverage for spec: {spec-path}
+```bash
+# Extract IDs from spec file (lines containing | ID | pattern rows)
+grep -E '^\| [a-z]+\.[a-z]+\.[a-z-]+ \|' specs/cli/config.md | cut -d'|' -f2 | tr -d ' '
 
-1. Read the spec file
-2. Extract all testable scenarios (behaviors, examples, error cases, constraints)
-3. Find related test files by:
-   - Searching for test files matching spec concepts (Glob: **/*.test.ts, **/*.spec.ts)
-   - Grepping for spec-related keywords in test files
-4. Read the discovered test files
-5. For each scenario, determine if it's covered by existing tests
-
-Return a structured analysis:
-- Spec file path
-- Discovered test file(s)
-- List of scenarios with status (covered/gap) and test location if covered
+# Search for @spec annotations in test files
+grep -r '@spec config.validation.invalid-url' packages/
 ```
 
-Launch subagents in parallel using the Task tool with `subagent_type: "general-purpose"`.
+**Matching Logic:**
+
+For each spec ID:
+1. Search all test files for `@spec {id}`
+2. If found: mark as "Covered" with test file:line location
+3. If not found: mark as "Gap"
+
+This is faster and more reliable than semantic matching.
 
 ### Step 4: Collect Results
 
-Wait for all subagents to complete. Merge their coverage analyses into a unified report.
+Merge the ID-based coverage analyses into a unified report.
 
 ### Step 5: Generate Coverage Report
 
@@ -95,20 +84,20 @@ Create a report file at `{feature-folder}/test-coverage.md` with format:
 
 ## By Spec
 
-### specs/core/row-level-security.md
-**Test file:** `packages/repositories/src/supabase/rls.test.ts`
+### specs/cli/config.md
 
-| Scenario | Status | Test Location |
-|----------|--------|---------------|
-| User can only read own data | Covered | rls.test.ts:45 |
-| INSERT requires user_id match | Gap | - |
+| ID | Scenario | Status | Test Location |
+|----|----------|--------|---------------|
+| config.validation.invalid-url | Invalid URL format | Covered | config.test.ts:36 |
+| config.validation.network-error | Connection failed | Covered | config.test.ts:77 |
+| config.firstrun.user-confirms | User confirms setup | Gap | - |
 
 ### specs/cli/interactive-mode.md
-**Test file:** `src/cli/__tests__/interactive.test.ts`
 
-| Scenario | Status | Test Location |
-|----------|--------|---------------|
-| ... | ... | ... |
+| ID | Scenario | Status | Test Location |
+|----|----------|--------|---------------|
+| interactive.running.stop | Stop timer | Covered | interactive.test.ts:230 |
+| interactive.running.switch | Switch timer | Covered | interactive.test.ts:247 |
 ```
 
 ### Step 6: Present Results
@@ -153,7 +142,8 @@ Gaps:
 
 ## Notes
 
-- Subagents run in parallel for efficiency
-- Each subagent is self-contained (reads spec, finds tests, analyzes)
+- ID-based matching is fast and deterministic (no AI semantic matching needed)
+- Spec IDs follow pattern: `{domain}.{feature}.{scenario}` (e.g., `config.validation.invalid-url`)
+- Tests link to specs via `/** @spec {id} */` JSDoc comments above `it()` blocks
 - Report is saved to the feature folder for use by `/write-tests`
 - Feature folder structure: `history/YYMMDD-<feature-name>/`

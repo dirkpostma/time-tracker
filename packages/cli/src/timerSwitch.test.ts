@@ -54,6 +54,7 @@ describe('timerSwitch', () => {
       expect(status?.client.id).toBe(testClientId);
     });
 
+    /** @spec timer.switch.force-flag */
     it('should switch timer with force=true', async () => {
       // Start initial timer
       await startTimer(testClientId, testProjectId);
@@ -86,6 +87,7 @@ describe('timerSwitch', () => {
       expect(result.message).toBe('non-interactive');
     });
 
+    /** @spec timer.switch.user-confirms */
     it('should switch when user confirms in interactive mode', async () => {
       // Start initial timer
       await startTimer(testClientId, testProjectId);
@@ -103,6 +105,7 @@ describe('timerSwitch', () => {
       expect(result.stoppedTimer).toBeDefined();
     });
 
+    /** @spec timer.switch.user-declines */
     it('should keep running when user declines in interactive mode', async () => {
       // Start initial timer
       const initialEntry = await startTimer(testClientId, testProjectId);
@@ -123,6 +126,7 @@ describe('timerSwitch', () => {
       expect(status?.entry.id).toBe(initialEntry.id);
     });
 
+    /** @spec timer.switch.detect-running */
     it('should return stoppedTimer with client, project, task, and duration info', async () => {
       // Start timer with client, project, and task
       await startTimer(testClientId, testProjectId, testTaskId);
