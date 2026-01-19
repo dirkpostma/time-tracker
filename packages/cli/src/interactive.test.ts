@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import { runInteractiveMode, InteractiveResult } from './interactive.js';
+import { runInteractiveMode, InteractiveResult, formatDuration, formatTimerInfo } from './interactive.js';
 import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { addTask, Task } from './task.js';
-import { getRunningTimer, stopTimer } from './timeEntry.js';
+import { getRunningTimer, stopTimer, TimerStatus } from './timeEntry.js';
 import { saveRecent, loadRecent } from './recent.js';
 import fs from 'fs';
 import os from 'os';
@@ -430,6 +430,60 @@ describe('interactive mode', () => {
 
       // The default should be the last-used project ID
       expect(projectChoicesDefault).toBe(testProject.id);
+    });
+  });
+
+  describe('formatting functions', () => {
+    /** @spec interactive.running.show-info */
+    it('formatDuration shows hours and minutes when duration >= 1 hour', () => {
+      expect(formatDuration(3600)).toBe('1h 0m'); // exactly 1 hour
+      expect(formatDuration(3661)).toBe('1h 1m'); // 1 hour 1 minute
+      expect(formatDuration(7200)).toBe('2h 0m'); // 2 hours
+      expect(formatDuration(8115)).toBe('2h 15m'); // 2 hours 15 minutes
+    });
+
+    /** @spec interactive.running.show-info */
+    it('formatDuration shows only minutes when duration < 1 hour', () => {
+      expect(formatDuration(0)).toBe('0m');
+      expect(formatDuration(60)).toBe('1m');
+      expect(formatDuration(900)).toBe('15m');
+      expect(formatDuration(3599)).toBe('59m');
+    });
+
+    /** @spec interactive.running.show-info */
+    it('formatTimerInfo shows client, project, and task names', () => {
+      const status: TimerStatus = {
+        entry: { id: '0', client_id: '1', project_id: '2', task_id: '3', description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
+        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
+        project: { id: '2', name: 'Website', client_id: '1', created_at: '', updated_at: '' },
+        task: { id: '3', name: 'Homepage', project_id: '2', created_at: '', updated_at: '' },
+        duration: 0,
+      };
+      expect(formatTimerInfo(status)).toBe('Acme Corp > Website > Homepage');
+    });
+
+    /** @spec interactive.running.show-info */
+    it('formatTimerInfo shows client and project when no task', () => {
+      const status: TimerStatus = {
+        entry: { id: '0', client_id: '1', project_id: '2', task_id: null, description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
+        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
+        project: { id: '2', name: 'Website', client_id: '1', created_at: '', updated_at: '' },
+        task: null,
+        duration: 0,
+      };
+      expect(formatTimerInfo(status)).toBe('Acme Corp > Website');
+    });
+
+    /** @spec interactive.running.show-info */
+    it('formatTimerInfo shows only client when no project', () => {
+      const status: TimerStatus = {
+        entry: { id: '0', client_id: '1', project_id: null, task_id: null, description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
+        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
+        project: null,
+        task: null,
+        duration: 0,
+      };
+      expect(formatTimerInfo(status)).toBe('Acme Corp');
     });
   });
 });

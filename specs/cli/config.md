@@ -120,6 +120,7 @@ When no configuration exists and the user runs any command:
 | config.firstrun.no-config | No config exists, user runs command | Prompt "No configuration found. Set up now? [Y/n]" |
 | config.firstrun.user-confirms | User confirms setup (y) | Run config flow, then continue with original command |
 | config.firstrun.user-declines | User declines setup (n) | Exit with "Run 'tt config' when ready." |
+| config.firstrun.validation-fails | User confirms but credentials invalid | Exit with "Configuration not saved. Run 'tt config' when ready." |
 
 ### Example
 

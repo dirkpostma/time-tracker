@@ -65,21 +65,21 @@ describe('time entry commands', () => {
     it('should throw when client does not exist', async () => {
       const nonExistentClientId = '00000000-0000-0000-0000-000000000000';
 
-      await expect(startTimer(nonExistentClientId)).rejects.toThrow('Failed to start timer');
+      await expect(startTimer(nonExistentClientId)).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.project-missing */
     it('should throw when project does not exist', async () => {
       const nonExistentProjectId = '00000000-0000-0000-0000-000000000000';
 
-      await expect(startTimer(testClientId, nonExistentProjectId)).rejects.toThrow('Failed to start timer');
+      await expect(startTimer(testClientId, nonExistentProjectId)).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.task-missing */
     it('should throw when task does not exist', async () => {
       const nonExistentTaskId = '00000000-0000-0000-0000-000000000000';
 
-      await expect(startTimer(testClientId, testProjectId, nonExistentTaskId)).rejects.toThrow('Failed to start timer');
+      await expect(startTimer(testClientId, testProjectId, nonExistentTaskId)).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.running-exists */

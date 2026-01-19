@@ -412,4 +412,39 @@ describe('ensureConfig', () => {
     consoleSpy.mockRestore();
     mockExit.mockRestore();
   });
+
+  /** @spec config.firstrun.validation-fails */
+  it('exits with error when user confirms but validation fails', async () => {
+    // getConfig always returns null - config never saved due to validation failure
+    vi.mocked(getConfig).mockReturnValue(null);
+    vi.mocked(confirm).mockResolvedValue(true);
+    vi.mocked(input)
+      .mockResolvedValueOnce('https://test.supabase.co')
+      .mockResolvedValueOnce('invalid-key');
+
+    // Mock validation failure (invalid key)
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Invalid API key', code: 'PGRST301' },
+        }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+
+    await expect(ensureConfig()).rejects.toThrow('process.exit(1)');
+
+    expect(consoleSpy).toHaveBeenCalledWith("Configuration not saved. Run 'tt config' when ready.");
+
+    consoleSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+    mockExit.mockRestore();
+  });
 });

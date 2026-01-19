@@ -93,5 +93,30 @@ describe('recent', () => {
       const savedContent = fs.readFileSync(testRecentPath, 'utf-8');
       expect(JSON.parse(savedContent)).toEqual(data);
     });
+
+    /** @spec recent.first-use */
+    it('creates parent directory if it does not exist', () => {
+      const nestedDir = path.join(os.tmpdir(), `.tt-test-nested-${Date.now()}`);
+      const nestedPath = path.join(nestedDir, 'recent.json');
+      const data = { clientId: 'client-123', projectId: 'project-456' };
+
+      try {
+        // Verify directory does not exist
+        expect(fs.existsSync(nestedDir)).toBe(false);
+
+        saveRecent(data, nestedPath);
+
+        // Verify directory was created
+        expect(fs.existsSync(nestedDir)).toBe(true);
+
+        // Verify file was created with correct content
+        const savedContent = fs.readFileSync(nestedPath, 'utf-8');
+        expect(JSON.parse(savedContent)).toEqual(data);
+      } finally {
+        // Clean up
+        if (fs.existsSync(nestedPath)) fs.unlinkSync(nestedPath);
+        if (fs.existsSync(nestedDir)) fs.rmdirSync(nestedDir);
+      }
+    });
   });
 });

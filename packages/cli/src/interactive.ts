@@ -55,7 +55,7 @@ type SelectChoice = {
 const SKIP = '__skip__';
 const NEW = '__new__';
 
-function formatDuration(seconds: number): string {
+export function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
 
@@ -65,7 +65,7 @@ function formatDuration(seconds: number): string {
   return `${minutes}m`;
 }
 
-function formatTimerInfo(status: TimerStatus): string {
+export function formatTimerInfo(status: TimerStatus): string {
   let info = status.client.name;
   if (status.project) {
     info += ` > ${status.project.name}`;
