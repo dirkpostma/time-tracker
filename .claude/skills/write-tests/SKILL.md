@@ -95,24 +95,24 @@ Wait for all subagents to complete. Collect:
 - Files modified
 - Any issues encountered
 
-### Step 6: Verify
+### Step 6: Run Tests
 
-Run the test suite to validate all tests pass:
+Run the test suite to check results:
 
 ```bash
 npm test -- --run
 ```
 
-If tests fail:
-- Report which tests failed
-- Ask user how to proceed
+**Important**: In TDD, tests for unimplemented features *should* fail. This is expected and correct.
 
 ### Step 7: Report
 
 Show user:
 1. Summary of tests written
 2. Files modified
-3. Test results (pass/fail)
+3. Test results:
+   - **Passing tests**: Existing functionality now has test coverage
+   - **Failing tests**: Identify implementation gaps - these are candidates for the next implementation step
 
 ## Key Conventions
 
@@ -140,20 +140,18 @@ Wrote tests for:
 - specs/cli/interactive-mode.md (5 tests)
 
 Running tests...
-All tests pass!
+
+Results:
+- 5 tests pass (existing functionality now covered)
+- 2 tests fail (implementation gaps identified):
+  - "Timer started confirmation shows full path" - implementation outputs "Timer started." but spec requires "Started timer: Client > Project"
+  - "RLS policy exists on clients table" - policy not yet created
 
 Modified files:
 - packages/repositories/src/supabase/rls.test.ts
 - src/cli/__tests__/interactive.test.ts
-```
 
-```
-User: /write-tests --spec-path specs/core/row-level-security.md
-Assistant: I found `history/260118-row-level-security/`. Use this folder?
-User: Yes
-Assistant: Writing tests for RLS gaps only...
-[Writes tests for 2 RLS gaps]
-Done! Added 2 tests to rls.test.ts. All tests pass.
+Next step: Implement the failing features to make tests pass.
 ```
 
 ## Notes
@@ -161,6 +159,6 @@ Done! Added 2 tests to rls.test.ts. All tests pass.
 - Subagents run in parallel for efficiency
 - Each subagent handles one test file
 - Tests follow TDD conventions (exact error messages, proper mocking)
-- Always verify tests pass before reporting success
+- **Failing tests are expected** when writing tests for unimplemented features - this is correct TDD practice
 - Coverage report is read from feature folder: `history/YYMMDD-<feature-name>/test-coverage.md`
-- Run `/test-coverage` again after to verify gaps are filled
+- Run `/test-coverage` again after implementation to verify gaps are filled

@@ -32,9 +32,16 @@ If branch already exists, ask user whether to:
 
 ### Step 3: Gather Requirements
 
-Ask clarifying questions to understand the feature:
+Use the **AskUserQuestion tool** to gather requirements via multiple-choice questionnaires when applicable. This provides a better UX than open-ended questions.
 
-**Core Questions:**
+**Guidelines for questionnaires:**
+- Group related questions (up to 4 per call)
+- Provide 2-4 clear options per question with descriptions
+- Use `multiSelect: true` when multiple options can apply
+- Add "(Recommended)" to suggested options
+- Users can always select "Other" to provide custom input
+
+**Core Questions to ask:**
 - What is the main goal/outcome of this feature?
 - What is the expected input/output?
 - How should errors be handled?
@@ -49,7 +56,24 @@ Ask clarifying questions to understand the feature:
 - Are there performance requirements?
 - Any security considerations?
 
-Keep asking until requirements are clear. Don't assume - clarify.
+**Example questionnaire call:**
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "What is the main goal of this feature?",
+      header: "Goal",
+      options: [
+        { label: "Option A (Recommended)", description: "Description of option A" },
+        { label: "Option B", description: "Description of option B" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
+
+Keep asking until requirements are clear. Don't assume - clarify. Use follow-up questionnaires or free-form questions as needed.
 
 ### Step 4: Create Feature Folder
 
