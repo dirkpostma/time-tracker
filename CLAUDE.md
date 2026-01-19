@@ -60,67 +60,35 @@ npm test -- --run auth         # Auth tests only
 
 ## Documentation
 
-Specs are stored in `/specs/*.md` for stable architecture and design documentation (data model, API contracts, CLI commands).
+- **Specs**: `/specs/*.md` - stable architecture and design docs
+- **Plans**: `history/YYMMDD-feature-name.md` - feature plans (committed to git)
 
-## Plan Files
+## Feature Development
 
-**IMPORTANT: Always write plans to `history/`, NOT `~/.claude/plans/`.**
+**Use `/start-feature <name>` to begin any new feature.**
 
-Plans are stored in `history/` and committed to git. This keeps planning artifacts with the codebase.
+This skill handles:
+1. Creating a feature branch
+2. Gathering requirements through clarifying questions
+3. Writing a plan in `history/`
+4. Getting your approval before implementation
 
-**Structure:**
-- Small features: `history/YYMMDD-feature-name.md` (single file)
-- Large features: `history/YYMMDD-feature-name/` (folder with multiple files)
+See `.claude/skills/start-feature.md` for full workflow details.
 
-**Keep plans small and focused:**
-- Each file should be <100 lines
-- Split by concern: architecture, auth, screens, testing, etc.
-- Use README.md as index linking to other files
-
-**Example structure:**
-```
-history/260115-mobile-app/
-├── README.md           # Overview, decisions, verification checklist
-├── docs-strategy.md    # Documentation approach
-├── monorepo.md         # Phase 1: Monorepo setup
-├── auth.md             # Phase 2: Auth & database
-├── mobile.md           # Phases 3-5: Mobile app
-└── testing.md          # Phase 6: Testing
-```
-
-## Feature Development Workflow
-
-**IMPORTANT: Always start with a planning phase before implementation.**
-
-### 1. Planning Phase (Required)
-- Ask clarifying questions to understand requirements fully
-- Don't assume - ask about edge cases, error handling, UI/UX preferences
-- For architecture changes, update relevant spec in `/specs/`
-- Get user approval before coding
-
-### 2. Implementation Phase
+### Implementation (after plan approval)
 - Write failing test first
 - Implement minimal code to pass
 - Refactor if needed
 - Never write implementation code without a test
 
-### 3. Verification Phase
+### Verification
 - All tests must pass before committing
-- Check if tests match the specifications in /specs
-- Check if docs need updating (README.md, specs/)
-
-## Questions to Ask Before Implementing
-
-- What is the expected input/output?
-- What are the edge cases?
-- How should errors be handled?
-- Are there performance requirements?
-- Does this need CLI commands, or just core logic?
-- How does this interact with existing features?
+- Check if tests match specs in `/specs/`
+- Update docs if needed (README.md, specs/)
 
 ## Session Completion
 
-When ending a work session, complete ALL steps:
+When ending a work session:
 
 1. **Run quality gates** (if code changed) - tests, linters, builds
 2. **Push to remote**:
