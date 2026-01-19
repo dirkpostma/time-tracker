@@ -61,7 +61,8 @@ npm test -- --run auth         # Auth tests only
 ## Documentation
 
 - **Specs**: `/specs/*.md` - stable architecture and design docs
-- **Plans**: `history/YYMMDD-feature-name.md` - feature plans (committed to git)
+- **Plans**: `plans/<feature-name>/` - active/future feature plans
+- **History**: `history/YYMMDD-<feature-name>/` - completed feature plans
 
 ## Feature Development
 
@@ -70,10 +71,12 @@ npm test -- --run auth         # Auth tests only
 This skill handles:
 1. Creating a feature branch
 2. Gathering requirements through clarifying questions
-3. Writing a plan in `history/`
+3. Writing a plan in `plans/`
 4. Getting your approval before implementation
 
-See `.claude/skills/start-feature.md` for full workflow details.
+After a feature is merged, move the plan to `history/` with a date prefix.
+
+See `.claude/skills/start-feature/skill.md` for full workflow details.
 
 ### Implementation (after plan approval)
 - Write failing test first
