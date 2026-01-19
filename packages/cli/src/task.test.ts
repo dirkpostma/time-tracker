@@ -26,6 +26,7 @@ describe('task commands', () => {
   });
 
   describe('findProjectByName', () => {
+    /** @spec {entity.name-match.found} */
     it('should find project by name and client', async () => {
       const project = await findProjectByName(testProjectName, testClientId);
       expect(project).toBeDefined();
@@ -49,6 +50,7 @@ describe('task commands', () => {
   });
 
   describe('listTasks', () => {
+    /** @spec {task.list.success} */
     it('should return tasks for a project', async () => {
       const tasks = await listTasks(testProjectId);
       expect(Array.isArray(tasks)).toBe(true);

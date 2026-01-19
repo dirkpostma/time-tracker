@@ -34,18 +34,6 @@ describe('RepositoryError', () => {
     const error = new RepositoryError('Test');
     expect(error.name).toBe('RepositoryError');
   });
-
-  it('should store operation and entity', () => {
-    const error = new RepositoryError('Test', 'create', 'client');
-    expect(error.operation).toBe('create');
-    expect(error.entity).toBe('client');
-  });
-
-  it('should store cause', () => {
-    const cause = new Error('Original error');
-    const error = new RepositoryError('Wrapped', 'update', 'project', cause);
-    expect(error.cause).toBe(cause);
-  });
 });
 
 describe('Repository interfaces', () => {

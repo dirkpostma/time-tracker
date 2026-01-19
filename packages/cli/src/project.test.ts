@@ -20,6 +20,7 @@ describe('project commands', () => {
   });
 
   describe('findClientByName', () => {
+    /** @spec {entity.name-match.found} */
     it('should find client by name', async () => {
       const client = await findClientByName(testClientName);
       expect(client).toBeDefined();
@@ -33,6 +34,7 @@ describe('project commands', () => {
   });
 
   describe('addProject', () => {
+    /** @spec project.add.success */
     it('should create a new project', async () => {
       const result = await addProject(testProjectName, testClientId);
 
@@ -55,6 +57,7 @@ describe('project commands', () => {
   });
 
   describe('listProjects', () => {
+    /** @spec project.list.success */
     it('should return projects', async () => {
       const projects = await listProjects();
       expect(Array.isArray(projects)).toBe(true);

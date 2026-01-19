@@ -20,9 +20,15 @@ import { getAuthTokens, clearAuthTokens } from '@time-tracker/repositories/supab
 const TEST_EMAIL = process.env.TEST_USER_EMAIL;
 const TEST_PASSWORD = process.env.TEST_USER_PASSWORD;
 
-const hasTestCredentials = TEST_EMAIL && TEST_PASSWORD;
+describe('auth integration', () => {
+  beforeAll(() => {
+    if (!TEST_EMAIL || !TEST_PASSWORD) {
+      throw new Error(
+        'Missing test credentials. Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables.'
+      );
+    }
+  });
 
-describe.skipIf(!hasTestCredentials)('auth integration', () => {
   beforeEach(async () => {
     // Clear any existing auth tokens before each test
     clearAuthTokens();
@@ -91,12 +97,5 @@ describe.skipIf(!hasTestCredentials)('auth integration', () => {
 
   it('throws error for non-existent user', async () => {
     await expect(signIn('nonexistent@example.com', 'anypassword')).rejects.toThrow();
-  });
-});
-
-describe('auth integration (no credentials)', () => {
-  it.skipIf(hasTestCredentials)('skips auth tests when TEST_USER_EMAIL and TEST_USER_PASSWORD are not set', () => {
-    console.log('Set TEST_USER_EMAIL and TEST_USER_PASSWORD env vars to run auth integration tests');
-    expect(true).toBe(true);
   });
 });

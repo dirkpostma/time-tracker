@@ -24,12 +24,7 @@ export class SupabaseClientRepository implements ClientRepository {
       .single();
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to create client: ${error.message}`,
-        'create',
-        'client',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to create client: ${error.message}`);
     }
 
     return data;
@@ -55,12 +50,7 @@ export class SupabaseClientRepository implements ClientRepository {
       if (error.code === 'PGRST116') {
         return null;
       }
-      throw new RepositoryError(
-        `Failed to find client by ID: ${error.message}`,
-        'findById',
-        'client',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find client by ID: ${error.message}`);
     }
 
     return data;
@@ -86,12 +76,7 @@ export class SupabaseClientRepository implements ClientRepository {
       if (error.code === 'PGRST116') {
         return null;
       }
-      throw new RepositoryError(
-        `Failed to find client by name: ${error.message}`,
-        'findByName',
-        'client',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to find client by name: ${error.message}`);
     }
 
     return data;
@@ -111,12 +96,7 @@ export class SupabaseClientRepository implements ClientRepository {
       .order('name');
 
     if (error) {
-      throw new RepositoryError(
-        `Failed to list clients: ${error.message}`,
-        'findAll',
-        'client',
-        new Error(error.message)
-      );
+      throw new RepositoryError(`Failed to list clients: ${error.message}`);
     }
 
     return data || [];

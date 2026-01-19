@@ -34,10 +34,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error || !data) {
       throw new RepositoryError(
-        `Failed to create time entry: ${formatSupabaseError(error?.message ?? 'Unknown error')}`,
-        'create',
-        'time_entry',
-        error ? new Error(error.message) : undefined
+        `Failed to create time entry: ${formatSupabaseError(error?.message ?? 'Unknown error')}`
       );
     }
 
@@ -59,10 +56,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error || !data) {
       throw new RepositoryError(
-        `Failed to update time entry: ${formatSupabaseError(error?.message ?? 'Entry not found')}`,
-        'update',
-        'time_entry',
-        error ? new Error(error.message) : undefined
+        `Failed to update time entry: ${formatSupabaseError(error?.message ?? 'Entry not found')}`
       );
     }
 
@@ -83,10 +77,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error) {
       throw new RepositoryError(
-        `Failed to find time entry: ${formatSupabaseError(error.message)}`,
-        'findById',
-        'time_entry',
-        new Error(error.message)
+        `Failed to find time entry: ${formatSupabaseError(error.message)}`
       );
     }
 
@@ -107,10 +98,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error) {
       throw new RepositoryError(
-        `Failed to find running time entry: ${formatSupabaseError(error.message)}`,
-        'findRunning',
-        'time_entry',
-        new Error(error.message)
+        `Failed to find running time entry: ${formatSupabaseError(error.message)}`
       );
     }
 
@@ -133,10 +121,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error) {
       throw new RepositoryError(
-        `Failed to find time entries by date range: ${formatSupabaseError(error.message)}`,
-        'findByDateRange',
-        'time_entry',
-        new Error(error.message)
+        `Failed to find time entries by date range: ${formatSupabaseError(error.message)}`
       );
     }
 
@@ -158,10 +143,7 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
     if (error || !data) {
       throw new RepositoryError(
-        `Failed to stop time entry: ${formatSupabaseError(error?.message ?? 'Entry not found')}`,
-        'stop',
-        'time_entry',
-        error ? new Error(error.message) : undefined
+        `Failed to stop time entry: ${formatSupabaseError(error?.message ?? 'Entry not found')}`
       );
     }
 

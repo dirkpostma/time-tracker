@@ -41,11 +41,6 @@ export async function validateCredentials(url: string, key: string): Promise<Val
           error: 'Invalid Supabase credentials. Check your API key.',
         };
       }
-      // Other errors might be OK (e.g., table doesn't exist yet)
-      // As long as we connected, credentials are valid
-      if (error.code === 'PGRST116' || error.code === '42P01') {
-        return { valid: true };
-      }
       return {
         valid: false,
         error: `Supabase connection failed: ${error.message}`,

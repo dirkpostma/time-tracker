@@ -9,7 +9,6 @@
 
 import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
 import { SupabaseTimeEntryRepository } from '@time-tracker/repositories/supabase/timeEntry';
-import { RepositoryError } from '@time-tracker/repositories/types';
 import { Client } from './client.js';
 import { Project } from './project.js';
 import { Task } from './task.js';
@@ -30,14 +29,7 @@ export interface TimerStatus {
 const timeEntryRepository = new SupabaseTimeEntryRepository();
 
 export async function getRunningTimer(): Promise<TimeEntry | null> {
-  try {
-    return await timeEntryRepository.findRunning();
-  } catch (err) {
-    if (err instanceof RepositoryError) {
-      throw new Error(`Failed to get running timer: ${err.message}`);
-    }
-    throw new Error(`Failed to get running timer: ${err instanceof Error ? err.message : String(err)}`);
-  }
+  return await timeEntryRepository.findRunning();
 }
 
 export async function startTimer(
@@ -58,19 +50,12 @@ export async function startTimer(
     }
   }
 
-  try {
-    return await timeEntryRepository.create({
-      client_id: clientId,
-      project_id: projectId || null,
-      task_id: taskId || null,
-      description: description || null,
-    });
-  } catch (err) {
-    if (err instanceof RepositoryError) {
-      throw new Error(`Failed to start timer: ${err.message}`);
-    }
-    throw new Error(`Failed to start timer: ${err instanceof Error ? err.message : String(err)}`);
-  }
+  return await timeEntryRepository.create({
+    client_id: clientId,
+    project_id: projectId || null,
+    task_id: taskId || null,
+    description: description || null,
+  });
 }
 
 export async function stopTimer(description?: string): Promise<TimeEntry> {
@@ -79,21 +64,14 @@ export async function stopTimer(description?: string): Promise<TimeEntry> {
     throw new Error('No timer running');
   }
 
-  try {
-    if (description !== undefined) {
-      // Update with description and stop in one operation
-      return await timeEntryRepository.update(running.id, {
-        description,
-        ended_at: new Date().toISOString(),
-      });
-    } else {
-      return await timeEntryRepository.stop(running.id);
-    }
-  } catch (err) {
-    if (err instanceof RepositoryError) {
-      throw new Error(`Failed to stop timer: ${err.message}`);
-    }
-    throw new Error(`Failed to stop timer: ${err instanceof Error ? err.message : String(err)}`);
+  if (description !== undefined) {
+    // Update with description and stop in one operation
+    return await timeEntryRepository.update(running.id, {
+      description,
+      ended_at: new Date().toISOString(),
+    });
+  } else {
+    return await timeEntryRepository.stop(running.id);
   }
 }
 
@@ -106,28 +84,20 @@ export async function getStatus(): Promise<TimerStatus | null> {
   }
 
   // Get client
-  const { data: client, error: clientError } = await supabase
+  const { data: client } = await supabase
     .from('clients')
     .select('*')
     .eq('id', running.client_id)
     .single();
 
-  if (clientError || !client) {
-    throw new Error('Failed to get client info');
-  }
-
   // Get project if present
   let project: Project | null = null;
   if (running.project_id) {
-    const { data: projectData, error: projectError } = await supabase
+    const { data: projectData } = await supabase
       .from('projects')
       .select('*')
       .eq('id', running.project_id)
       .single();
-
-    if (projectError || !projectData) {
-      throw new Error('Failed to get project info');
-    }
     project = projectData;
   }
 

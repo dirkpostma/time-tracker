@@ -8,10 +8,21 @@ vi.mock('./connection.js', () => ({
   getSupabaseClient: vi.fn(),
 }));
 
+// Mock the config module for token management tests
+vi.mock('./config.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('./config.js')>();
+  return {
+    ...original,
+    getAuthTokens: vi.fn(),
+    saveAuthTokens: vi.fn(),
+    clearAuthTokens: vi.fn(),
+  };
+});
+
 // Import after mocking
 import { initAuthSession, signIn, signOut, getCurrentUser } from './auth.js';
 import { getSupabaseClient } from './connection.js';
-import { saveConfig, AuthTokens } from './config.js';
+import { saveConfig, getAuthTokens, saveAuthTokens, clearAuthTokens, AuthTokens } from './config.js';
 
 describe('auth', () => {
   const testConfigDir = path.join(os.tmpdir(), `.tt-auth-test-${Date.now()}`);
@@ -60,15 +71,114 @@ describe('auth', () => {
 
   describe('initAuthSession', () => {
     it('returns null when no stored tokens exist', async () => {
-      // Create config without auth tokens
-      saveConfig({ supabaseUrl: 'https://test.co', supabaseKey: 'key' }, testConfigPath);
+      vi.mocked(getAuthTokens).mockReturnValue(null);
 
-      // We need to override the config path for this test
-      // Since we can't easily do that, we'll test the function behavior
       const result = await initAuthSession();
 
-      // With no tokens in the default config location, should return null
       expect(result).toBeNull();
+      expect(mockSetSession).not.toHaveBeenCalled();
+    });
+
+    /** @spec config.auth.token-refresh */
+    it('refreshes token and saves to config when token changed', async () => {
+      const oldTokens: AuthTokens = {
+        accessToken: 'old-access-token',
+        refreshToken: 'old-refresh-token',
+        expiresAt: 1700000000,
+      };
+      vi.mocked(getAuthTokens).mockReturnValue(oldTokens);
+
+      mockSetSession.mockResolvedValue({
+        data: {
+          session: {
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            expires_at: 1700001000,
+            user: { id: 'user-123', email: 'test@example.com' },
+          },
+        },
+        error: null,
+      });
+
+      const result = await initAuthSession();
+
+      expect(result).toEqual({ id: 'user-123', email: 'test@example.com' });
+      expect(mockSetSession).toHaveBeenCalledWith({
+        access_token: 'old-access-token',
+        refresh_token: 'old-refresh-token',
+      });
+      expect(saveAuthTokens).toHaveBeenCalledWith({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresAt: 1700001000,
+      });
+    });
+
+    /** @spec config.auth.token-refresh */
+    it('does not save tokens when access token unchanged', async () => {
+      const tokens: AuthTokens = {
+        accessToken: 'same-access-token',
+        refreshToken: 'same-refresh-token',
+        expiresAt: 1700000000,
+      };
+      vi.mocked(getAuthTokens).mockReturnValue(tokens);
+
+      mockSetSession.mockResolvedValue({
+        data: {
+          session: {
+            access_token: 'same-access-token',
+            refresh_token: 'same-refresh-token',
+            expires_at: 1700000000,
+            user: { id: 'user-123', email: 'test@example.com' },
+          },
+        },
+        error: null,
+      });
+
+      const result = await initAuthSession();
+
+      expect(result).toEqual({ id: 'user-123', email: 'test@example.com' });
+      expect(saveAuthTokens).not.toHaveBeenCalled();
+    });
+
+    /** @spec config.auth.token-expired */
+    it('clears tokens and returns null when session cannot be restored', async () => {
+      const expiredTokens: AuthTokens = {
+        accessToken: 'expired-access-token',
+        refreshToken: 'expired-refresh-token',
+        expiresAt: 1600000000, // expired
+      };
+      vi.mocked(getAuthTokens).mockReturnValue(expiredTokens);
+
+      mockSetSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'Invalid Refresh Token: Refresh Token Not Found' },
+      });
+
+      const result = await initAuthSession();
+
+      expect(result).toBeNull();
+      expect(clearAuthTokens).toHaveBeenCalled();
+    });
+
+    /** @spec config.auth.token-expired */
+    it('clears tokens when setSession returns no session', async () => {
+      const tokens: AuthTokens = {
+        accessToken: 'some-token',
+        refreshToken: 'some-refresh',
+        expiresAt: 1700000000,
+      };
+      vi.mocked(getAuthTokens).mockReturnValue(tokens);
+
+      mockSetSession.mockResolvedValue({
+        data: { session: null },
+        error: null,
+      });
+
+      const result = await initAuthSession();
+
+      expect(result).toBeNull();
+      expect(clearAuthTokens).toHaveBeenCalled();
     });
   });
 
