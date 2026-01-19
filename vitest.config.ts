@@ -11,5 +11,8 @@ export default defineConfig({
       SUPABASE_URL: 'http://127.0.0.1:54321',
       SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
     },
+    coverage: {
+      exclude: ['**/dist/**', '**/node_modules/**', '**/*.test.ts'],
+    },
   },
 });
