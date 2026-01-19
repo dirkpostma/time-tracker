@@ -26,6 +26,7 @@ describe('formatSupabaseError', () => {
     expect(result).toContain('Could not connect to Supabase');
   });
 
+  /** @spec config.runtime.stored-invalid */
   it('formats invalid API key error with auth message', () => {
     const result = formatSupabaseError('Invalid API key');
     expect(result).toContain('authentication failed');
