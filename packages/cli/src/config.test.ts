@@ -90,6 +90,37 @@ describe('validateCredentials', () => {
     expect(result.valid).toBe(false);
     expect(result.error).toContain('Could not connect to Supabase');
   });
+
+  /** @spec config.validation.api-error */
+  it('returns error with details for other API errors', async () => {
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Database connection pool exhausted', code: '500' },
+        }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const result = await validateCredentials('https://myproject.supabase.co', 'some-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe('Supabase connection failed: Database connection pool exhausted');
+  });
+
+  /** @spec config.validation.api-error */
+  it('returns error with details when exception is thrown (non-network)', async () => {
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockRejectedValue(new Error('Unexpected server error')),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const result = await validateCredentials('https://myproject.supabase.co', 'some-key');
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe('Supabase connection failed: Unexpected server error');
+  });
 });
 
 describe('showConfig', () => {
@@ -162,6 +193,33 @@ describe('configCommand', () => {
     if (fs.existsSync(testConfigDir)) {
       fs.rmSync(testConfigDir, { recursive: true });
     }
+  });
+
+  /** @spec config.auth.exempt-commands */
+  it('configCommand executes normally without prior auth', async () => {
+    // configCommand does not require auth - it's exempt in index.ts preAction
+    const mockInput = vi.mocked(input);
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    mockInput
+      .mockResolvedValueOnce('https://test.supabase.co')
+      .mockResolvedValueOnce('test-key');
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    // configCommand should execute without requiring auth
+    await configCommand();
+
+    // Verify it executed normally
+    expect(mockInput).toHaveBeenCalledTimes(2);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
+
+    consoleSpy.mockRestore();
   });
 
   it('prompts for URL and key', async () => {
@@ -284,6 +342,27 @@ describe('ensureConfig', () => {
     expect(result).toEqual(existingConfig);
     expect(confirm).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
+  });
+
+  /** @spec config.firstrun.no-config */
+  it('prompts with exact message when no config exists', async () => {
+    vi.mocked(getConfig).mockReturnValue(null);
+    vi.mocked(confirm).mockResolvedValue(false);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+
+    await expect(ensureConfig()).rejects.toThrow('process.exit(0)');
+
+    expect(confirm).toHaveBeenCalledWith({
+      message: 'No configuration found. Set up now?',
+      default: true,
+    });
+
+    consoleSpy.mockRestore();
+    mockExit.mockRestore();
   });
 
   /** @spec config.firstrun.user-confirms */

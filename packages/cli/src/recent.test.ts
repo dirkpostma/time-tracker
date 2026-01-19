@@ -76,5 +76,22 @@ describe('recent', () => {
       const savedContent = fs.readFileSync(testRecentPath, 'utf-8');
       expect(JSON.parse(savedContent)).toEqual(newData);
     });
+
+    /** @spec recent.first-use */
+    it('creates file automatically on first use when file does not exist', () => {
+      const data = { clientId: 'client-123', projectId: 'project-456' };
+
+      // Verify file does not exist before saveRecent
+      expect(fs.existsSync(testRecentPath)).toBe(false);
+
+      saveRecent(data, testRecentPath);
+
+      // Verify file was created
+      expect(fs.existsSync(testRecentPath)).toBe(true);
+
+      // Verify content is correct
+      const savedContent = fs.readFileSync(testRecentPath, 'utf-8');
+      expect(JSON.parse(savedContent)).toEqual(data);
+    });
   });
 });

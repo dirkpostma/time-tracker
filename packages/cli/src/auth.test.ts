@@ -219,3 +219,67 @@ describe('ensureAuth', () => {
     mockExit.mockRestore();
   });
 });
+
+/**
+ * Tests for auth-exempt commands behavior.
+ * The CLI preAction hook in index.ts skips ensureAuth for these commands:
+ * config, login, logout, whoami
+ *
+ * These tests verify that exempt commands can execute without authentication.
+ */
+describe('auth-exempt commands', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /** @spec config.auth.exempt-commands */
+  it('loginCommand executes normally without prior auth', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    vi.mocked(input).mockResolvedValue('test@example.com');
+    vi.mocked(password).mockResolvedValue('password123');
+    vi.mocked(signIn).mockResolvedValue({ id: 'user-123', email: 'test@example.com' });
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    // loginCommand does not call ensureAuth internally - it's exempt in index.ts preAction
+    await loginCommand();
+
+    // Verify it executed normally
+    expect(signIn).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('Logged in as test@example.com');
+
+    consoleSpy.mockRestore();
+  });
+
+  /** @spec config.auth.exempt-commands */
+  it('logoutCommand executes normally without prior auth', async () => {
+    vi.mocked(signOut).mockResolvedValue();
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    // logoutCommand does not call ensureAuth internally - it's exempt in index.ts preAction
+    await logoutCommand();
+
+    // Verify it executed normally
+    expect(signOut).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('Logged out successfully');
+
+    consoleSpy.mockRestore();
+  });
+
+  /** @spec config.auth.exempt-commands */
+  it('whoamiCommand executes normally without prior auth', async () => {
+    vi.mocked(initAuthSession).mockResolvedValue(null);
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    // whoamiCommand does not call ensureAuth internally - it's exempt in index.ts preAction
+    await whoamiCommand();
+
+    // Verify it executed normally (showing "not logged in" is valid behavior)
+    expect(consoleSpy).toHaveBeenCalledWith('Not logged in. Run `tt login` to sign in.');
+
+    consoleSpy.mockRestore();
+  });
+});

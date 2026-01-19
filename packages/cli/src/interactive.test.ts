@@ -218,6 +218,34 @@ describe('interactive mode', () => {
       await supabase.from('time_entries').delete().eq('task_id', result.taskId!);
       await supabase.from('tasks').delete().eq('id', result.taskId!);
     });
+
+    /** @spec interactive.select.description */
+    it('shows optional description prompt after selections', async () => {
+      let descriptionPromptMessage: string | undefined;
+
+      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
+        if (opts.message.includes('client')) return testClient.id;
+        if (opts.message.includes('project')) return testProject.id;
+        if (opts.message.includes('task')) return testTask.id;
+        return '';
+      };
+
+      const mockInput = async (opts: { message: string }) => {
+        if (opts.message.includes('Description')) {
+          descriptionPromptMessage = opts.message;
+        }
+        return '';
+      };
+
+      await runInteractiveMode({
+        selectFn: mockSelect as never,
+        inputFn: mockInput as never,
+      });
+
+      // Verify description prompt was shown with correct message
+      expect(descriptionPromptMessage).toBeDefined();
+      expect(descriptionPromptMessage).toContain('optional');
+    });
   });
 
   describe('timer running', () => {
@@ -229,6 +257,37 @@ describe('interactive mode', () => {
         project_id: testProject.id,
         started_at: new Date().toISOString(),
       });
+    });
+
+    /** @spec interactive.running.show-info */
+    it('shows timer info when timer is running', async () => {
+      // Capture console.log output
+      const logs: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args: unknown[]) => {
+        logs.push(args.map(String).join(' '));
+      };
+
+      try {
+        const mockSelect = async (opts: { message: string }) => {
+          if (opts.message.includes('What would you like to do')) return 'cancel';
+          return '';
+        };
+
+        await runInteractiveMode({
+          selectFn: mockSelect as never,
+          inputFn: (async () => '') as never,
+        });
+
+        // Check that timer info was displayed
+        const timerInfoLog = logs.find((log) => log.includes('Timer running:'));
+        expect(timerInfoLog).toBeDefined();
+        expect(timerInfoLog).toMatch(/Timer running: \d+h? ?\d*m on/);
+        expect(timerInfoLog).toContain(testClient.name);
+        expect(timerInfoLog).toContain(testProject.name);
+      } finally {
+        console.log = originalLog;
+      }
     });
 
     /** @spec interactive.running.stop */

@@ -61,6 +61,27 @@ describe('time entry commands', () => {
       expect(entry.description).toBe('Working on feature');
     });
 
+    /** @spec timer.start.client-missing */
+    it('should throw when client does not exist', async () => {
+      const nonExistentClientId = '00000000-0000-0000-0000-000000000000';
+
+      await expect(startTimer(nonExistentClientId)).rejects.toThrow('Failed to start timer');
+    });
+
+    /** @spec timer.start.project-missing */
+    it('should throw when project does not exist', async () => {
+      const nonExistentProjectId = '00000000-0000-0000-0000-000000000000';
+
+      await expect(startTimer(testClientId, nonExistentProjectId)).rejects.toThrow('Failed to start timer');
+    });
+
+    /** @spec timer.start.task-missing */
+    it('should throw when task does not exist', async () => {
+      const nonExistentTaskId = '00000000-0000-0000-0000-000000000000';
+
+      await expect(startTimer(testClientId, testProjectId, nonExistentTaskId)).rejects.toThrow('Failed to start timer');
+    });
+
     /** @spec timer.start.running-exists */
     it('should throw if timer already running and force is false', async () => {
       await startTimer(testClientId, testProjectId);
@@ -131,13 +152,34 @@ describe('time entry commands', () => {
       expect(entry.description).toBe('Finished the task');
     });
 
-    it('should warn if overwriting description', async () => {
-      await startTimer(testClientId, testProjectId, undefined, 'Original description');
+    /** @spec timer.stop.desc-exists */
+    it('should overwrite existing description when new description provided', async () => {
+      const originalDescription = 'Original description';
+      const newDescription = 'New description';
 
-      // This should work but return that there was an existing description
-      const entry = await stopTimer('New description');
+      await startTimer(testClientId, testProjectId, undefined, originalDescription);
 
-      expect(entry.description).toBe('New description');
+      // Verify original description was set
+      const running = await getRunningTimer();
+      expect(running?.description).toBe(originalDescription);
+
+      // Stop with new description - at the module level, this just overwrites
+      // (The CLI layer in index.ts handles the "overwrite? y/n" prompt)
+      const entry = await stopTimer(newDescription);
+
+      expect(entry.description).toBe(newDescription);
+    });
+
+    it('should preserve existing description when stopping without new description', async () => {
+      const originalDescription = 'Original description';
+
+      await startTimer(testClientId, testProjectId, undefined, originalDescription);
+
+      // Stop without providing a new description
+      const entry = await stopTimer();
+
+      // Original description should be preserved
+      expect(entry.description).toBe(originalDescription);
     });
   });
 
