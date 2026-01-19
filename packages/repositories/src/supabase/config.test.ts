@@ -176,6 +176,15 @@ describe('config', () => {
       expect(tokens).toBeNull();
     });
 
+    /** @spec config.auth-tokens.parse-error */
+    it('returns null when config file contains invalid JSON', () => {
+      fs.mkdirSync(testConfigDir, { recursive: true });
+      fs.writeFileSync(testConfigPath, 'not valid json');
+
+      const tokens = getAuthTokens(testConfigPath);
+      expect(tokens).toBeNull();
+    });
+
     it('returns null when config exists but has no auth tokens', () => {
       fs.mkdirSync(testConfigDir, { recursive: true });
       fs.writeFileSync(testConfigPath, JSON.stringify({
