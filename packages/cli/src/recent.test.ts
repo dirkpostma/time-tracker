@@ -31,11 +31,13 @@ describe('recent', () => {
   });
 
   describe('loadRecent', () => {
+    /** @spec recent.missing-file */
     it('returns empty object when recent file does not exist', () => {
       const result = loadRecent(testRecentPath);
       expect(result).toEqual({});
     });
 
+    /** @spec recent.load */
     it('returns saved data when recent file exists', () => {
       const data = { clientId: 'client-123', projectId: 'project-456' };
       fs.writeFileSync(testRecentPath, JSON.stringify(data));
@@ -44,6 +46,7 @@ describe('recent', () => {
       expect(result).toEqual(data);
     });
 
+    /** @spec recent.invalid-file */
     it('returns empty object when recent file is invalid JSON', () => {
       fs.writeFileSync(testRecentPath, 'not valid json');
 
@@ -53,6 +56,7 @@ describe('recent', () => {
   });
 
   describe('saveRecent', () => {
+    /** @spec recent.save */
     it('saves data to recent file', () => {
       const data = { clientId: 'client-123', projectId: 'project-456' };
 

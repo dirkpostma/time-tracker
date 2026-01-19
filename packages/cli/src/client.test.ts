@@ -12,6 +12,7 @@ describe('client commands', () => {
   });
 
   describe('addClient', () => {
+    /** @spec client.add.success */
     it('should create a new client', async () => {
       const result = await addClient(testClientName);
 
@@ -36,6 +37,7 @@ describe('client commands', () => {
   });
 
   describe('listClients', () => {
+    /** @spec client.list.success */
     it('should return empty array when no clients', async () => {
       const clients = await listClients();
       expect(Array.isArray(clients)).toBe(true);

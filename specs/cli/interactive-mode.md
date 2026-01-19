@@ -64,3 +64,31 @@ No timer:
 
 Started timer: Acme Corp > Website Redesign > Homepage layout
 ```
+
+## Scenarios
+
+### Timer Running
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| interactive.running.show-info | tt with timer running | Show "Timer running: Xh Ym on Client > Project" |
+| interactive.running.stop | User selects "Stop timer" | Stop timer, show summary |
+| interactive.running.switch | User selects "Switch" | Stop current, go to selection flow |
+| interactive.running.cancel | User selects "Cancel" | Exit without changes |
+
+### No Timer Running
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| interactive.select.client | Client selection | Show arrow-key list + "[+ New client]" |
+| interactive.select.project | Project selection | Show list + "[Skip]" + "[+ New project]" |
+| interactive.select.task | Task selection | Show list + "[Skip]" + "[+ New task]" |
+| interactive.select.description | Description prompt | Optional text input |
+| interactive.select.start | All selections made | Start timer |
+
+### Smart Defaults
+
+| ID | Scenario | Expected |
+|----|----------|----------|
+| interactive.defaults.client | Interactive mode starts | Pre-select last-used client |
+| interactive.defaults.project | Client selected | Pre-select last-used project within that client |
