@@ -37,7 +37,7 @@ export function DescriptionInput({
 const styles = StyleSheet.create({
   container: {
     marginTop: spacing.lg,
-    width: '100%',
+    marginHorizontal: spacing.xxl,
   },
   input: {
     borderWidth: 1,

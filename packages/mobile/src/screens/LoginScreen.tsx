@@ -55,7 +55,7 @@ export function LoginScreen({ onOpenShowcase }: LoginScreenProps) {
     <DSScreen>
       <DSKeyboardAvoidingView>
         <DSCenter padding="xxl">
-          <DSStack gap="md" align="stretch">
+          <DSStack gap="md" align="stretch" style={{ width: '100%' }}>
             <DSText variant="h1" align="center">
               Time Tracker
             </DSText>
