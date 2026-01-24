@@ -4,6 +4,21 @@ import { getConfig, getConfigPath } from './config.js';
 
 let client: SupabaseClient | null = null;
 
+/**
+ * Sets a custom Supabase client (for mobile/testing).
+ * Must be called before any repository operations.
+ */
+export function setSupabaseClient(customClient: SupabaseClient): void {
+  client = customClient;
+}
+
+/**
+ * Clears the Supabase client (for testing).
+ */
+export function clearSupabaseClient(): void {
+  client = null;
+}
+
 export function getSupabaseClient(): SupabaseClient {
   if (client) return client;
 

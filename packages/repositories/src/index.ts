@@ -16,4 +16,4 @@ export { SupabaseTimeEntryRepository } from './supabase/timeEntry.js';
 
 // Supabase configuration and connection
 export { getConfig, saveConfig, getConfigPath, type Config } from './supabase/config.js';
-export { getSupabaseClient, formatSupabaseError } from './supabase/connection.js';
+export { getSupabaseClient, setSupabaseClient, clearSupabaseClient, formatSupabaseError } from './supabase/connection.js';

@@ -1,0 +1,75 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+
+# Handle "Open in Expo Go?" dialog if it appears
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+# Wait for app to load (either login or timer screen)
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Wait for login screen to appear
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+
+# Verify login screen elements
+- assertVisible:
+    id: "email-input"
+- assertVisible:
+    id: "password-input"
+- assertVisible:
+    id: "login-button"
+
+# Enter credentials
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+# Submit login
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen to load after successful login
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Verify we're logged in
+- assertVisible: "Time Tracker"
+- assertVisible:
+    id: "logout-button"
+- assertVisible:
+    id: "timer-display"
+- assertVisible:
+    id: "user-email"
+
+# Test logout
+- tapOn:
+    id: "logout-button"
+
+# Verify we're back at login screen
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000

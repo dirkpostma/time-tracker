@@ -2,6 +2,7 @@ appId: com.anonymous.mobile
 ---
 - launchApp:
     clearState: true
+    clearKeychain: true
 
 # Handle "Open in Expo Go?" dialog
 - tapOn:
@@ -13,6 +14,6 @@ appId: com.anonymous.mobile
     visible: "Time Tracker"
     timeout: 30000
 
-# Verify the welcome screen displays correctly
+# Verify the login screen (welcome screen for unauthenticated users)
 - assertVisible: "Time Tracker"
-- assertVisible: "Welcome"
+- assertVisible: "Sign in to continue"
