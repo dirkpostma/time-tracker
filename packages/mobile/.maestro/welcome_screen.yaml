@@ -1,0 +1,18 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearState: true
+
+# Handle "Open in Expo Go?" dialog
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Verify the welcome screen displays correctly
+- assertVisible: "Time Tracker"
+- assertVisible: "Welcome"
