@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
+import { Alert } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import {
+  DSButton,
+  DSText,
+  DSCard,
+  DSLoadingIndicator,
+  DSScreen,
+  DSScreenHeader,
+  DSStack,
+  DSCenter,
+  DSSpacer,
+  DSPressable,
+  colors,
+  spacing,
+} from '../design-system';
 import { DescriptionInput } from '../components/DescriptionInput';
 import { ClientPickerModal } from '../components/ClientPickerModal';
 import { ProjectPickerModal } from '../components/ProjectPickerModal';
@@ -354,111 +359,115 @@ export function TimerScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
+      <DSScreen>
+        <DSLoadingIndicator fullScreen />
+      </DSScreen>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          testID="refresh-indicator"
-        />
-      }
+    <DSScreen
+      scrollable
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      contentStyle={{ flexGrow: 1 }}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Time Tracker</Text>
-        <TouchableOpacity onPress={handleLogout} testID="logout-button" accessibilityLabel="Logout">
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+      <DSScreenHeader
+        title="Time Tracker"
+        action={{
+          label: 'Logout',
+          onPress: handleLogout,
+          variant: 'ghost',
+          testID: 'logout-button',
+        }}
+      />
 
-      <View style={styles.timerContainer}>
-        <Text style={styles.timer} testID="timer-display" accessibilityLabel="Timer">
+      <DSCenter>
+        <DSText variant="timer" testID="timer-display" accessibilityLabel="Timer">
           {formatTime(elapsed)}
-        </Text>
+        </DSText>
         {client && (
-          <Text style={styles.clientName} testID="client-name">
-            {client.name}
-          </Text>
+          <>
+            <DSSpacer size="lg" />
+            <DSText variant="body" color="secondary" testID="client-name">
+              {client.name}
+            </DSText>
+          </>
         )}
         <DescriptionInput
           value={description}
           onChangeText={handleDescriptionChange}
           editable={!!running}
         />
-      </View>
+      </DSCenter>
 
       {!running && (
-        <TouchableOpacity
-          style={styles.selectionButton}
-          onPress={handleSelectionPress}
-          testID="selection-button"
-        >
-          {selection ? (
-            <View style={styles.selectionContent}>
-              <Text style={styles.selectionLabel}>Selected:</Text>
-              <Text style={styles.selectionClient} testID="selected-client">
-                {selection.clientName}
-              </Text>
-              {selection.projectName && (
-                <Text style={styles.selectionProject} testID="selected-project">
-                  {selection.projectName}
-                </Text>
-              )}
-              {selection.taskName && (
-                <Text style={styles.selectionTask} testID="selected-task">
-                  {selection.taskName}
-                </Text>
-              )}
-            </View>
-          ) : (
-            <Text style={styles.selectionPlaceholder}>Tap to select client...</Text>
-          )}
-        </TouchableOpacity>
+        <DSPressable onPress={handleSelectionPress} testID="selection-button">
+          <DSCard
+            variant="flat"
+            style={{ marginBottom: spacing.lg, marginHorizontal: spacing.xxl }}
+          >
+            {selection ? (
+              <DSStack align="center">
+                <DSText variant="caption">Selected:</DSText>
+                <DSText variant="body" weight="semibold" testID="selected-client">
+                  {selection.clientName}
+                </DSText>
+                {selection.projectName && (
+                  <DSText variant="bodySmall" testID="selected-project">
+                    {selection.projectName}
+                  </DSText>
+                )}
+                {selection.taskName && (
+                  <DSText variant="bodySmall" color="tertiary" testID="selected-task">
+                    {selection.taskName}
+                  </DSText>
+                )}
+              </DSStack>
+            ) : (
+              <DSText variant="bodySmall" color="muted" align="center">
+                Tap to select client...
+              </DSText>
+            )}
+          </DSCard>
+        </DSPressable>
       )}
 
-      <View style={styles.controls}>
+      <DSStack paddingHorizontal="xxl" paddingVertical="huge">
         {running ? (
-          <TouchableOpacity
-            style={[styles.button, styles.stopButton]}
+          <DSButton
+            title="Stop"
+            variant="danger"
+            size="lg"
             onPress={handleStop}
             disabled={actionLoading}
+            loading={actionLoading}
             testID="stop-button"
             accessibilityLabel="Stop Timer"
-          >
-            {actionLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Stop</Text>
-            )}
-          </TouchableOpacity>
+          />
         ) : (
-          <TouchableOpacity
-            style={[styles.button, styles.startButton]}
+          <DSButton
+            title="Start"
+            variant="primary"
+            size="lg"
             onPress={handleStart}
             disabled={actionLoading}
+            loading={actionLoading}
             testID="start-button"
             accessibilityLabel="Start Timer"
-          >
-            {actionLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Start</Text>
-            )}
-          </TouchableOpacity>
+            style={{ backgroundColor: colors.success }}
+          />
         )}
-      </View>
+      </DSStack>
 
-      <Text style={styles.email} testID="user-email">
+      <DSText
+        variant="caption"
+        align="center"
+        style={{ paddingBottom: spacing.xl }}
+        testID="user-email"
+      >
         Logged in as {user?.email}
-      </Text>
+      </DSText>
 
       <ClientPickerModal
         visible={showClientPicker}
@@ -481,108 +490,6 @@ export function TimerScreen() {
         onSelect={handleTaskSelect}
         onSkip={handleTaskSkip}
       />
-    </ScrollView>
+    </DSScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingTop: 60,
-    paddingHorizontal: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  logoutText: {
-    color: '#007AFF',
-    fontSize: 16,
-  },
-  timerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  timer: {
-    fontSize: 64,
-    fontWeight: '200',
-    fontVariant: ['tabular-nums'],
-  },
-  clientName: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 16,
-  },
-  controls: {
-    paddingBottom: 40,
-  },
-  button: {
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  startButton: {
-    backgroundColor: '#34C759',
-  },
-  stopButton: {
-    backgroundColor: '#FF3B30',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  email: {
-    textAlign: 'center',
-    color: '#999',
-    fontSize: 12,
-    paddingBottom: 20,
-  },
-  selectionButton: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  selectionContent: {
-    alignItems: 'center',
-  },
-  selectionLabel: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 4,
-  },
-  selectionClient: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  selectionProject: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  selectionTask: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 2,
-  },
-  selectionPlaceholder: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
-});

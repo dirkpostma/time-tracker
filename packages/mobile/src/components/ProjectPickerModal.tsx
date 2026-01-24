@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { colors, typography, spacing } from '../design-system/tokens';
 
 interface Project {
   id: string;
@@ -81,7 +82,7 @@ export function ProjectPickerModal({
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : projects.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -120,23 +121,23 @@ export function ProjectPickerModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.borderLight,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
   },
   closeButton: {
-    color: '#007AFF',
-    fontSize: 16,
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
   },
   loadingContainer: {
     flex: 1,
@@ -147,38 +148,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: spacing.xxl,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
-    marginBottom: 16,
+    fontSize: typography.fontSize.md,
+    color: colors.textMuted,
+    marginBottom: spacing.lg,
   },
   skipButton: {
-    padding: 12,
+    padding: spacing.md,
   },
   skipButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
   },
   item: {
-    padding: 16,
+    padding: spacing.lg,
   },
   itemText: {
-    fontSize: 16,
+    fontSize: typography.fontSize.md,
   },
   separator: {
     height: 1,
-    backgroundColor: '#eee',
+    backgroundColor: colors.borderLight,
   },
   footerSkip: {
-    padding: 16,
+    padding: spacing.lg,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.borderLight,
   },
   skipText: {
-    color: '#007AFF',
-    fontSize: 16,
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
   },
 });

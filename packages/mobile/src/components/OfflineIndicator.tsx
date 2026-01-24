@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useOffline } from '../contexts/OfflineContext';
+import { colors, typography, spacing } from '../design-system/tokens';
 
 export function OfflineIndicator() {
   const { isOnline, isSyncing, pendingActions } = useOffline();
@@ -46,27 +47,27 @@ export function OfflineIndicator() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
   },
   offline: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.danger,
   },
   syncing: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   pending: {
-    backgroundColor: '#FF9500',
+    backgroundColor: colors.warning,
   },
   text: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    color: colors.textInverse,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
   },
   subtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    marginTop: 2,
+    color: colors.overlayLight,
+    fontSize: typography.fontSize.xs,
+    marginTop: spacing.xxs,
   },
 });

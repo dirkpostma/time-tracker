@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { colors, typography, spacing } from '../design-system/tokens';
 
 interface Client {
   id: string;
@@ -69,7 +70,7 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : clients.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -100,23 +101,23 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.borderLight,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
   },
   closeButton: {
-    color: '#007AFF',
-    fontSize: 16,
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
   },
   loadingContainer: {
     flex: 1,
@@ -129,17 +130,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: typography.fontSize.md,
+    color: colors.textMuted,
   },
   item: {
-    padding: 16,
+    padding: spacing.lg,
   },
   itemText: {
-    fontSize: 16,
+    fontSize: typography.fontSize.md,
   },
   separator: {
     height: 1,
-    backgroundColor: '#eee',
+    backgroundColor: colors.borderLight,
   },
 });

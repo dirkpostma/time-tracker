@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-} from 'react-native';
+import { Alert } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
+import {
+  DSButton,
+  DSText,
+  DSTextInput,
+  DSToggle,
+  DSSeparator,
+  DSScreen,
+  DSScreenHeader,
+  DSSection,
+  DSRow,
+  spacing,
+} from '../design-system';
 
 export function SettingsScreen() {
   const { signOut } = useAuth();
@@ -93,189 +96,71 @@ export function SettingsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container} testID="settings-screen">
-        <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
-        </View>
-      </View>
+      <DSScreen variant="secondary" testID="settings-screen">
+        <DSScreenHeader title="Settings" variant="bordered" />
+      </DSScreen>
     );
   }
 
   return (
-    <View style={styles.wrapper} testID="settings-screen">
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-      </View>
+    <DSScreen scrollable variant="secondary" testID="settings-screen">
+      <DSScreenHeader title="Settings" variant="bordered" />
 
-      <View style={styles.section} testID="notifications-section">
-        <Text style={styles.sectionTitle}>Notifications</Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>Alert when timer runs long</Text>
-            <Text style={styles.settingDescription}>
-              Get notified if your timer runs for too long
-            </Text>
-          </View>
-          <Switch
-            value={settings.longTimerEnabled}
-            onValueChange={handleLongTimerToggle}
-            testID="long-timer-toggle"
-          />
-        </View>
+      <DSSection title="Notifications" testID="notifications-section">
+        <DSToggle
+          value={settings.longTimerEnabled}
+          onValueChange={handleLongTimerToggle}
+          label="Alert when timer runs long"
+          description="Get notified if your timer runs for too long"
+          testID="long-timer-toggle"
+        />
 
         {settings.longTimerEnabled && (
-          <View style={styles.subSetting}>
-            <Text style={styles.subSettingLabel}>Alert after (hours):</Text>
-            <TextInput
-              style={styles.numberInput}
+          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg }}>
+            <DSText variant="bodySmall">Alert after (hours):</DSText>
+            <DSTextInput
               value={hoursInput}
               onChangeText={handleHoursChange}
               keyboardType="number-pad"
               testID="long-timer-hours"
+              containerStyle={{ width: 60, marginBottom: 0 }}
             />
-          </View>
+          </DSRow>
         )}
 
-        <View style={styles.divider} />
+        <DSSeparator spacing="sm" />
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>Daily reminder</Text>
-            <Text style={styles.settingDescription}>
-              Remind me to start tracking each day
-            </Text>
-          </View>
-          <Switch
-            value={settings.dailyReminderEnabled}
-            onValueChange={handleDailyReminderToggle}
-            testID="daily-reminder-toggle"
-          />
-        </View>
+        <DSToggle
+          value={settings.dailyReminderEnabled}
+          onValueChange={handleDailyReminderToggle}
+          label="Daily reminder"
+          description="Remind me to start tracking each day"
+          testID="daily-reminder-toggle"
+        />
 
         {settings.dailyReminderEnabled && (
-          <View style={styles.subSetting}>
-            <Text style={styles.subSettingLabel}>Reminder time (HH:MM):</Text>
-            <TextInput
-              style={styles.timeInput}
+          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg }}>
+            <DSText variant="bodySmall">Reminder time (HH:MM):</DSText>
+            <DSTextInput
               value={timeInput}
               onChangeText={handleTimeChange}
               placeholder="09:00"
               testID="daily-reminder-time"
+              containerStyle={{ width: 80, marginBottom: 0 }}
             />
-          </View>
+          </DSRow>
         )}
-      </View>
+      </DSSection>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        <TouchableOpacity
-          style={styles.logoutButton}
+      <DSSection title="Account">
+        <DSButton
+          title="Logout"
           onPress={handleLogout}
+          variant="ghost"
+          fullWidth={false}
           testID="settings-logout-button"
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-    </View>
+        />
+      </DSSection>
+    </DSScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  section: {
-    backgroundColor: '#fff',
-    marginTop: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    marginBottom: 12,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  settingInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
-  settingLabel: {
-    fontSize: 16,
-    color: '#333',
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 4,
-  },
-  subSetting: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingLeft: 16,
-  },
-  subSettingLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 12,
-  },
-  numberInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 16,
-    width: 60,
-    textAlign: 'center',
-  },
-  timeInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 16,
-    width: 80,
-    textAlign: 'center',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 8,
-  },
-  logoutButton: {
-    paddingVertical: 12,
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    color: '#FF3B30',
-  },
-});

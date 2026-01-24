@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { colors, typography, spacing } from '../design-system/tokens';
 
 export type TabName = 'timer' | 'history' | 'settings';
 
@@ -63,30 +64,30 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-    paddingBottom: 20,
-    paddingTop: 8,
+    borderTopColor: colors.borderLight,
+    backgroundColor: colors.background,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.sm,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
   },
   tabIcon: {
-    fontSize: 24,
-    marginBottom: 4,
+    fontSize: typography.fontSize.xl,
+    marginBottom: spacing.xs,
     opacity: 0.5,
   },
   tabIconActive: {
     opacity: 1,
   },
   tabLabel: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
   },
   tabLabelActive: {
-    color: '#007AFF',
-    fontWeight: '600',
+    color: colors.primary,
+    fontWeight: typography.fontWeight.semibold,
   },
 });

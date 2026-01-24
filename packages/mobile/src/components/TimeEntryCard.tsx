@@ -1,6 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TimeEntryDisplay } from '../hooks/useTimeEntries';
+import {
+  colors,
+  typography,
+  spacing,
+  shadows,
+  borderRadius,
+} from '../design-system/tokens';
 
 interface TimeEntryCardProps {
   entry: TimeEntryDisplay;
@@ -55,16 +62,12 @@ export function TimeEntryCard({ entry }: TimeEntryCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: colors.background,
+    padding: spacing.lg,
+    borderRadius: borderRadius.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    ...shadows.card,
   },
   header: {
     flexDirection: 'row',
@@ -72,35 +75,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clientName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
     flex: 1,
   },
   duration: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
   },
   projectName: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   taskName: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 2,
+    fontSize: typography.fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.xxs,
   },
   description: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
     fontStyle: 'italic',
   },
   timeRange: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 8,
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
   },
 });

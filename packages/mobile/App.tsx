@@ -9,6 +9,7 @@ import { HistoryScreen } from './src/screens/HistoryScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TabBar, TabName } from './src/components/TabBar';
 import { OfflineIndicator } from './src/components/OfflineIndicator';
+import { ShowcaseScreen } from './src/design-system/showcase';
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<TabName>('timer');
@@ -39,6 +40,7 @@ function MainApp() {
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const [showShowcase, setShowShowcase] = useState(false);
 
   if (loading) {
     return (
@@ -48,7 +50,15 @@ function AppContent() {
     );
   }
 
-  return user ? <MainApp /> : <LoginScreen />;
+  if (showShowcase) {
+    return <ShowcaseScreen onClose={() => setShowShowcase(false)} />;
+  }
+
+  return user ? (
+    <MainApp />
+  ) : (
+    <LoginScreen onOpenShowcase={() => setShowShowcase(true)} />
+  );
 }
 
 export default function App() {

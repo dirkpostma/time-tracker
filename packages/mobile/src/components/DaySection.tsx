@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { DayGroup } from '../hooks/useTimeEntries';
 import { TimeEntryCard } from './TimeEntryCard';
+import { colors, typography, spacing } from '../design-system/tokens';
 
 interface DaySectionProps {
   group: DayGroup;
@@ -33,24 +34,24 @@ export function DaySection({ group }: DaySectionProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   date: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
   },
   total: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
+    fontSize: typography.fontSize.sm,
+    color: colors.primary,
+    fontWeight: typography.fontWeight.medium,
   },
 });

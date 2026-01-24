@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
+import { colors, typography, spacing, borderRadius } from '../design-system/tokens';
 
 interface DescriptionInputProps {
   value: string;
@@ -22,7 +23,7 @@ export function DescriptionInput({
         onChangeText={onChangeText}
         editable={editable}
         placeholder={placeholder}
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.textMuted}
         multiline
         numberOfLines={3}
         textAlignVertical="top"
@@ -35,21 +36,21 @@ export function DescriptionInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 16,
+    marginTop: spacing.lg,
     width: '100%',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    fontSize: typography.fontSize.md,
     minHeight: 60,
     maxHeight: 100,
-    color: '#333',
+    color: colors.textPrimary,
   },
   inputDisabled: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#eee',
+    backgroundColor: colors.backgroundSecondary,
+    borderColor: colors.borderLight,
   },
 });
