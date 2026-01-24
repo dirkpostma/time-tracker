@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A CLI application for tracking time spent on projects.
+A time tracking application with CLI and mobile (iOS) interfaces.
 
 ## Data Model
 
@@ -58,9 +58,27 @@ npm test -- --run              # All tests against local Docker
 npm test -- --run auth         # Auth tests only
 ```
 
+## Mobile App
+
+iOS app in `packages/mobile/` using Expo/React Native.
+
+```bash
+cd packages/mobile
+npm install
+npx expo run:ios          # Build and run on iOS simulator
+maestro test .maestro/    # Run E2E tests
+```
+
+**For next mobile features to build**, see: `specs/mobile/next-features.md`
+
+Full mobile specs: `specs/mobile/`
+
 ## Documentation
 
 - **Specs**: `/specs/*.md` - stable architecture and design docs
+  - `specs/cli/` - CLI command specs
+  - `specs/core/` - Data model and core logic
+  - `specs/mobile/` - Mobile app specs and **next features to build**
 - **Plans**: `plans/<feature-name>/` - active/future feature plans
 - **History**: `history/YYMMDD-<feature-name>/` - completed feature plans
 
