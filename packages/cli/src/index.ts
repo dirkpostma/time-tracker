@@ -174,7 +174,7 @@ program
 
       if (runningStatus && !forceStart) {
         // Check if we can prompt (interactive terminal)
-        if (!process.stdin.isTTY) {
+        if (!process.stdin.isTTY && process.env.FORCE_TTY !== '1') {
           console.error('Timer already running. Use --force to stop it and start a new one.');
           process.exit(1);
         }
@@ -398,7 +398,7 @@ program
 // Default action (interactive mode)
 program.action(async () => {
   try {
-    if (!process.stdin.isTTY) {
+    if (!process.stdin.isTTY && process.env.FORCE_TTY !== '1') {
       console.error('Interactive mode requires a TTY. Use `tt start --client <client>` instead.');
       process.exit(1);
     }

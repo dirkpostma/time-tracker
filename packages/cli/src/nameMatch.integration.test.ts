@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
 import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
+import { signIn } from '@time-tracker/repositories/supabase/auth';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { stopTimer, getRunningTimer } from './timeEntry.js';
@@ -100,6 +101,13 @@ describe('entity name matching integration', () => {
   let testProject: Project;
 
   beforeAll(async () => {
+    // Sign in to ensure auth tokens are saved for CLI subprocess
+    const email = process.env.TEST_USER_EMAIL;
+    const password = process.env.TEST_USER_PASSWORD;
+    if (email && password) {
+      await signIn(email, password);
+    }
+
     // Create test data
     testClient = await addClient(`NameMatch Client ${testId}`);
     testProject = await addProject(`NameMatch Project ${testId}`, testClient.id);

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
 import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
+import { signIn } from '@time-tracker/repositories/supabase/auth';
 import { addClient, Client } from './client.js';
 import { addProject, Project } from './project.js';
 import { getRunningTimer, stopTimer } from './timeEntry.js';
@@ -91,6 +92,13 @@ describe('interactive mode integration', () => {
   let testProject: Project;
 
   beforeAll(async () => {
+    // Sign in to ensure auth tokens are saved for CLI subprocess
+    const email = process.env.TEST_USER_EMAIL;
+    const password = process.env.TEST_USER_PASSWORD;
+    if (email && password) {
+      await signIn(email, password);
+    }
+
     // Create test data
     testClient = await addClient(`IntTest Client A ${testId}`);
     testClient2 = await addClient(`IntTest Client B ${testId}`);
