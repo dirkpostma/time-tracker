@@ -21,7 +21,7 @@ Create `packages/mobile/.env`:
 
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=http://192.168.x.x:54321
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_anon_key
 EXPO_PUBLIC_API_TIMEOUT=30000
 EXPO_PUBLIC_ENABLE_OFFLINE_MODE=true
 ```
@@ -39,7 +39,7 @@ eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://acc.supabase.co"
 eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://prod.supabase.co" --environment production
 
 # Same for other variables
-eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "key" --environment production
+eas env:create --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value "key" --environment production
 
 # List all variables
 eas env:list
@@ -54,7 +54,7 @@ eas build --profile production --platform ios
 import { env } from './lib/env';
 
 env.supabaseUrl       // string, default: 'http://127.0.0.1:54321'
-env.supabaseAnonKey   // string, default: ''
+env.supabasePublishableKey   // string, default: ''
 env.apiTimeout        // number, default: 30000
 env.enableOfflineMode // boolean, default: true
 env.isDev             // boolean, from __DEV__
@@ -65,7 +65,7 @@ env.isDev             // boolean, from __DEV__
 | Variable | Dev | Acc | Prod |
 |----------|-----|-----|------|
 | `EXPO_PUBLIC_SUPABASE_URL` | Local Docker IP | Staging Supabase | Production Supabase |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Local key | Staging key | Production key |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Local key | Staging key | Production key |
 | `EXPO_PUBLIC_ENABLE_OFFLINE_MODE` | true | true | true |
 
 ## E2E Testing with Maestro

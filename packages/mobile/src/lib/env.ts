@@ -26,7 +26,7 @@ function getBoolean(value: string | undefined, defaultValue: boolean): boolean {
 export const env = {
   // Supabase configuration
   supabaseUrl: getString(process.env.EXPO_PUBLIC_SUPABASE_URL, 'http://127.0.0.1:54321'),
-  supabaseAnonKey: getString(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY, ''),
+  supabasePublishableKey: getString(process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY, ''),
 
   // API settings
   apiTimeout: getNumber(process.env.EXPO_PUBLIC_API_TIMEOUT, 30000),
@@ -42,9 +42,9 @@ export type Env = typeof env;
 
 // Validation - warn in dev if required values are missing
 if (__DEV__) {
-  if (!env.supabaseAnonKey) {
+  if (!env.supabasePublishableKey) {
     console.warn(
-      '[env] EXPO_PUBLIC_SUPABASE_ANON_KEY is not set. Copy .env.example to .env and configure your values.'
+      '[env] EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set. Copy .env.example to .env and configure your values.'
     );
   }
 }
