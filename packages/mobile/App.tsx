@@ -1,8 +1,41 @@
+import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { OfflineProvider } from './src/contexts/OfflineContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { TimerScreen } from './src/screens/TimerScreen';
+import { HistoryScreen } from './src/screens/HistoryScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
+import { TabBar, TabName } from './src/components/TabBar';
+import { OfflineIndicator } from './src/components/OfflineIndicator';
+
+function MainApp() {
+  const [activeTab, setActiveTab] = useState<TabName>('timer');
+
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'timer':
+        return <TimerScreen />;
+      case 'history':
+        return <HistoryScreen />;
+      case 'settings':
+        return <SettingsScreen />;
+      default:
+        return <TimerScreen />;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <OfflineIndicator />
+      <View style={styles.screenContainer}>
+        {renderScreen()}
+      </View>
+      <TabBar activeTab={activeTab} onTabPress={setActiveTab} showSettings />
+    </View>
+  );
+}
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -15,19 +48,28 @@ function AppContent() {
     );
   }
 
-  return user ? <TimerScreen /> : <LoginScreen />;
+  return user ? <MainApp /> : <LoginScreen />;
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <StatusBar style="auto" />
-      <AppContent />
+      <OfflineProvider>
+        <StatusBar style="auto" />
+        <AppContent />
+      </OfflineProvider>
     </AuthProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  screenContainer: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

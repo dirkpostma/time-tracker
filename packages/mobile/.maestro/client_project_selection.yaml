@@ -1,0 +1,144 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+
+# Handle "Open in Expo Go?" dialog if it appears
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Verify selection button is visible (only when timer stopped)
+- assertVisible:
+    id: "selection-button"
+
+# Tap selection button to open client picker
+- tapOn:
+    id: "selection-button"
+
+# Wait for client picker modal
+- extendedWaitUntil:
+    visible:
+      id: "client-picker-modal"
+    timeout: 10000
+
+# Select Default Client
+- tapOn:
+    text: "Default Client"
+
+# Wait for project picker or for it to auto-skip
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for modals to close
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Now start timer - should show updated selection
+- tapOn:
+    id: "start-button"
+
+# Handle any client picker that might appear (if selection wasn't saved)
+- tapOn:
+    text: "Default Client"
+    optional: true
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify timer started with correct client
+- assertVisible:
+    id: "stop-button"
+- assertVisible:
+    id: "client-name"
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Verify selection is remembered
+- assertVisible:
+    text: "Default Client"
+
+# Start timer again - should use recent selection immediately
+- tapOn:
+    id: "start-button"
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify timer started
+- assertVisible:
+    id: "stop-button"
+
+# Stop timer to clean up
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000

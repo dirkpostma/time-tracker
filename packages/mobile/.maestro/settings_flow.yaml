@@ -31,7 +31,7 @@ appId: com.anonymous.mobile
     text: "Not Now"
     optional: true
 
-# Wait for timer screen
+# Wait for timer screen with tab bar
 - extendedWaitUntil:
     visible:
       id: "timer-display"
@@ -42,61 +42,76 @@ appId: com.anonymous.mobile
     id: "stop-button"
     optional: true
 
-# Wait for start button if we had to stop a timer
+# Wait for start button
 - extendedWaitUntil:
     visible:
       id: "start-button"
     timeout: 10000
 
-# Verify initial state (timer at 00:00:00, start button visible)
-- assertVisible:
-    id: "timer-display"
-- assertVisible:
-    id: "start-button"
-
-# Start the timer
+# Dismiss debug banner if present
 - tapOn:
-    id: "start-button"
-
-# Handle client picker modal if it appears (first time use)
-- tapOn:
-    text: "Default Client"
+    text: "×"
     optional: true
 
-# Skip project picker if it appears (auto-skips if no projects)
-- tapOn:
-    id: "project-skip"
-    optional: true
-
-# Wait for stop button to appear (indicates timer started)
-- extendedWaitUntil:
-    visible:
-      id: "stop-button"
-    timeout: 10000
-
-# Verify timer is running (stop button visible, client name shown)
-- assertVisible:
-    id: "stop-button"
-- assertVisible:
-    id: "client-name"
-
-# Wait a moment to see timer increment
+# Wait a moment for banner to dismiss
 - swipe:
     direction: DOWN
-    duration: 2000
+    duration: 500
 
-# Stop the timer
+# Verify tab bar has settings tab
+- assertVisible:
+    id: "tab-bar"
+
+# Navigate to Settings tab - try multiple tap methods
+# First try testID
 - tapOn:
-    id: "stop-button"
+    id: "tab-settings"
+    optional: true
 
-# Wait for start button to reappear (indicates timer stopped)
+# Then try percentage coordinates (right side, near bottom)
+- tapOn:
+    point: "83%,95%"
+    optional: true
+
+# Then try tapping "Settings" text
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
 - extendedWaitUntil:
     visible:
-      id: "start-button"
+      id: "settings-screen"
     timeout: 10000
 
-# Verify timer stopped
+# Verify settings elements are visible
+- assertVisible:
+    id: "notifications-section"
+
+# Verify long timer toggle exists
+- assertVisible:
+    id: "long-timer-toggle"
+
+# Verify daily reminder toggle exists
+- assertVisible:
+    id: "daily-reminder-toggle"
+
+# Navigate back to Timer tab
+- tapOn:
+    id: "tab-timer"
+    optional: true
+- tapOn:
+    point: "17%,95%"
+    optional: true
+- tapOn:
+    text: "Timer"
+    optional: true
+
+# Verify timer screen is shown
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
+
 - assertVisible:
     id: "start-button"
-- assertVisible:
-    id: "timer-display"

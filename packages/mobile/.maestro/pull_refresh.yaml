@@ -42,60 +42,83 @@ appId: com.anonymous.mobile
     id: "stop-button"
     optional: true
 
-# Wait for start button if we had to stop a timer
+# Wait for start button
 - extendedWaitUntil:
     visible:
       id: "start-button"
     timeout: 10000
 
-# Verify initial state (timer at 00:00:00, start button visible)
+# Verify timer screen loaded
 - assertVisible:
     id: "timer-display"
-- assertVisible:
-    id: "start-button"
 
-# Start the timer
+# Start a timer first
 - tapOn:
     id: "start-button"
 
 # Handle client picker modal if it appears (first time use)
+- extendedWaitUntil:
+    visible:
+      id: "client-picker-modal"
+    timeout: 5000
+    optional: true
+
+# Select a client if modal appeared
 - tapOn:
     text: "Default Client"
     optional: true
 
-# Skip project picker if it appears (auto-skips if no projects)
+# Skip project picker if it appears
 - tapOn:
     id: "project-skip"
     optional: true
 
-# Wait for stop button to appear (indicates timer started)
+# Wait for timer to be running
 - extendedWaitUntil:
     visible:
       id: "stop-button"
     timeout: 10000
 
-# Verify timer is running (stop button visible, client name shown)
+# Verify timer is running
 - assertVisible:
     id: "stop-button"
 - assertVisible:
     id: "client-name"
 
-# Wait a moment to see timer increment
+# Pull down to refresh
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Wait a moment for refresh to complete
 - swipe:
     direction: DOWN
-    duration: 2000
+    duration: 1500
+
+# Verify timer is still running after refresh
+- assertVisible:
+    id: "stop-button"
+- assertVisible:
+    id: "timer-display"
+- assertVisible:
+    id: "client-name"
 
 # Stop the timer
 - tapOn:
     id: "stop-button"
 
-# Wait for start button to reappear (indicates timer stopped)
+# Wait for start button to reappear
 - extendedWaitUntil:
     visible:
       id: "start-button"
     timeout: 10000
 
-# Verify timer stopped
+# Pull to refresh on stopped state
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Verify still in stopped state after refresh
 - assertVisible:
     id: "start-button"
 - assertVisible:

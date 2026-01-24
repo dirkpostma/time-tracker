@@ -18,7 +18,9 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "db:deploy": "supabase db push"
+    "db:deploy": "supabase db push",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "keywords": [],
   "author": "",
@@ -27,5 +29,10 @@
     "@vitest/coverage-v8": "^4.0.17",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "expo": "~54.0.32",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
   }
 }

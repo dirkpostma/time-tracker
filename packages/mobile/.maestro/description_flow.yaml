@@ -42,61 +42,73 @@ appId: com.anonymous.mobile
     id: "stop-button"
     optional: true
 
-# Wait for start button if we had to stop a timer
+# Wait for start button
 - extendedWaitUntil:
     visible:
       id: "start-button"
     timeout: 10000
 
-# Verify initial state (timer at 00:00:00, start button visible)
+# Verify description input is visible
 - assertVisible:
-    id: "timer-display"
-- assertVisible:
-    id: "start-button"
+    id: "description-input"
 
 # Start the timer
 - tapOn:
     id: "start-button"
 
-# Handle client picker modal if it appears (first time use)
+# Handle client picker modal if it appears
 - tapOn:
     text: "Default Client"
     optional: true
 
-# Skip project picker if it appears (auto-skips if no projects)
+# Skip project picker if it appears
 - tapOn:
     id: "project-skip"
     optional: true
 
-# Wait for stop button to appear (indicates timer started)
+# Wait for timer to be running
 - extendedWaitUntil:
     visible:
       id: "stop-button"
     timeout: 10000
 
-# Verify timer is running (stop button visible, client name shown)
-- assertVisible:
-    id: "stop-button"
-- assertVisible:
-    id: "client-name"
+# Type a description while timer is running
+- tapOn:
+    id: "description-input"
+- inputText: "Working on mobile features"
 
-# Wait a moment to see timer increment
+# Wait for debounce to save
 - swipe:
     direction: DOWN
-    duration: 2000
+    duration: 1000
+
+# Verify description is still visible
+- assertVisible:
+    text: "Working on mobile features"
+
+# Edit the description
+- tapOn:
+    id: "description-input"
+- eraseText: 25
+- inputText: "Testing description"
+
+# Wait for save
+- swipe:
+    direction: DOWN
+    duration: 1000
 
 # Stop the timer
 - tapOn:
     id: "stop-button"
 
-# Wait for start button to reappear (indicates timer stopped)
+# Wait for start button to reappear
 - extendedWaitUntil:
     visible:
       id: "start-button"
     timeout: 10000
 
-# Verify timer stopped
+# Verify we're back to stopped state
 - assertVisible:
     id: "start-button"
 - assertVisible:
-    id: "timer-display"
+    id: "description-input"
