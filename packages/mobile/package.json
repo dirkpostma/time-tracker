@@ -13,6 +13,7 @@
     "@react-native-community/netinfo": "^11.4.1",
     "@supabase/supabase-js": "^2.49.4",
     "expo": "~54.0.32",
+    "expo-dev-client": "~6.0.20",
     "expo-notifications": "~0.30.0",
     "expo-secure-store": "~14.2.3",
     "expo-status-bar": "~3.0.9",
