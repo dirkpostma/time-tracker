@@ -23,6 +23,7 @@ npx supabase start     # Start local DB
 | **Mobile next features** | `specs/mobile/next-features.md` |
 | Local dev setup | `docs/local-development.md` |
 | Mobile dev setup | `docs/mobile-development.md` |
+| **Mobile env vars** | `docs/mobile-development.md#environment-variables` |
 
 ## Development Rules
 
