@@ -35,6 +35,18 @@ export function LoginScreen() {
     }
   };
 
+  const handleDevLogin = async () => {
+    setLoading(true);
+    try {
+      await signIn('test@example.com', 'Test1234');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Login failed';
+      Alert.alert('Dev Login Failed', message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -81,6 +93,16 @@ export function LoginScreen() {
             <Text style={styles.buttonText}>Login</Text>
           )}
         </TouchableOpacity>
+
+        {__DEV__ && (
+          <TouchableOpacity
+            style={[styles.devButton, loading && styles.buttonDisabled]}
+            onPress={handleDevLogin}
+            disabled={loading}
+          >
+            <Text style={styles.devButtonText}>Dev Login (test@example.com)</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -132,5 +154,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  devButton: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  devButtonText: {
+    color: '#666',
+    fontSize: 14,
   },
 });
