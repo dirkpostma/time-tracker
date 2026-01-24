@@ -1,10 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
-
-// Local Docker Supabase configuration
-// Use host IP for iOS simulator to access local Supabase
-const SUPABASE_URL = 'http://192.168.2.28:54321';
-const SUPABASE_ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+import { env } from './env';
 
 // Custom storage adapter using expo-secure-store
 const ExpoSecureStoreAdapter = {
@@ -31,7 +27,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
   auth: {
     storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
