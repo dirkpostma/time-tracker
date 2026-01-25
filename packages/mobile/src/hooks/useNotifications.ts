@@ -47,20 +47,36 @@ export function useNotifications() {
     return granted;
   }, []);
 
-  const updateSettings = useCallback(async (updates: Partial<NotificationSettings>) => {
-    const newSettings = { ...settings, ...updates };
-    setSettings(newSettings);
-    await saveNotificationSettings(newSettings);
+  const updateSettings = useCallback((updates: Partial<NotificationSettings>) => {
+    setSettings(currentSettings => {
+      const newSettings = { ...currentSettings, ...updates };
 
-    // Handle side effects
-    if ('dailyReminderEnabled' in updates || 'dailyReminderTime' in updates) {
-      if (newSettings.dailyReminderEnabled) {
-        await scheduleDailyReminder(newSettings.dailyReminderTime);
-      } else {
-        await cancelDailyReminder();
-      }
-    }
-  }, [settings]);
+      // Queue async operations outside the state updater
+      // Using setTimeout to escape the synchronous state update
+      setTimeout(async () => {
+        try {
+          await saveNotificationSettings(newSettings);
+        } catch (err) {
+          console.error('Error saving notification settings:', err);
+        }
+
+        // Handle side effects for daily reminder
+        if ('dailyReminderEnabled' in updates || 'dailyReminderTime' in updates) {
+          try {
+            if (newSettings.dailyReminderEnabled) {
+              await scheduleDailyReminder(newSettings.dailyReminderTime);
+            } else {
+              await cancelDailyReminder();
+            }
+          } catch (err) {
+            console.error('Error with daily reminder:', err);
+          }
+        }
+      }, 0);
+
+      return newSettings;
+    });
+  }, []);
 
   const scheduleTimerAlert = useCallback(async (startedAt: Date) => {
     if (settings.longTimerEnabled && hasPermission) {

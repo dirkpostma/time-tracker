@@ -26,6 +26,8 @@ export function TimerScreen() {
   const {
     running,
     client,
+    project,
+    task,
     elapsed,
     loading,
     actionLoading,
@@ -99,6 +101,8 @@ export function TimerScreen() {
       <TimerDisplay
         formattedTime={formatTime(elapsed)}
         clientName={client?.name}
+        projectName={project?.name}
+        taskName={task?.name}
         description={description}
         onDescriptionChange={handleDescriptionChange}
         isRunning={!!running}

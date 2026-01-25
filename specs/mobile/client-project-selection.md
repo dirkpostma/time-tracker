@@ -35,6 +35,10 @@ Client (required)
 | Client list | `client-list` | List of available clients |
 | Client item | `client-item-{id}` | Individual client row |
 | Close button | `client-picker-close` | Dismiss modal |
+| Add button | `add-client-button` | Opens add client form |
+| Add form | `add-client-form` | Form container |
+| Name input | `new-client-name-input` | Text input for new client name |
+| Submit button | `submit-new-client-button` | Creates new client (accessibilityLabel: "Add client") |
 
 ### Project Picker Modal
 | Element | testID | Description |
@@ -44,6 +48,10 @@ Client (required)
 | Project item | `project-item-{id}` | Individual project row |
 | Skip button | `project-skip` | Skip project selection |
 | Close button | `project-picker-close` | Dismiss modal |
+| Add button | `add-project-button` | Opens add project form |
+| Add form | `add-project-form` | Form container |
+| Name input | `new-project-name-input` | Text input for new project name |
+| Submit button | `submit-new-project-button` | Creates new project (accessibilityLabel: "Add project") |
 
 ### Task Picker Modal
 | Element | testID | Description |
@@ -53,6 +61,10 @@ Client (required)
 | Task item | `task-item-{id}` | Individual task row |
 | Skip button | `task-skip` | Skip task selection |
 | Close button | `task-picker-close` | Dismiss modal |
+| Add button | `add-task-button` | Opens add task form |
+| Add form | `add-task-form` | Form container |
+| Name input | `new-task-name-input` | Text input for new task name |
+| Submit button | `submit-new-task-button` | Creates new task (accessibilityLabel: "Add task") |
 
 ## User Flow
 

@@ -1,6 +1,8 @@
 export interface TimeEntry {
   id: string;
   client_id: string;
+  project_id?: string | null;
+  task_id?: string | null;
   started_at: string;
   ended_at: string | null;
   description?: string | null;

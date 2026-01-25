@@ -42,6 +42,36 @@ export function useTimer() {
         if (clientData) {
           setClient(clientData as Client);
         }
+
+        // Fetch project if exists
+        if (entry.project_id) {
+          const { data: projectData } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('id', entry.project_id)
+            .single();
+
+          if (projectData) {
+            setProject(projectData as Project);
+          }
+        } else {
+          setProject(null);
+        }
+
+        // Fetch task if exists
+        if (entry.task_id) {
+          const { data: taskData } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('id', entry.task_id)
+            .single();
+
+          if (taskData) {
+            setTask(taskData as Task);
+          }
+        } else {
+          setTask(null);
+        }
       } else {
         setRunning(null);
         setClient(null);

@@ -12,6 +12,8 @@ TimerScreen displays current timer state and allows starting/stopping time entri
 | Logout button  | `logout-button` | Returns to login screen             |
 | Timer display  | `timer-display` | Shows HH:MM:SS elapsed time         |
 | Client name    | `client-name`   | Shows client name when timer running|
+| Project name   | `project-name`  | Shows project name when timer running (if selected) |
+| Task name      | `task-name`     | Shows task name when timer running (if selected) |
 | Start button   | `start-button`  | Starts new timer (when stopped)     |
 | Stop button    | `stop-button`   | Stops current timer (when running)  |
 | User email     | `user-email`    | Shows "Logged in as {email}"        |
@@ -29,6 +31,8 @@ TimerScreen displays current timer state and allows starting/stopping time entri
 - Stop button visible
 - Start button hidden
 - Client name shown
+- Project name shown (if timer has project)
+- Task name shown (if timer has task)
 
 ## Timer Display Format
 
