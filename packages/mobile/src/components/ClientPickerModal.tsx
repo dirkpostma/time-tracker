@@ -10,9 +10,15 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { colors, typography, spacing } from '../design-system/tokens';
+import { typography, spacing } from '../design-system/tokens';
+import { useTheme } from '../design-system/themes/ThemeContext';
 
 interface Client {
   id: string;
@@ -26,6 +32,9 @@ interface ClientPickerModalProps {
 }
 
 export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerModalProps) {
+  const { theme } = useTheme();
+  const { colors } = theme;
+
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -94,126 +103,45 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
     setNewName('');
   }, []);
 
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={styles.container} testID="client-picker-modal">
-        <View style={styles.header}>
-          <Text style={styles.title}>Select Client</Text>
-          <TouchableOpacity onPress={onClose} testID="client-picker-close">
-            <Text style={styles.closeButton}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={toggleAddForm}
-          testID="add-client-button"
-        >
-          <Text style={styles.addButtonText}>
-            {showAddForm ? 'Cancel' : '+ Add New Client'}
-          </Text>
-        </TouchableOpacity>
-
-        {showAddForm && (
-          <View style={styles.addForm} testID="add-client-form">
-            <TextInput
-              ref={inputRef}
-              style={styles.addInput}
-              placeholder="Client name"
-              value={newName}
-              onChangeText={setNewName}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleAdd}
-              testID="new-client-name-input"
-              placeholderTextColor={colors.textMuted}
-            />
-            <Pressable
-              style={[styles.submitButton, adding && styles.submitButtonDisabled]}
-              onPress={handleAdd}
-              disabled={adding}
-              testID="submit-new-client-button"
-              accessibilityRole="button"
-              accessibilityLabel="Add client"
-            >
-              {adding ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>Add</Text>
-              )}
-            </Pressable>
-          </View>
-        )}
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : clients.length === 0 && !showAddForm ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No clients available</Text>
-            <Text style={styles.emptyHint}>Tap "+ Add New Client" above to create one</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={clients}
-            keyExtractor={(item) => item.id}
-            testID="client-list"
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => handleSelect(item)}
-                testID={`client-item-${item.id}`}
-              >
-                <Text style={styles.itemText}>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
-        )}
-      </View>
-    </Modal>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
+  const containerStyle: ViewStyle = {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
+  };
+
+  const headerStyle: ViewStyle = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
-  },
-  title: {
+  };
+
+  const titleStyle: TextStyle = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-  },
-  closeButton: {
+    color: colors.textPrimary,
+  };
+
+  const closeButtonStyle: TextStyle = {
     color: colors.primary,
     fontSize: typography.fontSize.md,
-  },
-  addButton: {
+  };
+
+  const addButtonStyle: ViewStyle = {
     padding: spacing.md,
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
-  },
-  addButtonText: {
+  };
+
+  const addButtonTextStyle: TextStyle = {
     color: colors.primary,
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.medium,
-  },
-  addForm: {
+  };
+
+  const addFormStyle: ViewStyle = {
     flexDirection: 'row',
     padding: spacing.md,
     paddingHorizontal: spacing.lg,
@@ -221,8 +149,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderLight,
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  addInput: {
+  };
+
+  const addInputStyle: TextStyle = {
     flex: 1,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 8,
@@ -231,23 +160,151 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: colors.borderInput,
-  },
-  submitButton: {
+    borderColor: colors.border,
+  };
+
+  const submitButtonStyle: ViewStyle = {
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     minWidth: 60,
     alignItems: 'center',
+  };
+
+  const submitButtonTextStyle: TextStyle = {
+    color: colors.textOnPrimary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  };
+
+  const emptyTextStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    color: colors.textMuted,
+  };
+
+  const emptyHintStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  };
+
+  const itemStyle: ViewStyle = {
+    padding: spacing.lg,
+  };
+
+  const itemTextStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+  };
+
+  const separatorStyle: ViewStyle = {
+    height: 1,
+    backgroundColor: colors.borderLight,
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={containerStyle}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        testID="client-picker-modal"
+      >
+        <View style={headerStyle}>
+          <Text style={titleStyle}>Select Client</Text>
+          <TouchableOpacity onPress={onClose} testID="client-picker-close">
+            <Text style={closeButtonStyle}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          style={styles.content}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <TouchableOpacity
+            style={addButtonStyle}
+            onPress={toggleAddForm}
+            testID="add-client-button"
+          >
+            <Text style={addButtonTextStyle}>
+              {showAddForm ? 'Cancel' : '+ Add New Client'}
+            </Text>
+          </TouchableOpacity>
+
+          {showAddForm && (
+            <View style={addFormStyle} testID="add-client-form">
+              <TextInput
+                ref={inputRef}
+                style={addInputStyle}
+                placeholder="Client name"
+                value={newName}
+                onChangeText={setNewName}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleAdd}
+                testID="new-client-name-input"
+                placeholderTextColor={colors.textMuted}
+              />
+              <Pressable
+                style={[submitButtonStyle, adding && styles.submitButtonDisabled]}
+                onPress={handleAdd}
+                disabled={adding}
+                testID="submit-new-client-button"
+                accessibilityRole="button"
+                accessibilityLabel="Add client"
+              >
+                {adding ? (
+                  <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                ) : (
+                  <Text style={submitButtonTextStyle}>Add</Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : clients.length === 0 && !showAddForm ? (
+            <View style={styles.emptyContainer}>
+              <Text style={emptyTextStyle}>No clients available</Text>
+              <Text style={emptyHintStyle}>Tap "+ Add New Client" above to create one</Text>
+            </View>
+          ) : (
+            clients.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={itemStyle}
+                onPress={() => handleSelect(item)}
+                testID={`client-item-${item.id}`}
+              >
+                <Text style={itemTextStyle}>{item.name}</Text>
+                <View style={separatorStyle} />
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   submitButtonDisabled: {
     opacity: 0.6,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium,
   },
   loadingContainer: {
     flex: 1,
@@ -258,24 +315,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: typography.fontSize.md,
-    color: colors.textMuted,
-  },
-  emptyHint: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-  },
-  item: {
-    padding: spacing.lg,
-  },
-  itemText: {
-    fontSize: typography.fontSize.md,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.borderLight,
   },
 });

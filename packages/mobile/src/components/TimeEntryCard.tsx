@@ -1,13 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { TimeEntryDisplay } from '../hooks/useTimeEntries';
-import {
-  colors,
-  typography,
-  spacing,
-  shadows,
-  borderRadius,
-} from '../design-system/tokens';
+import { typography, spacing } from '../design-system/tokens';
+import { useTheme } from '../design-system/themes/ThemeContext';
 
 interface TimeEntryCardProps {
   entry: TimeEntryDisplay;
@@ -32,28 +27,78 @@ function formatTime(date: Date): string {
 }
 
 export function TimeEntryCard({ entry }: TimeEntryCardProps) {
+  const { theme } = useTheme();
+  const { colors, shadows, borderRadius } = theme;
+
+  const containerStyle: ViewStyle = {
+    backgroundColor: colors.backgroundCard,
+    padding: spacing.lg,
+    borderRadius: borderRadius.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    ...shadows.md,
+  };
+
+  const clientNameStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textPrimary,
+    flex: 1,
+  };
+
+  const durationStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
+  };
+
+  const projectNameStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  };
+
+  const taskNameStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.xxs,
+  };
+
+  const descriptionStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    fontStyle: 'italic',
+  };
+
+  const timeRangeStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  };
+
   return (
-    <View style={styles.container} testID={`entry-card-${entry.id}`}>
+    <View style={containerStyle} testID={`entry-card-${entry.id}`}>
       <View style={styles.header}>
-        <Text style={styles.clientName}>{entry.clientName}</Text>
-        <Text style={styles.duration}>{formatDuration(entry.duration)}</Text>
+        <Text style={clientNameStyle}>{entry.clientName}</Text>
+        <Text style={durationStyle}>{formatDuration(entry.duration)}</Text>
       </View>
 
       {entry.projectName && (
-        <Text style={styles.projectName}>{entry.projectName}</Text>
+        <Text style={projectNameStyle}>{entry.projectName}</Text>
       )}
 
       {entry.taskName && (
-        <Text style={styles.taskName}>{entry.taskName}</Text>
+        <Text style={taskNameStyle}>{entry.taskName}</Text>
       )}
 
       {entry.description && (
-        <Text style={styles.description} numberOfLines={2}>
+        <Text style={descriptionStyle} numberOfLines={2}>
           {entry.description}
         </Text>
       )}
 
-      <Text style={styles.timeRange}>
+      <Text style={timeRangeStyle}>
         {formatTime(entry.startedAt)} - {formatTime(entry.endedAt)}
       </Text>
     </View>
@@ -61,49 +106,9 @@ export function TimeEntryCard({ entry }: TimeEntryCardProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    borderRadius: borderRadius.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    ...shadows.card,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  clientName: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  duration: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary,
-  },
-  projectName: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  taskName: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textTertiary,
-    marginTop: spacing.xxs,
-  },
-  description: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.sm,
-    fontStyle: 'italic',
-  },
-  timeRange: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
   },
 });

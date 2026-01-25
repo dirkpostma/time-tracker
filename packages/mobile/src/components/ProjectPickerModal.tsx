@@ -5,13 +5,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  Pressable,
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { colors, typography, spacing } from '../design-system/tokens';
+import { typography, spacing } from '../design-system/tokens';
+import { useTheme } from '../design-system/themes/ThemeContext';
 
 interface Project {
   id: string;
@@ -33,6 +39,9 @@ export function ProjectPickerModal({
   onSelect,
   onSkip,
 }: ProjectPickerModalProps) {
+  const { theme } = useTheme();
+  const { colors } = theme;
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -105,133 +114,45 @@ export function ProjectPickerModal({
     setNewName('');
   }, []);
 
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={styles.container} testID="project-picker-modal">
-        <View style={styles.header}>
-          <Text style={styles.title}>Select Project</Text>
-          <TouchableOpacity onPress={onClose} testID="project-picker-close">
-            <Text style={styles.closeButton}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={toggleAddForm}
-          testID="add-project-button"
-        >
-          <Text style={styles.addButtonText}>
-            {showAddForm ? 'Cancel' : '+ Add New Project'}
-          </Text>
-        </TouchableOpacity>
-
-        {showAddForm && (
-          <View style={styles.addForm} testID="add-project-form">
-            <TextInput
-              style={styles.addInput}
-              placeholder="Project name"
-              value={newName}
-              onChangeText={setNewName}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleAdd}
-              testID="new-project-name-input"
-              placeholderTextColor={colors.textMuted}
-            />
-            <TouchableOpacity
-              style={[styles.submitButton, adding && styles.submitButtonDisabled]}
-              onPress={handleAdd}
-              disabled={adding}
-              testID="submit-new-project-button"
-              accessibilityRole="button"
-              accessibilityLabel="Add project"
-            >
-              {adding ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>Add</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : projects.length === 0 && !showAddForm ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No projects for this client</Text>
-            <Text style={styles.emptyHint}>Add a project above or skip</Text>
-            <TouchableOpacity style={styles.skipButton} onPress={onSkip} testID="project-skip">
-              <Text style={styles.skipButtonText}>Continue without project</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <FlatList
-              data={projects}
-              keyExtractor={(item) => item.id}
-              testID="project-list"
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.item}
-                  onPress={() => handleSelect(item)}
-                  testID={`project-item-${item.id}`}
-                >
-                  <Text style={styles.itemText}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
-            <TouchableOpacity style={styles.footerSkip} onPress={onSkip} testID="project-skip">
-              <Text style={styles.skipText}>Skip</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </Modal>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
+  const containerStyle: ViewStyle = {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
+  };
+
+  const headerStyle: ViewStyle = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
-  },
-  title: {
+  };
+
+  const titleStyle: TextStyle = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-  },
-  closeButton: {
+    color: colors.textPrimary,
+  };
+
+  const closeButtonStyle: TextStyle = {
     color: colors.primary,
     fontSize: typography.fontSize.md,
-  },
-  addButton: {
+  };
+
+  const addButtonStyle: ViewStyle = {
     padding: spacing.md,
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
-  },
-  addButtonText: {
+  };
+
+  const addButtonTextStyle: TextStyle = {
     color: colors.primary,
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.medium,
-  },
-  addForm: {
+  };
+
+  const addFormStyle: ViewStyle = {
     flexDirection: 'row',
     padding: spacing.md,
     paddingHorizontal: spacing.lg,
@@ -239,8 +160,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderLight,
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  addInput: {
+  };
+
+  const addInputStyle: TextStyle = {
     flex: 1,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 8,
@@ -249,23 +171,171 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: colors.borderInput,
-  },
-  submitButton: {
+    borderColor: colors.border,
+  };
+
+  const submitButtonStyle: ViewStyle = {
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     minWidth: 60,
     alignItems: 'center',
+  };
+
+  const submitButtonTextStyle: TextStyle = {
+    color: colors.textOnPrimary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  };
+
+  const emptyTextStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+  };
+
+  const emptyHintStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.lg,
+  };
+
+  const skipButtonTextStyle: TextStyle = {
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
+  };
+
+  const itemStyle: ViewStyle = {
+    padding: spacing.lg,
+  };
+
+  const itemTextStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+  };
+
+  const separatorStyle: ViewStyle = {
+    height: 1,
+    backgroundColor: colors.borderLight,
+  };
+
+  const footerSkipStyle: ViewStyle = {
+    padding: spacing.lg,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={containerStyle}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        testID="project-picker-modal"
+      >
+        <View style={headerStyle}>
+          <Text style={titleStyle}>Select Project</Text>
+          <TouchableOpacity onPress={onClose} testID="project-picker-close">
+            <Text style={closeButtonStyle}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          style={styles.content}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <TouchableOpacity
+            style={addButtonStyle}
+            onPress={toggleAddForm}
+            testID="add-project-button"
+          >
+            <Text style={addButtonTextStyle}>
+              {showAddForm ? 'Cancel' : '+ Add New Project'}
+            </Text>
+          </TouchableOpacity>
+
+          {showAddForm && (
+            <View style={addFormStyle} testID="add-project-form">
+              <TextInput
+                style={addInputStyle}
+                placeholder="Project name"
+                value={newName}
+                onChangeText={setNewName}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleAdd}
+                testID="new-project-name-input"
+                placeholderTextColor={colors.textMuted}
+              />
+              <Pressable
+                style={[submitButtonStyle, adding && styles.submitButtonDisabled]}
+                onPress={handleAdd}
+                disabled={adding}
+                testID="submit-new-project-button"
+                accessibilityRole="button"
+                accessibilityLabel="Add project"
+              >
+                {adding ? (
+                  <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                ) : (
+                  <Text style={submitButtonTextStyle}>Add</Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : projects.length === 0 && !showAddForm ? (
+            <View style={styles.emptyContainer}>
+              <Text style={emptyTextStyle}>No projects for this client</Text>
+              <Text style={emptyHintStyle}>Add a project above or skip</Text>
+              <TouchableOpacity style={styles.skipButton} onPress={onSkip} testID="project-skip">
+                <Text style={skipButtonTextStyle}>Continue without project</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              {projects.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={itemStyle}
+                  onPress={() => handleSelect(item)}
+                  testID={`project-item-${item.id}`}
+                >
+                  <Text style={itemTextStyle}>{item.name}</Text>
+                  <View style={separatorStyle} />
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={footerSkipStyle} onPress={onSkip} testID="project-skip">
+                <Text style={skipButtonTextStyle}>Skip</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   submitButtonDisabled: {
     opacity: 0.6,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium,
   },
   loadingContainer: {
     flex: 1,
@@ -278,41 +348,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.xxl,
   },
-  emptyText: {
-    fontSize: typography.fontSize.md,
-    color: colors.textMuted,
-    marginBottom: spacing.sm,
-  },
-  emptyHint: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.lg,
-  },
   skipButton: {
     padding: spacing.md,
-  },
-  skipButtonText: {
-    color: colors.primary,
-    fontSize: typography.fontSize.md,
-  },
-  item: {
-    padding: spacing.lg,
-  },
-  itemText: {
-    fontSize: typography.fontSize.md,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-  },
-  footerSkip: {
-    padding: spacing.lg,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-  },
-  skipText: {
-    color: colors.primary,
-    fontSize: typography.fontSize.md,
   },
 });

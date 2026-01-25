@@ -6,7 +6,6 @@ import {
   DSScreen,
   DSScreenHeader,
   DSList,
-  colors,
 } from '../design-system';
 
 export function HistoryScreen() {
@@ -17,7 +16,6 @@ export function HistoryScreen() {
       <DSLoadingIndicator
         fullScreen
         testID="history-loading"
-        style={{ backgroundColor: colors.backgroundSecondary }}
       />
     );
   }

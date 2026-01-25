@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { colors, typography, spacing, borderRadius } from '../design-system/tokens';
+import { StyleSheet, TextInput, View, Text, ViewStyle, TextStyle } from 'react-native';
+import { typography, spacing } from '../design-system/tokens';
+import { useTheme } from '../design-system/themes/ThemeContext';
 
 interface DescriptionInputProps {
   value: string;
@@ -13,19 +14,62 @@ export function DescriptionInput({
   value,
   onChangeText,
   editable,
-  placeholder = 'Add description...',
+  placeholder = 'What are you working on?',
 }: DescriptionInputProps) {
+  const { theme } = useTheme();
+  const { colors, borderRadius, shadows } = theme;
+
+  const containerStyle: ViewStyle = {
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.lg,
+    backgroundColor: editable ? colors.backgroundCard : colors.backgroundSecondary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    ...(editable ? shadows.md : {}),
+  };
+
+  const labelStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  };
+
+  const hintStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  };
+
+  const inputStyle: TextStyle = {
+    backgroundColor: editable ? colors.backgroundTertiary : colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    fontSize: typography.fontSize.md,
+    minHeight: 48,
+    maxHeight: 80,
+    color: editable ? colors.textPrimary : colors.textTertiary,
+    lineHeight: typography.fontSize.md * typography.lineHeight.normal,
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={containerStyle}>
+      <View style={styles.labelRow}>
+        <Text style={labelStyle}>Notes</Text>
+        {editable && !value && (
+          <Text style={hintStyle}>optional</Text>
+        )}
+      </View>
       <TextInput
-        style={[styles.input, !editable && styles.inputDisabled]}
+        style={inputStyle}
         value={value}
         onChangeText={onChangeText}
         editable={editable}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         multiline
-        numberOfLines={3}
+        numberOfLines={2}
         textAlignVertical="top"
         testID="description-input"
         accessibilityLabel="Description"
@@ -35,22 +79,10 @@ export function DescriptionInput({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: spacing.lg,
-    marginHorizontal: spacing.xxl,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    fontSize: typography.fontSize.md,
-    minHeight: 60,
-    maxHeight: 100,
-    color: colors.textPrimary,
-  },
-  inputDisabled: {
-    backgroundColor: colors.backgroundSecondary,
-    borderColor: colors.borderLight,
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
 });

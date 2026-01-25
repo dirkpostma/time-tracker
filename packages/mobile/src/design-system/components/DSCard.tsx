@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { colors, spacing, borderRadius, shadows, componentTokens } from '../tokens';
+import { spacing, componentTokens } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
 
 export interface DSCardProps {
   children: React.ReactNode;
@@ -17,11 +18,25 @@ export function DSCard({
   style,
   testID,
 }: DSCardProps) {
+  const { theme } = useTheme();
+  const { colors, shadows, borderRadius } = theme;
+
+  const variantStyles: ViewStyle = variant === 'elevated'
+    ? shadows.md
+    : variant === 'outlined'
+    ? { borderWidth: 1, borderColor: colors.border }
+    : { backgroundColor: colors.backgroundTertiary };
+
+  const baseBackgroundColor = variant === 'flat'
+    ? colors.backgroundTertiary
+    : colors.backgroundCard;
+
   return (
     <View
       style={[
         styles.base,
-        styles[`variant_${variant}`],
+        { backgroundColor: baseBackgroundColor, borderRadius: borderRadius.md },
+        variantStyles,
         styles[`padding_${padding}`],
         style,
       ]}
@@ -33,22 +48,7 @@ export function DSCard({
 }
 
 const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.background,
-    borderRadius: componentTokens.card.borderRadius,
-  },
-
-  // Variants
-  variant_elevated: {
-    ...shadows.card,
-  },
-  variant_outlined: {
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  variant_flat: {
-    backgroundColor: colors.backgroundTertiary,
-  },
+  base: {},
 
   // Padding
   padding_none: {

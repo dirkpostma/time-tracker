@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
-import { colors } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
 
 export interface DSLoadingIndicatorProps {
   size?: 'small' | 'large';
@@ -12,20 +12,26 @@ export interface DSLoadingIndicatorProps {
 
 export function DSLoadingIndicator({
   size = 'large',
-  color = colors.primary,
+  color,
   fullScreen = false,
   style,
   testID,
 }: DSLoadingIndicatorProps) {
+  const { theme } = useTheme();
+  const indicatorColor = color ?? theme.colors.primary;
+
   if (fullScreen) {
     return (
-      <View style={[styles.fullScreen, style]} testID={testID}>
-        <ActivityIndicator size={size} color={color} />
+      <View
+        style={[styles.fullScreen, { backgroundColor: theme.colors.background }, style]}
+        testID={testID}
+      >
+        <ActivityIndicator size={size} color={indicatorColor} />
       </View>
     );
   }
 
-  return <ActivityIndicator size={size} color={color} testID={testID} />;
+  return <ActivityIndicator size={size} color={indicatorColor} testID={testID} />;
 }
 
 const styles = StyleSheet.create({
@@ -33,6 +39,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
   },
 });

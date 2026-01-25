@@ -2,7 +2,8 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { DSText } from './DSText';
 import { DSButton } from './DSButton';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
 
 export interface DSScreenHeaderProps {
   title: string;
@@ -22,8 +23,18 @@ export function DSScreenHeader({
   variant = 'default',
   style,
 }: DSScreenHeaderProps) {
+  const { theme } = useTheme();
+  const { colors } = theme;
+
   return (
-    <View style={[styles.container, variant === 'bordered' && styles.bordered, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+        variant === 'bordered' && [styles.bordered, { borderBottomColor: colors.borderLight }],
+        style,
+      ]}
+    >
       <DSText variant="h2">{title}</DSText>
       {action && (
         <DSButton
@@ -47,10 +58,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.headerTop,
     paddingHorizontal: spacing.xxl,
     paddingBottom: spacing.lg,
-    backgroundColor: colors.background,
   },
   bordered: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
   },
 });
