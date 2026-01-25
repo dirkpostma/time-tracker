@@ -13,6 +13,7 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TabBar, TabName } from './src/components/TabBar';
 import { OfflineIndicator } from './src/components/OfflineIndicator';
 import { ShowcaseScreen } from './src/design-system/showcase';
+import { ThemeShowcaseScreen } from './src/design-system/showcase/themed';
 
 type AuthScreen = 'login' | 'forgotPassword' | 'signup';
 
@@ -43,7 +44,13 @@ function MainApp() {
   );
 }
 
-function AuthScreens({ onOpenShowcase }: { onOpenShowcase?: () => void }) {
+function AuthScreens({
+  onOpenShowcase,
+  onOpenThemes,
+}: {
+  onOpenShowcase?: () => void;
+  onOpenThemes?: () => void;
+}) {
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
 
   const goToLogin = useCallback(() => setAuthScreen('login'), []);
@@ -60,6 +67,7 @@ function AuthScreens({ onOpenShowcase }: { onOpenShowcase?: () => void }) {
       return (
         <LoginScreen
           onOpenShowcase={onOpenShowcase}
+          onOpenThemes={onOpenThemes}
           onForgotPassword={goToForgotPassword}
           onSignup={goToSignup}
         />
@@ -67,9 +75,11 @@ function AuthScreens({ onOpenShowcase }: { onOpenShowcase?: () => void }) {
   }
 }
 
+type ShowcaseType = 'none' | 'components' | 'themes';
+
 function AppContent() {
   const { user, loading } = useAuth();
-  const [showShowcase, setShowShowcase] = useState(false);
+  const [showcase, setShowcase] = useState<ShowcaseType>('none');
 
   if (loading) {
     return (
@@ -79,14 +89,21 @@ function AppContent() {
     );
   }
 
-  if (showShowcase) {
-    return <ShowcaseScreen onClose={() => setShowShowcase(false)} />;
+  if (showcase === 'components') {
+    return <ShowcaseScreen onClose={() => setShowcase('none')} />;
+  }
+
+  if (showcase === 'themes') {
+    return <ThemeShowcaseScreen onClose={() => setShowcase('none')} />;
   }
 
   return user ? (
     <MainApp />
   ) : (
-    <AuthScreens onOpenShowcase={() => setShowShowcase(true)} />
+    <AuthScreens
+      onOpenShowcase={() => setShowcase('components')}
+      onOpenThemes={() => setShowcase('themes')}
+    />
   );
 }
 

@@ -240,3 +240,125 @@ For Maestro-testable buttons with text:
   accessibilityLabel="Action"  // For text-based selection in Maestro
 >
 ```
+
+## Horizontal ScrollView Elements Off-Screen
+
+**Problem**: Elements in a horizontal `ScrollView` may be off-screen and Maestro cannot tap them directly.
+
+**Solution**: Use `swipe` with `from` targeting a visible element to scroll the container, then tap the newly visible element.
+
+```yaml
+# Ocean Depth card is visible, Sunset Warmth is off-screen to the right
+- swipe:
+    from:
+      id: "theme-card-oceanDepth"
+    direction: LEFT
+    duration: 400
+
+# Now Sunset Warmth should be visible
+- tapOn:
+    id: "theme-card-sunsetWarmth"
+```
+
+**Key points:**
+- Use `from: id:` to target the swipe starting point on a visible element
+- `direction: LEFT` scrolls content to reveal elements on the right
+- Add a small `duration` (300-500ms) for reliable swipes
+
+## Absolute Positioned Elements and Touch Events
+
+**Problem**: TouchableOpacity with `position: absolute` placed as a sibling to full-screen content may not receive touch events reliably, even with `zIndex`.
+
+**Symptoms:**
+- Maestro reports the tap as "COMPLETED"
+- The `onPress` callback never fires
+- The element is visually rendered on top
+
+**Cause**: React Native's touch event system can be affected by:
+- Sibling Views that cover the same area capturing events
+- SafeAreaView or other containers interfering with the touch responder chain
+- The order of elements in the render tree vs. visual z-order
+
+**Solution**: Place the absolute-positioned touchable inside the same parent View that renders the content it overlaps, rather than as a sibling.
+
+```tsx
+// Problematic - close button as sibling to content
+function Screen({ onClose }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <FullScreenContent />
+      <TouchableOpacity
+        style={{ position: 'absolute', top: 10, right: 10 }}
+        onPress={onClose}  // May not fire!
+      >
+        <Text>Close</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// Better - close button inside the content component
+function Screen({ onClose }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <FullScreenContent onClose={onClose} />
+    </View>
+  );
+}
+
+function FullScreenContent({ onClose }) {
+  return (
+    <View style={{ flex: 1 }}>
+      {/* Close button inside same View hierarchy */}
+      <TouchableOpacity
+        style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}
+        onPress={onClose}
+      >
+        <Text>Close</Text>
+      </TouchableOpacity>
+      {/* Rest of content */}
+    </View>
+  );
+}
+```
+
+## Testing Theme/Style Variations
+
+**Problem**: Need to verify multiple visual themes or style variants work correctly.
+
+**Solution**: Create a dedicated showcase screen that allows switching between themes and use Maestro to:
+1. Select each theme variant
+2. Verify the theme name is displayed
+3. Take screenshots for visual verification
+4. Navigate between screens to test theme consistency
+
+```yaml
+# Test each theme in sequence
+- tapOn:
+    id: "theme-card-midnightAurora"
+- assertVisible: "Midnight Aurora"
+- takeScreenshot: "theme_midnight_aurora"
+
+- tapOn:
+    id: "theme-card-softBlossom"
+- assertVisible: "Soft Blossom"
+- takeScreenshot: "theme_soft_blossom"
+```
+
+**Tip**: Use `takeScreenshot` to capture each theme for manual visual review. Screenshots are saved to the current working directory.
+
+## Dev Server Must Be Running
+
+**Problem**: Maestro launches the app but shows "Could not connect to development server" error.
+
+**Solution**: Start the Expo dev server before running Maestro tests.
+
+```bash
+# Terminal 1: Start dev server
+npx expo start
+
+# Terminal 2: Run Maestro tests (after server is ready)
+maestro test .maestro/my_test.yaml
+```
+
+**Tip**: Wait for the Metro bundler to show "Logs for your project will appear below" before running tests.

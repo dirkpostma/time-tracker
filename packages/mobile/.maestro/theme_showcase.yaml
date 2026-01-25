@@ -1,0 +1,174 @@
+appId: com.anonymous.mobile
+---
+# Theme Showcase Test
+# Tests all 5 theme variants and verifies they can be switched
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Open Theme Showcase from login screen
+- tapOn:
+    id: "open-themes-button"
+
+# Wait for Theme Showcase to load
+- extendedWaitUntil:
+    visible:
+      id: "theme-showcase-screen"
+    timeout: 10000
+
+# Verify initial state - should show first theme (Midnight Aurora)
+- assertVisible: "Theme Showcase"
+- assertVisible:
+    id: "active-theme-name"
+
+# ===========================================
+# Test Theme 1: Midnight Aurora (default)
+# ===========================================
+- tapOn:
+    id: "theme-card-midnightAurora"
+- extendedWaitUntil:
+    visible: "Midnight Aurora"
+    timeout: 5000
+- assertVisible:
+    id: "active-theme-name"
+- takeScreenshot: "theme_1_midnight_aurora"
+
+# ===========================================
+# Test Theme 2: Soft Blossom
+# ===========================================
+- tapOn:
+    id: "theme-card-softBlossom"
+- extendedWaitUntil:
+    visible: "Soft Blossom"
+    timeout: 5000
+- assertVisible:
+    id: "active-theme-name"
+- takeScreenshot: "theme_2_soft_blossom"
+
+# ===========================================
+# Test Theme 3: Brutalist
+# ===========================================
+- tapOn:
+    id: "theme-card-brutalist"
+- extendedWaitUntil:
+    visible: "Brutalist"
+    timeout: 5000
+- assertVisible:
+    id: "active-theme-name"
+- takeScreenshot: "theme_3_brutalist"
+
+# ===========================================
+# Test Theme 4: Ocean Depth
+# ===========================================
+- tapOn:
+    id: "theme-card-oceanDepth"
+- extendedWaitUntil:
+    visible: "Ocean Depth"
+    timeout: 5000
+- assertVisible:
+    id: "active-theme-name"
+- takeScreenshot: "theme_4_ocean_depth"
+
+# ===========================================
+# Test Theme 5: Sunset Warmth
+# Need to scroll the theme selector to find it
+# Swipe from Ocean Depth card toward the left to reveal Sunset Warmth
+# ===========================================
+- swipe:
+    from:
+      id: "theme-card-oceanDepth"
+    direction: LEFT
+    duration: 400
+- tapOn:
+    id: "theme-card-sunsetWarmth"
+- extendedWaitUntil:
+    visible: "Sunset Warmth"
+    timeout: 5000
+- assertVisible:
+    id: "active-theme-name"
+- takeScreenshot: "theme_5_sunset_warmth"
+
+# ===========================================
+# Test Screen Navigation within Theme
+# ===========================================
+# Switch to History tab
+- tapOn:
+    id: "themed-tab-history"
+- extendedWaitUntil:
+    visible: "History"
+    timeout: 5000
+- takeScreenshot: "theme_5_history_screen"
+
+# Switch to Login tab
+- tapOn:
+    id: "themed-tab-login"
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 5000
+- takeScreenshot: "theme_5_login_screen"
+
+# Switch to Settings tab
+- tapOn:
+    id: "themed-tab-settings"
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 5000
+- takeScreenshot: "theme_5_settings_screen"
+
+# Switch to Components Gallery tab
+- tapOn:
+    id: "themed-tab-components"
+- extendedWaitUntil:
+    visible: "Components"
+    timeout: 5000
+- takeScreenshot: "theme_5_components_gallery"
+
+# Switch back to Timer tab
+- tapOn:
+    id: "themed-tab-timer"
+- extendedWaitUntil:
+    visible: "Timer"
+    timeout: 5000
+
+# ===========================================
+# Test Theme Switching with Different Screen
+# Switch to Brutalist and verify History looks different
+# ===========================================
+- tapOn:
+    id: "themed-tab-history"
+- tapOn:
+    id: "theme-card-brutalist"
+- extendedWaitUntil:
+    visible: "Brutalist"
+    timeout: 5000
+- takeScreenshot: "theme_brutalist_history"
+
+# Switch to Soft Blossom
+- tapOn:
+    id: "theme-card-softBlossom"
+- extendedWaitUntil:
+    visible: "Soft Blossom"
+    timeout: 5000
+- takeScreenshot: "theme_soft_blossom_history"
+
+# ===========================================
+# Test Complete - All 5 themes verified
+# ===========================================
+# All themes tested successfully:
+# 1. Midnight Aurora (dark, neon, glass)
+# 2. Soft Blossom (light, pink pastels, pill buttons)
+# 3. Brutalist (light, sharp edges, bold typography)
+# 4. Ocean Depth (dark, oceanic blues, glass effects)
+# 5. Sunset Warmth (light, warm oranges, rounded)
+#
+# Screen navigation also tested within themes
