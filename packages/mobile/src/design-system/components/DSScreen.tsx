@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, ScrollView, RefreshControl } from 'react-native';
-import { colors, spacing } from '../tokens';
+import { colors } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
 
 export interface DSScreenProps {
   children: React.ReactNode;
@@ -23,11 +24,22 @@ export function DSScreen({
   contentStyle,
   testID,
 }: DSScreenProps) {
-  const containerStyle = [
+  // Try to get theme context, fall back to default colors if not available
+  let backgroundColor: string = colors.background;
+  let backgroundSecondaryColor: string = colors.backgroundSecondary;
+  try {
+    const { theme } = useTheme();
+    backgroundColor = theme.colors.background;
+    backgroundSecondaryColor = theme.colors.backgroundSecondary;
+  } catch {
+    // useTheme will throw if not in a ThemeProvider - use default colors
+  }
+
+  const containerStyle: ViewStyle[] = [
     styles.container,
-    variant === 'secondary' && styles.secondary,
+    { backgroundColor: variant === 'secondary' ? backgroundSecondaryColor : backgroundColor },
     style,
-  ];
+  ].filter(Boolean) as ViewStyle[];
 
   if (scrollable) {
     return (
@@ -47,7 +59,7 @@ export function DSScreen({
   }
 
   return (
-    <View style={[containerStyle, contentStyle]} testID={testID}>
+    <View style={[...containerStyle, contentStyle]} testID={testID}>
       {children}
     </View>
   );
@@ -56,10 +68,6 @@ export function DSScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  secondary: {
-    backgroundColor: colors.backgroundSecondary,
   },
   scrollContent: {
     flexGrow: 1,

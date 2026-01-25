@@ -4,6 +4,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { OfflineProvider } from './src/contexts/OfflineContext';
+import { ThemeProvider, useTheme } from './src/design-system/themes/ThemeContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
@@ -19,6 +20,7 @@ type AuthScreen = 'login' | 'forgotPassword' | 'signup';
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<TabName>('timer');
+  const { theme } = useTheme();
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -34,7 +36,7 @@ function MainApp() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OfflineIndicator />
       <View style={styles.screenContainer}>
         {renderScreen()}
@@ -79,12 +81,13 @@ type ShowcaseType = 'none' | 'components' | 'themes';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { theme } = useTheme();
   const [showcase, setShowcase] = useState<ShowcaseType>('none');
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -107,15 +110,22 @@ function AppContent() {
   );
 }
 
+function ThemedStatusBar() {
+  const { theme } = useTheme();
+  return <StatusBar style={theme.isDark ? 'light' : 'dark'} />;
+}
+
 export default function App() {
   return (
     <KeyboardProvider>
-      <AuthProvider>
-        <OfflineProvider>
-          <StatusBar style="auto" />
-          <AppContent />
-        </OfflineProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <OfflineProvider>
+            <ThemedStatusBar />
+            <AppContent />
+          </OfflineProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </KeyboardProvider>
   );
 }

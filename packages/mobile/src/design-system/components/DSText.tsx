@@ -1,6 +1,8 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet, TextStyle } from 'react-native';
+import { Text, TextProps, TextStyle } from 'react-native';
 import { colors, typography } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
+import { ThemeColors, ThemeTypography } from '../themes';
 
 export type DSTextVariant =
   | 'h1'
@@ -32,6 +34,68 @@ export interface DSTextProps extends Omit<TextProps, 'style'> {
   children: React.ReactNode;
 }
 
+function getVariantStyle(variant: DSTextVariant, themeColors: ThemeColors, themeTypography: ThemeTypography): TextStyle {
+  const variantStyles: Record<DSTextVariant, TextStyle> = {
+    h1: {
+      fontSize: themeTypography.fontSize.xxl,
+      fontWeight: themeTypography.fontWeight.bold,
+      color: themeColors.textPrimary,
+    },
+    h2: {
+      fontSize: themeTypography.fontSize.xl,
+      fontWeight: themeTypography.fontWeight.bold,
+      color: themeColors.textPrimary,
+    },
+    h3: {
+      fontSize: themeTypography.fontSize.lg,
+      fontWeight: themeTypography.fontWeight.semibold,
+      color: themeColors.textPrimary,
+    },
+    body: {
+      fontSize: themeTypography.fontSize.md,
+      fontWeight: themeTypography.fontWeight.normal,
+      color: themeColors.textPrimary,
+    },
+    bodySmall: {
+      fontSize: themeTypography.fontSize.sm,
+      fontWeight: themeTypography.fontWeight.normal,
+      color: themeColors.textSecondary,
+    },
+    caption: {
+      fontSize: themeTypography.fontSize.xs,
+      fontWeight: themeTypography.fontWeight.normal,
+      color: themeColors.textMuted,
+    },
+    label: {
+      fontSize: themeTypography.fontSize.sm,
+      fontWeight: themeTypography.fontWeight.semibold,
+      color: themeColors.textSecondary,
+      textTransform: 'uppercase',
+    },
+    timer: {
+      fontSize: themeTypography.fontSize.timer,
+      fontWeight: themeTypography.fontWeight.thin,
+      fontVariant: ['tabular-nums'],
+      color: themeColors.textPrimary,
+    },
+  };
+  return variantStyles[variant];
+}
+
+function getColorStyle(colorName: DSTextColor, themeColors: ThemeColors): TextStyle {
+  const colorMap: Record<DSTextColor, string> = {
+    primary: themeColors.textPrimary,
+    secondary: themeColors.textSecondary,
+    tertiary: themeColors.textTertiary,
+    muted: themeColors.textMuted,
+    inverse: themeColors.textInverse,
+    link: themeColors.primary,
+    danger: themeColors.danger,
+    success: themeColors.success,
+  };
+  return { color: colorMap[colorName] };
+}
+
 export function DSText({
   variant = 'body',
   color = 'primary',
@@ -42,12 +106,23 @@ export function DSText({
   children,
   ...props
 }: DSTextProps) {
+  // Try to get theme context, fall back to default if not available
+  let themeColors = colors as unknown as ThemeColors;
+  let themeTypography = typography as unknown as ThemeTypography;
+  try {
+    const { theme } = useTheme();
+    themeColors = theme.colors;
+    themeTypography = theme.typography;
+  } catch {
+    // useTheme will throw if not in a ThemeProvider - use default colors
+  }
+
   const textStyles: TextStyle[] = [
-    styles[`variant_${variant}`],
-    styles[`color_${color}`],
-    weight && { fontWeight: typography.fontWeight[weight] },
+    getVariantStyle(variant, themeColors, themeTypography),
+    getColorStyle(color, themeColors),
+    weight && { fontWeight: themeTypography.fontWeight[weight] },
     align && { textAlign: align },
-    uppercase && styles.uppercase,
+    uppercase && { textTransform: 'uppercase' },
     style,
   ].filter(Boolean) as TextStyle[];
 
@@ -57,80 +132,3 @@ export function DSText({
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  // Variants
-  variant_h1: {
-    fontSize: typography.fontSize.xxl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  variant_h2: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  variant_h3: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  variant_body: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.normal,
-    color: colors.textPrimary,
-  },
-  variant_bodySmall: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.normal,
-    color: colors.textSecondary,
-  },
-  variant_caption: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.normal,
-    color: colors.textMuted,
-  },
-  variant_label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-  },
-  variant_timer: {
-    fontSize: typography.fontSize.timer,
-    fontWeight: typography.fontWeight.thin,
-    fontVariant: ['tabular-nums'],
-    color: colors.textPrimary,
-  },
-
-  // Colors
-  color_primary: {
-    color: colors.textPrimary,
-  },
-  color_secondary: {
-    color: colors.textSecondary,
-  },
-  color_tertiary: {
-    color: colors.textTertiary,
-  },
-  color_muted: {
-    color: colors.textMuted,
-  },
-  color_inverse: {
-    color: colors.textInverse,
-  },
-  color_link: {
-    color: colors.primary,
-  },
-  color_danger: {
-    color: colors.danger,
-  },
-  color_success: {
-    color: colors.success,
-  },
-
-  // Modifiers
-  uppercase: {
-    textTransform: 'uppercase',
-  },
-});

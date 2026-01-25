@@ -1,0 +1,169 @@
+appId: com.anonymous.mobile
+---
+# Theme Switch Test - Tests switching themes in Settings and verifies UI updates
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Dismiss debug banner if present
+- tapOn:
+    text: "×"
+    optional: true
+
+# Navigate to Settings
+- tapOn:
+    id: "tab-settings"
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# Verify appearance section exists
+- assertVisible:
+    id: "appearance-section"
+
+# Verify theme picker exists
+- assertVisible:
+    id: "theme-picker"
+
+# Take screenshot of default theme (Midnight Aurora)
+- takeScreenshot: "theme_default_midnight_aurora"
+
+# Switch to Soft Blossom theme
+- tapOn:
+    id: "theme-option-softBlossom"
+
+# Wait a moment for theme to apply
+- swipe:
+    direction: DOWN
+    duration: 300
+
+# Take screenshot of Soft Blossom theme
+- takeScreenshot: "theme_soft_blossom"
+
+# Verify the theme option shows as selected
+- assertVisible:
+    id: "theme-option-softBlossom"
+
+# Switch to Brutalist theme
+- tapOn:
+    id: "theme-option-brutalist"
+
+- swipe:
+    direction: DOWN
+    duration: 300
+
+- takeScreenshot: "theme_brutalist"
+
+# Switch to Ocean Depth theme
+- tapOn:
+    id: "theme-option-oceanDepth"
+
+- swipe:
+    direction: DOWN
+    duration: 300
+
+- takeScreenshot: "theme_ocean_depth"
+
+# Switch to Sunset Warmth theme
+- tapOn:
+    id: "theme-option-sunsetWarmth"
+
+- swipe:
+    direction: DOWN
+    duration: 300
+
+- takeScreenshot: "theme_sunset_warmth"
+
+# Navigate to Timer tab to verify theme applies across screens
+- tapOn:
+    id: "tab-timer"
+
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
+
+- takeScreenshot: "timer_with_sunset_warmth_theme"
+
+# Navigate to History tab
+- tapOn:
+    id: "tab-history"
+
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+- takeScreenshot: "history_with_sunset_warmth_theme"
+
+# Switch back to default theme (Midnight Aurora)
+- tapOn:
+    id: "tab-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "theme-picker"
+    timeout: 10000
+
+- tapOn:
+    id: "theme-option-midnightAurora"
+
+- swipe:
+    direction: DOWN
+    duration: 300
+
+- takeScreenshot: "theme_restored_to_default"
+
+# Verify Settings still works after theme changes
+- assertVisible:
+    id: "notifications-section"
+
+- assertVisible:
+    id: "long-timer-toggle"

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Switch, StyleSheet, ViewStyle } from 'react-native';
 import { colors, typography, spacing } from '../tokens';
+import { useTheme } from '../themes/ThemeContext';
+import { ThemeColors, ThemeTypography, ThemeSpacing } from '../themes';
 
 export interface DSToggleProps {
   value: boolean;
@@ -21,12 +23,38 @@ export function DSToggle({
   containerStyle,
   testID,
 }: DSToggleProps) {
+  // Try to get theme context, fall back to default if not available
+  let themeColors = colors as unknown as ThemeColors;
+  let themeTypography = typography as unknown as ThemeTypography;
+  let themeSpacing = spacing as unknown as ThemeSpacing;
+  try {
+    const { theme } = useTheme();
+    themeColors = theme.colors;
+    themeTypography = theme.typography;
+    themeSpacing = theme.spacing;
+  } catch {
+    // useTheme will throw if not in a ThemeProvider - use default colors
+  }
+
   return (
-    <View style={[styles.container, containerStyle]}>
-      <View style={styles.textContainer}>
-        <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
+    <View style={[styles.container, { paddingVertical: themeSpacing.md }, containerStyle]}>
+      <View style={[styles.textContainer, { marginRight: themeSpacing.lg }]}>
+        <Text
+          style={{
+            fontSize: themeTypography.fontSize.md,
+            color: disabled ? themeColors.textMuted : themeColors.textPrimary,
+          }}
+        >
+          {label}
+        </Text>
         {description && (
-          <Text style={[styles.description, disabled && styles.descriptionDisabled]}>
+          <Text
+            style={{
+              fontSize: themeTypography.fontSize.sm,
+              color: themeColors.textMuted,
+              marginTop: themeSpacing.xs,
+            }}
+          >
             {description}
           </Text>
         )}
@@ -36,8 +64,8 @@ export function DSToggle({
         onValueChange={onValueChange}
         disabled={disabled}
         testID={testID}
-        trackColor={{ false: colors.borderLight, true: colors.primaryLight }}
-        thumbColor={colors.background}
+        trackColor={{ false: themeColors.borderLight, true: themeColors.primaryLight }}
+        thumbColor={themeColors.background}
       />
     </View>
   );
@@ -48,25 +76,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md,
   },
   textContainer: {
     flex: 1,
-    marginRight: spacing.lg,
-  },
-  label: {
-    fontSize: typography.fontSize.md,
-    color: colors.textPrimary,
-  },
-  labelDisabled: {
-    color: colors.textMuted,
-  },
-  description: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  descriptionDisabled: {
-    color: colors.textMuted,
   },
 });

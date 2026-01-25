@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
+import { useTheme } from '../design-system/themes/ThemeContext';
+import { themeList, ThemeName } from '../design-system/themes';
 import {
   DSButton,
   DSText,
@@ -17,6 +19,7 @@ import {
 
 export function SettingsScreen() {
   const { signOut } = useAuth();
+  const { theme, themeName, setTheme } = useTheme();
   const {
     settings,
     hasPermission,
@@ -134,6 +137,59 @@ export function SettingsScreen() {
     <DSScreen scrollable variant="secondary" testID="settings-screen">
       <DSScreenHeader title="Settings" variant="bordered" />
 
+      <DSSection title="Appearance" testID="appearance-section">
+        <DSText variant="bodySmall" style={{ marginBottom: spacing.sm }}>
+          Select a theme for the app
+        </DSText>
+        <View style={styles.themeGrid} testID="theme-picker">
+          {themeList.map((t) => {
+            const isSelected = t.name === themeName;
+            return (
+              <TouchableOpacity
+                key={t.name}
+                testID={`theme-option-${t.name}`}
+                onPress={() => setTheme(t.name as ThemeName)}
+                style={[
+                  styles.themeOption,
+                  {
+                    backgroundColor: t.colors.background,
+                    borderColor: isSelected ? t.colors.primary : t.colors.border,
+                    borderWidth: isSelected ? 2 : 1,
+                  },
+                ]}
+                accessibilityLabel={`${t.displayName} theme${isSelected ? ', selected' : ''}`}
+                accessibilityRole="button"
+              >
+                <View
+                  style={[
+                    styles.themePreview,
+                    { backgroundColor: t.colors.primary },
+                  ]}
+                />
+                <DSText
+                  variant="caption"
+                  style={{
+                    color: t.colors.textPrimary,
+                    textAlign: 'center',
+                    marginTop: spacing.xs,
+                  }}
+                >
+                  {t.displayName}
+                </DSText>
+                {isSelected && (
+                  <View
+                    style={[
+                      styles.selectedIndicator,
+                      { backgroundColor: t.colors.primary },
+                    ]}
+                  />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </DSSection>
+
       <DSSection title="Notifications" testID="notifications-section">
         <DSToggle
           value={settings.longTimerEnabled}
@@ -212,3 +268,31 @@ export function SettingsScreen() {
     </DSScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  themeOption: {
+    width: 100,
+    padding: spacing.sm,
+    borderRadius: 8,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  themePreview: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+});
