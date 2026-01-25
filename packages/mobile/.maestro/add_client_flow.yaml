@@ -1,0 +1,117 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Login
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button to appear
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Tap selection button to open client picker
+- tapOn:
+    id: "selection-button"
+
+# Wait for client picker modal
+- extendedWaitUntil:
+    visible:
+      id: "client-picker-modal"
+    timeout: 10000
+
+# Verify add client button is present
+- assertVisible:
+    id: "add-client-button"
+
+# Tap add client button
+- tapOn:
+    id: "add-client-button"
+
+# Verify add form appears
+- extendedWaitUntil:
+    visible:
+      id: "add-client-form"
+    timeout: 5000
+- assertVisible:
+    id: "new-client-name-input"
+- assertVisible:
+    id: "submit-new-client-button"
+
+# Enter unique client name
+- tapOn:
+    id: "new-client-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " AddClientTest"
+
+# Dismiss keyboard first
+- hideKeyboard
+
+# Submit by tapping Add client button
+- tapOn:
+    text: "Add client"
+
+# Dismiss any error alert that might appear (e.g., duplicate name)
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for project picker modal (client was selected and we moved to project selection)
+- extendedWaitUntil:
+    visible:
+      id: "project-picker-modal"
+    timeout: 15000
+
+# Skip project selection
+- tapOn:
+    id: "project-skip"
+
+# Timer screen should be back
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000

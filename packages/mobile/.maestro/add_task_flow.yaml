@@ -8,12 +8,20 @@ appId: com.anonymous.mobile
     text: "http://localhost:8081"
     optional: true
 
-# Wait for login screen
+# Wait for app to load
 - extendedWaitUntil:
     visible: "Time Tracker"
     timeout: 30000
 
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
 # Login
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
 - tapOn:
     id: "email-input"
 - inputText: "test@example.com"
@@ -34,7 +42,7 @@ appId: com.anonymous.mobile
       id: "timer-display"
     timeout: 30000
 
-# Stop any existing running timer first
+# Stop any running timer first
 - tapOn:
     id: "stop-button"
     optional: true
@@ -44,10 +52,6 @@ appId: com.anonymous.mobile
     visible:
       id: "start-button"
     timeout: 10000
-
-# Verify selection button is visible
-- assertVisible:
-    id: "selection-button"
 
 # Tap selection button to open client picker
 - tapOn:
@@ -59,14 +63,14 @@ appId: com.anonymous.mobile
       id: "client-picker-modal"
     timeout: 10000
 
-# Create a new client for this test
+# Create a new client
 - tapOn:
     id: "add-client-button"
 - tapOn:
     id: "new-client-name-input"
 - inputRandomText:
     length: 6
-- inputText: " SelectionTest"
+- inputText: " TaskFlowClient"
 - hideKeyboard
 - tapOn:
     text: "Add client"
@@ -76,78 +80,70 @@ appId: com.anonymous.mobile
     text: "OK"
     optional: true
 
-# Wait for project picker
+# Wait for project picker modal
 - extendedWaitUntil:
     visible:
       id: "project-picker-modal"
     timeout: 15000
 
-# Skip project picker - this will start timer automatically with the client
+# Create a new project
 - tapOn:
-    id: "project-skip"
+    id: "add-project-button"
+- tapOn:
+    id: "new-project-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " TaskFlowProject"
+- hideKeyboard
+- tapOn:
+    text: "Add project"
 
-# Wait for timer screen - timer should start automatically after selection
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for task picker modal
+- extendedWaitUntil:
+    visible:
+      id: "task-picker-modal"
+    timeout: 15000
+
+# Verify add task button is present
+- assertVisible:
+    id: "add-task-button"
+
+# Tap add task button
+- tapOn:
+    id: "add-task-button"
+
+# Verify add form appears
+- extendedWaitUntil:
+    visible:
+      id: "add-task-form"
+    timeout: 5000
+- assertVisible:
+    id: "new-task-name-input"
+- assertVisible:
+    id: "submit-new-task-button"
+
+# Enter unique task name
+- tapOn:
+    id: "new-task-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " AddTaskTest"
+- hideKeyboard
+- tapOn:
+    text: "Add task"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Timer screen should be back (task was selected)
 - extendedWaitUntil:
     visible:
       id: "timer-display"
-    timeout: 10000
-
-# Timer may or may not auto-start - check for either state
-- tapOn:
-    id: "start-button"
-    optional: true
-
-# Wait for timer to be running (either started manually or auto-started)
-- extendedWaitUntil:
-    visible:
-      id: "stop-button"
-    timeout: 10000
-
-# Verify timer started with client
-- assertVisible:
-    id: "stop-button"
-- assertVisible:
-    id: "client-name"
-
-# Stop the timer
-- tapOn:
-    id: "stop-button"
-
-# Wait for start button
-- extendedWaitUntil:
-    visible:
-      id: "start-button"
-    timeout: 10000
-
-# Verify selection is remembered (selection button still shows)
-- assertVisible:
-    id: "selection-button"
-
-# Start timer again - should use recent selection immediately
-- tapOn:
-    id: "start-button"
-
-# Wait for timer to be running
-- extendedWaitUntil:
-    visible:
-      id: "stop-button"
-    timeout: 10000
-
-# Verify timer started
-- assertVisible:
-    id: "stop-button"
-
-# Stop timer to clean up - wait for stop button first
-- extendedWaitUntil:
-    visible:
-      id: "stop-button"
-    timeout: 5000
-
-- tapOn:
-    id: "stop-button"
-
-# Wait for start button to confirm timer stopped
-- extendedWaitUntil:
-    visible:
-      id: "start-button"
     timeout: 15000

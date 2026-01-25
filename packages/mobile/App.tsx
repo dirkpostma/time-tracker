@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { OfflineProvider } from './src/contexts/OfflineContext';
 import { LoginScreen } from './src/screens/LoginScreen';
+import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
+import { SignupScreen } from './src/screens/SignupScreen';
 import { TimerScreen } from './src/screens/TimerScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TabBar, TabName } from './src/components/TabBar';
 import { OfflineIndicator } from './src/components/OfflineIndicator';
 import { ShowcaseScreen } from './src/design-system/showcase';
+
+type AuthScreen = 'login' | 'forgotPassword' | 'signup';
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<TabName>('timer');
@@ -38,6 +43,30 @@ function MainApp() {
   );
 }
 
+function AuthScreens({ onOpenShowcase }: { onOpenShowcase?: () => void }) {
+  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
+
+  const goToLogin = useCallback(() => setAuthScreen('login'), []);
+  const goToForgotPassword = useCallback(() => setAuthScreen('forgotPassword'), []);
+  const goToSignup = useCallback(() => setAuthScreen('signup'), []);
+
+  switch (authScreen) {
+    case 'forgotPassword':
+      return <ForgotPasswordScreen onBack={goToLogin} />;
+    case 'signup':
+      return <SignupScreen onBack={goToLogin} />;
+    case 'login':
+    default:
+      return (
+        <LoginScreen
+          onOpenShowcase={onOpenShowcase}
+          onForgotPassword={goToForgotPassword}
+          onSignup={goToSignup}
+        />
+      );
+  }
+}
+
 function AppContent() {
   const { user, loading } = useAuth();
   const [showShowcase, setShowShowcase] = useState(false);
@@ -57,18 +86,20 @@ function AppContent() {
   return user ? (
     <MainApp />
   ) : (
-    <LoginScreen onOpenShowcase={() => setShowShowcase(true)} />
+    <AuthScreens onOpenShowcase={() => setShowShowcase(true)} />
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <OfflineProvider>
-        <StatusBar style="auto" />
-        <AppContent />
-      </OfflineProvider>
-    </AuthProvider>
+    <KeyboardProvider>
+      <AuthProvider>
+        <OfflineProvider>
+          <StatusBar style="auto" />
+          <AppContent />
+        </OfflineProvider>
+      </AuthProvider>
+    </KeyboardProvider>
   );
 }
 

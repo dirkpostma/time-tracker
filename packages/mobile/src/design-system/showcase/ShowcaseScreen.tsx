@@ -21,6 +21,7 @@ import { ListItemStories } from './stories/ListItemStories';
 import { LoadingStories } from './stories/LoadingStories';
 import { TokensStories } from './stories/TokensStories';
 import { LayoutStories } from './stories/LayoutStories';
+import { AddClientStories } from './stories/AddClientStories';
 
 interface Story {
   name: string;
@@ -94,6 +95,9 @@ const STORIES: Record<string, Story[]> = {
     { name: 'Section', component: LayoutStories.Section },
     { name: 'Spacer', component: LayoutStories.Spacer },
   ],
+  'Forms': [
+    { name: 'Add Client', component: AddClientStories.Default },
+  ],
 };
 
 interface ShowcaseScreenProps {
@@ -111,6 +115,8 @@ export function ShowcaseScreen({ onClose }: ShowcaseScreenProps) {
           key={category}
           style={styles.categoryItem}
           onPress={() => setSelectedCategory(category)}
+          testID={`category-${category.toLowerCase()}`}
+          accessibilityLabel={category}
         >
           <Text style={styles.categoryText}>{category}</Text>
           <Text style={styles.chevron}>{'>'}</Text>
@@ -126,6 +132,8 @@ export function ShowcaseScreen({ onClose }: ShowcaseScreenProps) {
           key={story.name}
           style={styles.storyItem}
           onPress={() => setSelectedStory(story)}
+          testID={`story-${story.name.toLowerCase().replace(/\s+/g, '-')}`}
+          accessibilityLabel={story.name}
         >
           <Text style={styles.storyText}>{story.name}</Text>
           <Text style={styles.chevron}>{'>'}</Text>

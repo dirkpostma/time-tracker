@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
   TextInput,
   TextInputProps,
@@ -16,20 +16,24 @@ export interface DSTextInputProps extends Omit<TextInputProps, 'style'> {
   containerStyle?: ViewStyle;
 }
 
-export function DSTextInput({
-  label,
-  error,
-  disabled = false,
-  editable = true,
-  containerStyle,
-  ...props
-}: DSTextInputProps) {
+export const DSTextInput = forwardRef<TextInput, DSTextInputProps>(function DSTextInput(
+  {
+    label,
+    error,
+    disabled = false,
+    editable = true,
+    containerStyle,
+    ...props
+  },
+  ref
+) {
   const isDisabled = disabled || editable === false;
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
+        ref={ref}
         style={[
           styles.input,
           isDisabled && styles.inputDisabled,
@@ -42,7 +46,7 @@ export function DSTextInput({
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

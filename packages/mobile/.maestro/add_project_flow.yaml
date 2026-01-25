@@ -1,0 +1,136 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Login
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Tap selection button to open client picker
+- tapOn:
+    id: "selection-button"
+
+# Wait for client picker modal
+- extendedWaitUntil:
+    visible:
+      id: "client-picker-modal"
+    timeout: 10000
+
+# Create a new client first (to ensure we have one)
+- tapOn:
+    id: "add-client-button"
+- tapOn:
+    id: "new-client-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " ProjectFlowClient"
+- hideKeyboard
+- tapOn:
+    text: "Add client"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for project picker modal
+- extendedWaitUntil:
+    visible:
+      id: "project-picker-modal"
+    timeout: 15000
+
+# Verify add project button is present
+- assertVisible:
+    id: "add-project-button"
+
+# Tap add project button
+- tapOn:
+    id: "add-project-button"
+
+# Verify add form appears
+- extendedWaitUntil:
+    visible:
+      id: "add-project-form"
+    timeout: 5000
+- assertVisible:
+    id: "new-project-name-input"
+- assertVisible:
+    id: "submit-new-project-button"
+
+# Enter unique project name
+- tapOn:
+    id: "new-project-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " AddProjectTest"
+- hideKeyboard
+- tapOn:
+    text: "Add project"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for task picker modal
+- extendedWaitUntil:
+    visible:
+      id: "task-picker-modal"
+    timeout: 15000
+
+# Skip task selection
+- tapOn:
+    id: "task-skip"
+
+# Timer screen should be back
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000

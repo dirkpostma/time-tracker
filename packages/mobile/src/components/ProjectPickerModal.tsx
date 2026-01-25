@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Modal,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors, typography, spacing } from '../design-system/tokens';
@@ -33,10 +35,15 @@ export function ProjectPickerModal({
 }: ProjectPickerModalProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
 
   useEffect(() => {
     if (visible && clientId) {
       fetchProjects();
+      setShowAddForm(false);
+      setNewName('');
     }
   }, [visible, clientId]);
 
@@ -61,9 +68,42 @@ export function ProjectPickerModal({
     }
   };
 
-  const handleSelect = (project: Project) => {
+  const handleSelect = useCallback((project: Project) => {
     onSelect(project);
-  };
+  }, [onSelect]);
+
+  const handleAdd = useCallback(async () => {
+    const name = newName.trim();
+    if (!name) {
+      Alert.alert('Error', 'Please enter a project name');
+      return;
+    }
+    if (!clientId) return;
+
+    setAdding(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({ name, client_id: clientId })
+        .select('id, name')
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        onSelect(data);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add project';
+      Alert.alert('Error', message);
+    } finally {
+      setAdding(false);
+    }
+  }, [newName, clientId, onSelect]);
+
+  const toggleAddForm = useCallback(() => {
+    setShowAddForm(prev => !prev);
+    setNewName('');
+  }, []);
 
   return (
     <Modal
@@ -80,13 +120,54 @@ export function ProjectPickerModal({
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={toggleAddForm}
+          testID="add-project-button"
+        >
+          <Text style={styles.addButtonText}>
+            {showAddForm ? 'Cancel' : '+ Add New Project'}
+          </Text>
+        </TouchableOpacity>
+
+        {showAddForm && (
+          <View style={styles.addForm} testID="add-project-form">
+            <TextInput
+              style={styles.addInput}
+              placeholder="Project name"
+              value={newName}
+              onChangeText={setNewName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleAdd}
+              testID="new-project-name-input"
+              placeholderTextColor={colors.textMuted}
+            />
+            <TouchableOpacity
+              style={[styles.submitButton, adding && styles.submitButtonDisabled]}
+              onPress={handleAdd}
+              disabled={adding}
+              testID="submit-new-project-button"
+              accessibilityRole="button"
+              accessibilityLabel="Add project"
+            >
+              {adding ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Add</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        ) : projects.length === 0 ? (
+        ) : projects.length === 0 && !showAddForm ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No projects for this client</Text>
+            <Text style={styles.emptyHint}>Add a project above or skip</Text>
             <TouchableOpacity style={styles.skipButton} onPress={onSkip} testID="project-skip">
               <Text style={styles.skipButtonText}>Continue without project</Text>
             </TouchableOpacity>
@@ -139,6 +220,53 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: typography.fontSize.md,
   },
+  addButton: {
+    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  addButtonText: {
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  },
+  addForm: {
+    flexDirection: 'row',
+    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addInput: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.borderInput,
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -152,6 +280,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: typography.fontSize.md,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+  },
+  emptyHint: {
+    fontSize: typography.fontSize.sm,
     color: colors.textMuted,
     marginBottom: spacing.lg,
   },

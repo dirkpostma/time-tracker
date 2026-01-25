@@ -12,18 +12,18 @@ import {
 } from '../design-system';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
-interface LoginScreenProps {
-  onOpenShowcase?: () => void;
-  onForgotPassword: () => void;
-  onSignup: () => void;
+interface SignupScreenProps {
+  onBack: () => void;
 }
 
-export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: LoginScreenProps) {
-  const { signIn } = useAuth();
+export function SignupScreen({ onBack }: SignupScreenProps) {
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const emailRef = useRef('');
   const passwordRef = useRef('');
+  const confirmPasswordRef = useRef('');
   const passwordInputRef = useRef<TextInput>(null);
+  const confirmPasswordInputRef = useRef<TextInput>(null);
 
   const handleEmailChange = useCallback((text: string) => {
     emailRef.current = text;
@@ -33,37 +33,45 @@ export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: Logi
     passwordRef.current = text;
   }, []);
 
-  const handleLogin = useCallback(async () => {
+  const handleConfirmPasswordChange = useCallback((text: string) => {
+    confirmPasswordRef.current = text;
+  }, []);
+
+  const handleSignup = useCallback(async () => {
     const email = emailRef.current.trim();
     const password = passwordRef.current;
+    const confirmPassword = confirmPasswordRef.current;
 
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     setLoading(true);
     try {
-      await signIn(email, password);
+      await signUp(email, password);
+      Alert.alert(
+        'Account Created',
+        'Your account has been created. You can now sign in.',
+        [{ text: 'OK', onPress: onBack }]
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Login failed';
-      Alert.alert('Login Failed', message);
+      const message = error instanceof Error ? error.message : 'Signup failed';
+      Alert.alert('Signup Failed', message);
     } finally {
       setLoading(false);
     }
-  }, [signIn]);
-
-  const handleDevLogin = useCallback(async () => {
-    setLoading(true);
-    try {
-      await signIn('test@example.com', 'Test1234');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Login failed';
-      Alert.alert('Dev Login Failed', message);
-    } finally {
-      setLoading(false);
-    }
-  }, [signIn]);
+  }, [signUp, onBack]);
 
   return (
     <DSScreen>
@@ -71,10 +79,10 @@ export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: Logi
         <DSCenter padding="xxl">
           <DSStack gap="md" align="stretch" style={{ width: '100%' }}>
             <DSText variant="h1" align="center">
-              Time Tracker
+              Create Account
             </DSText>
             <DSText variant="body" color="secondary" align="center">
-              Sign in to continue
+              Sign up to start tracking time
             </DSText>
 
             <DSSpacer size="lg" />
@@ -85,9 +93,10 @@ export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: Logi
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              autoFocus
               returnKeyType="next"
               onSubmitEditing={() => passwordInputRef.current?.focus()}
-              testID="email-input"
+              testID="signup-email-input"
               accessibilityLabel="Email"
             />
 
@@ -96,58 +105,42 @@ export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: Logi
               placeholder="Password"
               onChangeText={handlePasswordChange}
               secureTextEntry
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
-              testID="password-input"
+              returnKeyType="next"
+              onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
+              testID="signup-password-input"
               accessibilityLabel="Password"
             />
 
-            <DSButton
-              title="Forgot Password?"
-              onPress={onForgotPassword}
-              variant="link"
-              size="sm"
-              testID="forgot-password-button"
-              accessibilityLabel="Forgot Password"
+            <DSTextInput
+              ref={confirmPasswordInputRef}
+              placeholder="Confirm Password"
+              onChangeText={handleConfirmPasswordChange}
+              secureTextEntry
+              returnKeyType="done"
+              onSubmitEditing={handleSignup}
+              testID="signup-confirm-password-input"
+              accessibilityLabel="Confirm Password"
             />
 
+            <DSSpacer size="sm" />
+
             <DSButton
-              title="Login"
-              onPress={handleLogin}
+              title="Sign Up"
+              onPress={handleSignup}
               variant="primary"
               loading={loading}
               disabled={loading}
-              testID="login-button"
-              accessibilityLabel="Login"
+              testID="signup-button"
+              accessibilityLabel="Sign Up"
             />
 
             <DSButton
-              title="Create Account"
-              onPress={onSignup}
-              variant="secondary"
-              testID="go-to-signup-button"
-              accessibilityLabel="Create Account"
+              title="Back to Login"
+              onPress={onBack}
+              variant="ghost"
+              testID="back-to-login-from-signup"
+              accessibilityLabel="Back to Login"
             />
-
-            {__DEV__ && (
-              <DSButton
-                title="Dev Login (test@example.com)"
-                onPress={handleDevLogin}
-                variant="secondary"
-                loading={loading}
-                disabled={loading}
-                size="sm"
-              />
-            )}
-            {__DEV__ && onOpenShowcase && (
-              <DSButton
-                title="Open Component Showcase"
-                onPress={onOpenShowcase}
-                variant="primary"
-                size="sm"
-                testID="open-showcase-button"
-              />
-            )}
           </DSStack>
         </DSCenter>
       </KeyboardAvoidingView>

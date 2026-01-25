@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Modal,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { colors, typography, spacing } from '../design-system/tokens';
@@ -25,10 +28,16 @@ interface ClientPickerModalProps {
 export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerModalProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible) {
       fetchClients();
+      setShowAddForm(false);
+      setNewName('');
     }
   }, [visible]);
 
@@ -49,9 +58,41 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
     }
   };
 
-  const handleSelect = (client: Client) => {
+  const handleSelect = useCallback((client: Client) => {
     onSelect(client);
+  }, [onSelect]);
+
+  const handleAdd = async () => {
+    const name = newName.trim();
+    if (!name) {
+      Alert.alert('Error', 'Please enter a client name');
+      return;
+    }
+
+    setAdding(true);
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert({ name })
+        .select('id, name')
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        onSelect(data);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add client';
+      Alert.alert('Error', message);
+    } finally {
+      setAdding(false);
+    }
   };
+
+  const toggleAddForm = useCallback(() => {
+    setShowAddForm(prev => !prev);
+    setNewName('');
+  }, []);
 
   return (
     <Modal
@@ -68,13 +109,55 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={toggleAddForm}
+          testID="add-client-button"
+        >
+          <Text style={styles.addButtonText}>
+            {showAddForm ? 'Cancel' : '+ Add New Client'}
+          </Text>
+        </TouchableOpacity>
+
+        {showAddForm && (
+          <View style={styles.addForm} testID="add-client-form">
+            <TextInput
+              ref={inputRef}
+              style={styles.addInput}
+              placeholder="Client name"
+              value={newName}
+              onChangeText={setNewName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleAdd}
+              testID="new-client-name-input"
+              placeholderTextColor={colors.textMuted}
+            />
+            <Pressable
+              style={[styles.submitButton, adding && styles.submitButtonDisabled]}
+              onPress={handleAdd}
+              disabled={adding}
+              testID="submit-new-client-button"
+              accessibilityRole="button"
+              accessibilityLabel="Add client"
+            >
+              {adding ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Add</Text>
+              )}
+            </Pressable>
+          </View>
+        )}
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        ) : clients.length === 0 ? (
+        ) : clients.length === 0 && !showAddForm ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No clients available</Text>
+            <Text style={styles.emptyHint}>Tap "+ Add New Client" above to create one</Text>
           </View>
         ) : (
           <FlatList
@@ -119,6 +202,53 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: typography.fontSize.md,
   },
+  addButton: {
+    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  addButtonText: {
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  },
+  addForm: {
+    flexDirection: 'row',
+    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addInput: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+    borderWidth: 1,
+    borderColor: colors.borderInput,
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -132,6 +262,11 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: typography.fontSize.md,
     color: colors.textMuted,
+  },
+  emptyHint: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
   },
   item: {
     padding: spacing.lg,

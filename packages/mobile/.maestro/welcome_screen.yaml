@@ -1,12 +1,11 @@
 appId: com.anonymous.mobile
 ---
 - launchApp:
-    clearState: true
     clearKeychain: true
 
-# Handle "Open in Expo Go?" dialog
+# Handle dev client launcher - tap the dev server URL
 - tapOn:
-    text: "Cancel"
+    text: "http://localhost:8081"
     optional: true
 
 # Wait for app to load
@@ -17,3 +16,7 @@ appId: com.anonymous.mobile
 # Verify the login screen (welcome screen for unauthenticated users)
 - assertVisible: "Time Tracker"
 - assertVisible: "Sign in to continue"
+- assertVisible:
+    id: "forgot-password-button"
+- assertVisible:
+    id: "go-to-signup-button"
