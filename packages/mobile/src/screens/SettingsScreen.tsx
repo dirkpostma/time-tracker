@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
@@ -25,8 +25,20 @@ export function SettingsScreen() {
     updateSettings,
   } = useNotifications();
 
-  const [hoursInput, setHoursInput] = useState(settings.longTimerHours.toString());
-  const [timeInput, setTimeInput] = useState(settings.dailyReminderTime);
+  const [hoursInput, setHoursInput] = useState('');
+  const [timeInput, setTimeInput] = useState('');
+  const [hoursChanged, setHoursChanged] = useState(false);
+  const [timeChanged, setTimeChanged] = useState(false);
+
+  // Sync local state when settings load from storage
+  useEffect(() => {
+    if (!loading) {
+      setHoursInput(settings.longTimerHours.toString());
+      setTimeInput(settings.dailyReminderTime);
+      setHoursChanged(false);
+      setTimeChanged(false);
+    }
+  }, [loading, settings.longTimerHours, settings.dailyReminderTime]);
 
   const handleLongTimerToggle = async (value: boolean) => {
     if (value && !hasPermission) {
@@ -34,9 +46,10 @@ export function SettingsScreen() {
       if (!granted) {
         Alert.alert(
           'Notifications Disabled',
-          'Please enable notifications in your device settings to receive timer alerts.'
+          'Notifications are disabled. Timer alerts will not be shown. Enable notifications in Settings to receive alerts.'
         );
-        return;
+        // Still allow toggle to be enabled so user can configure the hours
+        // Notifications just won't work until permission is granted
       }
     }
     updateSettings({ longTimerEnabled: value });
@@ -48,9 +61,10 @@ export function SettingsScreen() {
       if (!granted) {
         Alert.alert(
           'Notifications Disabled',
-          'Please enable notifications in your device settings to receive reminders.'
+          'Notifications are disabled. Reminders will not be shown. Enable notifications in Settings to receive reminders.'
         );
-        return;
+        // Still allow toggle to be enabled so user can configure the time
+        // Notifications just won't work until permission is granted
       }
     }
     updateSettings({ dailyReminderEnabled: value });
@@ -58,17 +72,31 @@ export function SettingsScreen() {
 
   const handleHoursChange = (text: string) => {
     setHoursInput(text);
-    const hours = parseInt(text, 10);
+    setHoursChanged(text !== settings.longTimerHours.toString());
+  };
+
+  const handleSaveHours = () => {
+    const hours = parseInt(hoursInput, 10);
     if (!isNaN(hours) && hours > 0 && hours <= 24) {
       updateSettings({ longTimerHours: hours });
+      setHoursChanged(false);
+    } else {
+      Alert.alert('Invalid Value', 'Please enter a number between 1 and 24');
     }
   };
 
   const handleTimeChange = (text: string) => {
     setTimeInput(text);
+    setTimeChanged(text !== settings.dailyReminderTime);
+  };
+
+  const handleSaveTime = () => {
     // Validate HH:MM format
-    if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(text)) {
-      updateSettings({ dailyReminderTime: text });
+    if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeInput)) {
+      updateSettings({ dailyReminderTime: timeInput });
+      setTimeChanged(false);
+    } else {
+      Alert.alert('Invalid Format', 'Please enter time in HH:MM format (e.g., 09:00)');
     }
   };
 
@@ -116,8 +144,8 @@ export function SettingsScreen() {
         />
 
         {settings.longTimerEnabled && (
-          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg }}>
-            <DSText variant="bodySmall">Alert after (hours):</DSText>
+          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg, alignItems: 'center' }}>
+            <DSText variant="bodySmall" style={{ flexShrink: 1 }}>Alert after (hours):</DSText>
             <DSTextInput
               value={hoursInput}
               onChangeText={handleHoursChange}
@@ -125,6 +153,16 @@ export function SettingsScreen() {
               testID="long-timer-hours"
               containerStyle={{ width: 60, marginBottom: 0 }}
             />
+            {hoursChanged && (
+              <DSButton
+                title="Save"
+                variant="primary"
+                size="sm"
+                onPress={handleSaveHours}
+                testID="save-long-timer-hours"
+                fullWidth={false}
+              />
+            )}
           </DSRow>
         )}
 
@@ -139,8 +177,8 @@ export function SettingsScreen() {
         />
 
         {settings.dailyReminderEnabled && (
-          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg }}>
-            <DSText variant="bodySmall">Reminder time (HH:MM):</DSText>
+          <DSRow gap="md" paddingVertical="sm" style={{ paddingLeft: spacing.lg, alignItems: 'center' }}>
+            <DSText variant="bodySmall" style={{ flexShrink: 1 }}>Reminder time (HH:MM):</DSText>
             <DSTextInput
               value={timeInput}
               onChangeText={handleTimeChange}
@@ -148,6 +186,16 @@ export function SettingsScreen() {
               testID="daily-reminder-time"
               containerStyle={{ width: 80, marginBottom: 0 }}
             />
+            {timeChanged && (
+              <DSButton
+                title="Save"
+                variant="primary"
+                size="sm"
+                onPress={handleSaveTime}
+                testID="save-daily-reminder-time"
+                fullWidth={false}
+              />
+            )}
           </DSRow>
         )}
       </DSSection>

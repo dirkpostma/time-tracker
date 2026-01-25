@@ -22,6 +22,7 @@ import { LoadingStories } from './stories/LoadingStories';
 import { TokensStories } from './stories/TokensStories';
 import { LayoutStories } from './stories/LayoutStories';
 import { AddClientStories } from './stories/AddClientStories';
+import { SettingsRowStories } from './stories/SettingsRowStories';
 
 interface Story {
   name: string;
@@ -97,6 +98,12 @@ const STORIES: Record<string, Story[]> = {
   ],
   'Forms': [
     { name: 'Add Client', component: AddClientStories.Default },
+  ],
+  'Settings': [
+    { name: 'Broken Layout', component: SettingsRowStories.Broken },
+    { name: 'Fixed Layout', component: SettingsRowStories.Fixed },
+    { name: 'Stacked Alternative', component: SettingsRowStories.Stacked },
+    { name: 'Full Mockup', component: SettingsRowStories.FullMockup },
   ],
 };
 

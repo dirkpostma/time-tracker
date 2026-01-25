@@ -156,6 +156,79 @@ const inputRef = useRef<TextInput>(null);
 3. Look for `WARNED` steps - these are optional steps that failed (may indicate unexpected state)
 4. The screenshot at failure shows exactly what the UI looked like
 
+## DSButton fullWidth Prop in Row Layouts
+
+**Problem**: `DSButton` has `fullWidth={true}` by default. When placed in a `DSRow` with other elements, the button expands to fill all remaining horizontal space, potentially overflowing off-screen.
+
+**Solution**: Always set `fullWidth={false}` when using DSButton inside a row layout.
+
+```tsx
+// Bad - button expands to fill row, may overflow
+<DSRow gap="md" style={{ alignItems: 'center' }}>
+  <DSText>Label:</DSText>
+  <DSTextInput containerStyle={{ width: 60 }} />
+  <DSButton title="Save" size="sm" />  {/* Will expand! */}
+</DSRow>
+
+// Good - button stays compact
+<DSRow gap="md" style={{ alignItems: 'center' }}>
+  <DSText>Label:</DSText>
+  <DSTextInput containerStyle={{ width: 60 }} />
+  <DSButton title="Save" size="sm" fullWidth={false} />
+</DSRow>
+```
+
+## Using the Component Showcase for UI Development
+
+**Problem**: Iterating on UI components requires navigating through the full app flow (login, navigation, state setup).
+
+**Solution**: Use the built-in component showcase at `src/design-system/showcase/` to develop and test UI in isolation.
+
+**Steps to add a new showcase story:**
+
+1. Create a story file in `src/design-system/showcase/stories/`:
+```tsx
+// MyComponentStories.tsx
+import { StoryWrapper } from '../StoryWrapper';
+
+export const MyComponentStories = {
+  Default: () => (
+    <StoryWrapper title="Default" description="Basic usage">
+      <MyComponent />
+    </StoryWrapper>
+  ),
+  WithState: () => {
+    const [value, setValue] = useState('');
+    return (
+      <StoryWrapper title="With State" description="Interactive example">
+        <MyComponent value={value} onChange={setValue} />
+      </StoryWrapper>
+    );
+  },
+};
+```
+
+2. Register in `ShowcaseScreen.tsx`:
+```tsx
+import { MyComponentStories } from './stories/MyComponentStories';
+
+const STORIES = {
+  // ... existing stories
+  'My Component': [
+    { name: 'Default', component: MyComponentStories.Default },
+    { name: 'With State', component: MyComponentStories.WithState },
+  ],
+};
+```
+
+3. Access via "Open Component Showcase" button on login screen
+
+**Benefits:**
+- Fast iteration without login/navigation
+- Mock API calls and state
+- Test edge cases (long text, error states)
+- Visual documentation of components
+
 ## Quick Reference: Required Accessibility Props
 
 For Maestro-testable buttons with text:
