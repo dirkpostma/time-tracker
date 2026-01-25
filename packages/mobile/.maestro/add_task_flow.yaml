@@ -53,14 +53,14 @@ appId: com.anonymous.mobile
       id: "start-button"
     timeout: 10000
 
-# Tap selection button to open client picker
+# Tap selection button to open selection picker modal
 - tapOn:
     id: "selection-button"
 
-# Wait for client picker modal
+# Wait for selection picker modal
 - extendedWaitUntil:
     visible:
-      id: "client-picker-modal"
+      id: "selection-picker-modal"
     timeout: 10000
 
 # Create a new client
@@ -80,10 +80,10 @@ appId: com.anonymous.mobile
     text: "OK"
     optional: true
 
-# Wait for project picker modal
+# Wait for project step (still in same modal)
 - extendedWaitUntil:
     visible:
-      id: "project-picker-modal"
+      id: "add-project-button"
     timeout: 15000
 
 # Create a new project
@@ -103,10 +103,10 @@ appId: com.anonymous.mobile
     text: "OK"
     optional: true
 
-# Wait for task picker modal
+# Wait for task step (still in same modal)
 - extendedWaitUntil:
     visible:
-      id: "task-picker-modal"
+      id: "add-task-button"
     timeout: 15000
 
 # Verify add task button is present

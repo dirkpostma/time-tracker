@@ -11,9 +11,7 @@ import {
   colors,
   spacing,
 } from '../design-system';
-import { ClientPickerModal } from '../components/ClientPickerModal';
-import { ProjectPickerModal } from '../components/ProjectPickerModal';
-import { TaskPickerModal } from '../components/TaskPickerModal';
+import { SelectionPickerModal } from '../components/SelectionPickerModal';
 import { TimerDisplay } from '../components/TimerDisplay';
 import { SelectionCard } from '../components/SelectionCard';
 import { useTimer } from '../hooks/useTimer';
@@ -148,26 +146,10 @@ export function TimerScreen() {
         Logged in as {user?.email}
       </DSText>
 
-      <ClientPickerModal
-        visible={selectionFlow.showClientPicker}
-        onClose={selectionFlow.handleClientPickerClose}
-        onSelect={selectionFlow.handleClientSelect}
-      />
-
-      <ProjectPickerModal
-        visible={selectionFlow.showProjectPicker}
-        clientId={selectionFlow.pendingClient?.id || null}
-        onClose={selectionFlow.handleProjectPickerClose}
-        onSelect={selectionFlow.handleProjectSelect}
-        onSkip={selectionFlow.handleProjectSkip}
-      />
-
-      <TaskPickerModal
-        visible={selectionFlow.showTaskPicker}
-        projectId={selectionFlow.pendingProject?.id || null}
-        onClose={selectionFlow.handleTaskPickerClose}
-        onSelect={selectionFlow.handleTaskSelect}
-        onSkip={selectionFlow.handleTaskSkip}
+      <SelectionPickerModal
+        visible={selectionFlow.showPicker}
+        onClose={selectionFlow.handleClose}
+        onComplete={selectionFlow.handleComplete}
       />
     </DSScreen>
   );

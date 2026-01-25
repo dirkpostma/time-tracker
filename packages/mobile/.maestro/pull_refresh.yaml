@@ -55,10 +55,10 @@ appId: com.anonymous.mobile
 - tapOn:
     id: "start-button"
 
-# Handle client picker modal if it appears (first time use)
+# Handle selection picker modal if it appears (first time use)
 - extendedWaitUntil:
     visible:
-      id: "client-picker-modal"
+      id: "selection-picker-modal"
     timeout: 5000
     optional: true
 
@@ -67,7 +67,7 @@ appId: com.anonymous.mobile
     text: "Default Client"
     optional: true
 
-# Skip project picker if it appears
+# Skip project picker if it appears (in unified modal)
 - tapOn:
     id: "project-skip"
     optional: true

@@ -57,12 +57,12 @@ appId: com.anonymous.mobile
 - tapOn:
     id: "start-button"
 
-# Handle client picker modal if it appears (first time use)
+# Handle selection picker modal if it appears (first time use)
 - tapOn:
     text: "Default Client"
     optional: true
 
-# Skip project picker if it appears (auto-skips if no projects)
+# Skip project picker if it appears (in the unified modal)
 - tapOn:
     id: "project-skip"
     optional: true
