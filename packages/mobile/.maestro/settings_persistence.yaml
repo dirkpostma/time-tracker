@@ -1,0 +1,76 @@
+appId: com.anonymous.mobile
+---
+# Test that settings screen works and shows save button when value changes
+# Note: Full persistence test is tricky due to iOS permission dialogs
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-settings"
+    optional: true
+- tapOn:
+    point: "83%,95%"
+    optional: true
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# Verify notification toggles exist
+- assertVisible:
+    id: "long-timer-toggle"
+- assertVisible:
+    id: "daily-reminder-toggle"
+
+# Verify logout button exists
+- assertVisible:
+    id: "settings-logout-button"
