@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "safety-net@cc-marketplace": true,
+    "expo-app-design@expo-plugins": true
+  }
+}
