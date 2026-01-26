@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
         await resend.emails.send({
-          from: "Time Tracker <noreply@timetracker.app>",
+          from: "Time Tracker <onboarding@resend.dev>",
           to: process.env.CONTACT_EMAIL,
           subject: `Contact Form: ${name.trim()}`,
           text: `Name: ${name.trim()}\nEmail: ${email.trim()}\n\nMessage:\n${message.trim()}`,
