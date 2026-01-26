@@ -19,7 +19,7 @@ Create a marketing website for the Time Tracker mobile app, hosted on Vercel. Th
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Project setup + Playwright | Pending |
+| 1 | Project setup + Playwright | Done |
 | 2 | Marketing pages + tests | Pending |
 | 3 | Legal pages + tests | Pending |
 | 4 | Contact form + tests | Pending |
