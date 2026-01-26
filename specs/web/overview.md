@@ -72,12 +72,14 @@ npm run test:ui
 npm run test:headed
 ```
 
-## Environment Variables
+## Environment Variables (Vercel)
 
-| Variable        | Description                        | Required |
-|-----------------|------------------------------------|----------|
-| RESEND_API_KEY  | API key for sending contact emails | No       |
-| CONTACT_EMAIL   | Destination for contact form       | No       |
+| Variable        | Value                    | Description                        |
+|-----------------|--------------------------|-----------------------------------|
+| RESEND_API_KEY  | `re_xxx...`              | API key from Resend dashboard     |
+| CONTACT_EMAIL   | `dirkpostma@gmail.com`   | Destination for contact form      |
+
+Note: Using Resend's test domain (`onboarding@resend.dev`), CONTACT_EMAIL must match the Resend account email.
 
 ## Deployment
 
