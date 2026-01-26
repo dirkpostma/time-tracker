@@ -25,6 +25,7 @@ npx supabase start     # Start local DB
 | Mobile dev setup | `docs/mobile-development.md` |
 | **Mobile env vars** | `docs/mobile-development.md#environment-variables` |
 | **Maestro testing tips** | `docs/maestro-testing-learnings.md` |
+| **Marketing website plan** | `plans/marketing-website/README.md` |
 
 ## Development Rules
 
