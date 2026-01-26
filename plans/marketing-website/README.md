@@ -23,8 +23,9 @@ Create a marketing website for the Time Tracker mobile app, hosted on Vercel. Th
 | 2 | Marketing pages | Pending |
 | 3 | Legal pages | Pending |
 | 4 | Contact form | Pending |
-| 5 | Deployment | Pending |
-| 6 | User dashboard (future) | Not started |
+| 5 | E2E testing (Playwright) | Pending |
+| 6 | Deployment | Pending |
+| 7 | User dashboard | Future |
 
 ## Phase Details
 
@@ -156,7 +157,74 @@ app/
 - [ ] Add rate limiting (optional)
 - [ ] Add success/error states
 
-### Phase 5: Deployment
+### Phase 5: E2E Testing (Playwright)
+
+Set up Playwright for end-to-end testing, similar to Maestro for mobile:
+
+```
+packages/web/
+├── e2e/
+│   ├── landing.spec.ts      # Landing page tests
+│   ├── legal.spec.ts        # Privacy & terms pages
+│   ├── contact.spec.ts      # Contact form tests
+│   └── navigation.spec.ts   # Links and routing
+├── playwright.config.ts
+```
+
+**Test Coverage:**
+
+| Area | Tests |
+|------|-------|
+| Landing page | Hero renders, App Store link works, all sections visible |
+| Features | Each feature card displays correctly |
+| Screenshots | Gallery loads, images visible |
+| Navigation | All internal links work, footer links work |
+| Privacy page | Content loads, last updated shows |
+| Terms page | Content loads, last updated shows |
+| Contact form | Validation works, successful submission, error states |
+| Responsive | Mobile, tablet, desktop viewports |
+| Accessibility | Basic a11y checks (headings, alt text, focus) |
+
+**Tasks:**
+- [ ] Install Playwright and configure
+- [ ] Create landing page tests
+- [ ] Create legal pages tests
+- [ ] Create contact form tests (mock Resend API)
+- [ ] Create navigation tests
+- [ ] Add responsive viewport tests
+- [ ] Add basic accessibility tests
+- [ ] Add npm scripts for running tests
+- [ ] Configure CI to run tests on PR
+
+**NPM Scripts:**
+```json
+{
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
+  }
+}
+```
+
+**Playwright Config Highlights:**
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  testDir: './e2e',
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['iPhone 14'] } },
+  ],
+});
+```
+
+### Phase 6: Deployment
 
 Deploy to Vercel from monorepo:
 
@@ -184,40 +252,9 @@ Deploy to Vercel from monorepo:
 - [ ] Test production deployment
 - [ ] Update App Store privacy policy URL
 
-### Phase 6: User Dashboard (Future)
+### Phase 7: User Dashboard (Future)
 
-Add authenticated section for users to view/export their data:
-
-```
-app/
-├── dashboard/
-│   ├── page.tsx        # Overview
-│   ├── reports/
-│   │   └── page.tsx    # Export reports
-│   └── layout.tsx      # Auth-protected layout
-└── api/
-    └── reports/
-        └── route.ts    # Generate CSV/PDF
-```
-
-**Features:**
-- Login with same Supabase account as mobile
-- View time entry history
-- Export reports (CSV, PDF)
-- Account settings
-
-**Prerequisites:**
-- Supabase client configured for web
-- Auth middleware for protected routes
-- Report generation logic
-
-**Tasks:** (not started)
-- [ ] Add Supabase client
-- [ ] Create auth middleware
-- [ ] Build login page
-- [ ] Build dashboard overview
-- [ ] Build reports page with export
-- [ ] Add account settings
+Authenticated dashboard for viewing/exporting time entries. To be planned separately.
 
 ## File Structure (Final)
 
@@ -244,6 +281,11 @@ packages/web/
 │   ├── Features.tsx
 │   ├── Screenshots.tsx
 │   └── Footer.tsx
+├── e2e/
+│   ├── landing.spec.ts
+│   ├── legal.spec.ts
+│   ├── contact.spec.ts
+│   └── navigation.spec.ts
 ├── lib/
 │   └── resend.ts
 ├── content/
@@ -255,6 +297,7 @@ packages/web/
 ├── package.json
 ├── next.config.ts
 ├── tailwind.config.ts
+├── playwright.config.ts
 └── tsconfig.json
 ```
 
@@ -269,6 +312,7 @@ packages/web/
     "resend": "^4.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "tailwindcss": "^4.0.0",
@@ -303,10 +347,17 @@ packages/web/
 - [ ] Honeypot blocks spam submissions
 
 ### Phase 5
+- [ ] Playwright installed and configured
+- [ ] All tests pass locally
+- [ ] Tests run in headed mode for debugging
+- [ ] Mobile viewport tests pass
+
+### Phase 6
 - [ ] Production site loads
 - [ ] Custom domain works with SSL
 - [ ] Contact form works in production
 - [ ] All pages accessible
+- [ ] Playwright tests pass against production URL
 
 ## Notes
 
