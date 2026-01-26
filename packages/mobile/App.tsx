@@ -1,7 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { OfflineProvider } from './src/contexts/OfflineContext';
 import { ThemeProvider, useTheme } from './src/design-system/themes/ThemeContext';
@@ -83,6 +87,13 @@ function AppContent() {
   const { user, loading } = useAuth();
   const { theme } = useTheme();
   const [showcase, setShowcase] = useState<ShowcaseType>('none');
+
+  useEffect(() => {
+    if (!loading) {
+      // Hide splash screen once auth state is determined
+      SplashScreen.hideAsync();
+    }
+  }, [loading]);
 
   if (loading) {
     return (

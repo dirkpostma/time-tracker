@@ -1,0 +1,71 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for the clock circle -->
+    <linearGradient id="clockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#06B6D4"/>
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Transparent background - Android adaptive icon uses separate background layer -->
+
+  <!-- Outer glow ring -->
+  <circle cx="512" cy="512" r="280" fill="none" stroke="url(#clockGradient)" stroke-width="6" opacity="0.3" filter="url(#glow)"/>
+
+  <!-- Main clock circle -->
+  <circle cx="512" cy="512" r="240" fill="none" stroke="url(#clockGradient)" stroke-width="20" filter="url(#glow)"/>
+
+  <!-- Clock tick marks -->
+  <g stroke="#7C3AED" stroke-width="7" stroke-linecap="round">
+    <!-- 12 o'clock -->
+    <line x1="512" y1="302" x2="512" y2="342" opacity="0.9"/>
+    <!-- 3 o'clock -->
+    <line x1="722" y1="512" x2="682" y2="512" opacity="0.9"/>
+    <!-- 6 o'clock -->
+    <line x1="512" y1="722" x2="512" y2="682" opacity="0.9"/>
+    <!-- 9 o'clock -->
+    <line x1="302" y1="512" x2="342" y2="512" opacity="0.9"/>
+  </g>
+
+  <!-- Small tick marks -->
+  <g stroke="#06B6D4" stroke-width="4" stroke-linecap="round" opacity="0.6">
+    <!-- 1 o'clock -->
+    <line x1="616" y1="332" x2="599" y2="358"/>
+    <!-- 2 o'clock -->
+    <line x1="692" y1="408" x2="666" y2="422"/>
+    <!-- 4 o'clock -->
+    <line x1="692" y1="616" x2="666" y2="602"/>
+    <!-- 5 o'clock -->
+    <line x1="616" y1="692" x2="599" y2="666"/>
+    <!-- 7 o'clock -->
+    <line x1="408" y1="692" x2="425" y2="666"/>
+    <!-- 8 o'clock -->
+    <line x1="332" y1="616" x2="358" y2="602"/>
+    <!-- 10 o'clock -->
+    <line x1="332" y1="408" x2="358" y2="422"/>
+    <!-- 11 o'clock -->
+    <line x1="408" y1="332" x2="425" y2="358"/>
+  </g>
+
+  <!-- Hour hand -->
+  <line x1="512" y1="512" x2="512" y2="370" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Minute hand -->
+  <line x1="512" y1="512" x2="650" y2="420" stroke="url(#clockGradient)" stroke-width="11" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Center dot -->
+  <circle cx="512" cy="512" r="20" fill="url(#clockGradient)" filter="url(#glow)"/>
+  <circle cx="512" cy="512" r="10" fill="#FFFFFF"/>
+
+  <!-- Play triangle (indicating timer/tracking) -->
+  <polygon points="560,512 596,536 596,488" fill="#06B6D4" opacity="0.8" filter="url(#glow)"/>
+</svg>

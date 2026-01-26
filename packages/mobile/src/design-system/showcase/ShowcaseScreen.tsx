@@ -23,6 +23,7 @@ import { TokensStories } from './stories/TokensStories';
 import { LayoutStories } from './stories/LayoutStories';
 import { AddClientStories } from './stories/AddClientStories';
 import { SettingsRowStories } from './stories/SettingsRowStories';
+import { IconStories } from './stories/IconStories';
 
 interface Story {
   name: string;
@@ -104,6 +105,12 @@ const STORIES: Record<string, Story[]> = {
     { name: 'Fixed Layout', component: SettingsRowStories.Fixed },
     { name: 'Stacked Alternative', component: SettingsRowStories.Stacked },
     { name: 'Full Mockup', component: SettingsRowStories.FullMockup },
+  ],
+  'App Icon': [
+    { name: 'App Icon', component: IconStories.AppIcon },
+    { name: 'Splash Icon', component: IconStories.SplashIcon },
+    { name: 'Adaptive Icon', component: IconStories.AdaptiveIcon },
+    { name: 'All Sizes', component: IconStories.AllSizes },
   ],
 };
 
