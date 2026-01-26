@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@theme {
+  /* Midnight Aurora Color Scheme */
+  --color-primary: #7C3AED;
+  --color-primary-light: #A78BFA;
+  --color-accent: #06B6D4;
+  --color-dark-bg: #0F0F1A;
+  --color-dark-text: #E5E7EB;
+  --color-light-bg: #FFFFFF;
+  --color-light-text: #1F2937;
+  --color-muted: #6B7280;
+
+  /* Spacing */
+  --spacing-section-y: 4rem;
+  --spacing-section-y-md: 6rem;
+}
