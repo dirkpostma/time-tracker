@@ -19,19 +19,18 @@ Create a marketing website for the Time Tracker mobile app, hosted on Vercel. Th
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Project setup | Pending |
-| 2 | Marketing pages | Pending |
-| 3 | Legal pages | Pending |
-| 4 | Contact form | Pending |
-| 5 | E2E testing (Playwright) | Pending |
-| 6 | Deployment | Pending |
-| 7 | User dashboard | Future |
+| 1 | Project setup + Playwright | Pending |
+| 2 | Marketing pages + tests | Pending |
+| 3 | Legal pages + tests | Pending |
+| 4 | Contact form + tests | Pending |
+| 5 | Deployment | Pending |
+| 6 | User dashboard | Future |
 
 ## Phase Details
 
-### Phase 1: Project Setup
+### Phase 1: Project Setup + Playwright
 
-Create `packages/web` with Next.js 15 and configure for monorepo:
+Create `packages/web` with Next.js 15, Tailwind, and Playwright configured from the start:
 
 ```
 packages/web/
@@ -40,9 +39,12 @@ packages/web/
 │   ├── page.tsx
 │   └── globals.css
 ├── components/
+├── e2e/
+│   └── smoke.spec.ts         # Basic smoke test
 ├── package.json
 ├── next.config.ts
 ├── tailwind.config.ts
+├── playwright.config.ts
 └── tsconfig.json
 ```
 
@@ -51,11 +53,42 @@ packages/web/
 - [ ] Configure Tailwind CSS
 - [ ] Set up TypeScript with project references
 - [ ] Add to workspace in root `package.json`
+- [ ] Install and configure Playwright
+- [ ] Create smoke test (page loads, title correct)
 - [ ] Verify `npm run dev` works from packages/web
+- [ ] Verify `npm test` runs Playwright tests
 
-### Phase 2: Marketing Pages
+**Playwright Config:**
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  testDir: './e2e',
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['iPhone 14'] } },
+  ],
+});
+```
 
-Build the landing page with sections:
+**NPM Scripts:**
+```json
+{
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
+  }
+}
+```
+
+### Phase 2: Marketing Pages + Tests
+
+Build the landing page with sections and Playwright tests:
 
 **Hero Section**
 - App name and tagline
@@ -89,6 +122,16 @@ Build the landing page with sections:
 - [ ] Build Footer with legal links
 - [ ] Add responsive design for mobile/tablet/desktop
 - [ ] Optimize images (next/image)
+- [ ] Write `e2e/landing.spec.ts` tests
+- [ ] Write `e2e/navigation.spec.ts` tests
+
+**Tests (e2e/landing.spec.ts):**
+- Hero renders with title and tagline
+- App Store badge links to correct URL
+- All feature cards display
+- Screenshots gallery loads images
+- Footer links present
+- Responsive: mobile/tablet/desktop viewports
 
 ### Phase 3: Legal Pages
 
@@ -123,6 +166,13 @@ app/
 - [ ] Create shared legal page layout
 - [ ] Add last updated date
 - [ ] Link from app settings and App Store listing
+- [ ] Write `e2e/legal.spec.ts` tests
+
+**Tests (e2e/legal.spec.ts):**
+- /privacy loads with content
+- /terms loads with content
+- Last updated date displays
+- Navigation back to home works
 
 ### Phase 4: Contact Form
 
@@ -156,75 +206,15 @@ app/
 - [ ] Implement API route with Resend
 - [ ] Add rate limiting (optional)
 - [ ] Add success/error states
+- [ ] Write `e2e/contact.spec.ts` tests
 
-### Phase 5: E2E Testing (Playwright)
+**Tests (e2e/contact.spec.ts):**
+- Form renders with all fields
+- Client-side validation shows errors
+- Successful submission shows success message
+- Honeypot field hidden but functional
 
-Set up Playwright for end-to-end testing, similar to Maestro for mobile:
-
-```
-packages/web/
-├── e2e/
-│   ├── landing.spec.ts      # Landing page tests
-│   ├── legal.spec.ts        # Privacy & terms pages
-│   ├── contact.spec.ts      # Contact form tests
-│   └── navigation.spec.ts   # Links and routing
-├── playwright.config.ts
-```
-
-**Test Coverage:**
-
-| Area | Tests |
-|------|-------|
-| Landing page | Hero renders, App Store link works, all sections visible |
-| Features | Each feature card displays correctly |
-| Screenshots | Gallery loads, images visible |
-| Navigation | All internal links work, footer links work |
-| Privacy page | Content loads, last updated shows |
-| Terms page | Content loads, last updated shows |
-| Contact form | Validation works, successful submission, error states |
-| Responsive | Mobile, tablet, desktop viewports |
-| Accessibility | Basic a11y checks (headings, alt text, focus) |
-
-**Tasks:**
-- [ ] Install Playwright and configure
-- [ ] Create landing page tests
-- [ ] Create legal pages tests
-- [ ] Create contact form tests (mock Resend API)
-- [ ] Create navigation tests
-- [ ] Add responsive viewport tests
-- [ ] Add basic accessibility tests
-- [ ] Add npm scripts for running tests
-- [ ] Configure CI to run tests on PR
-
-**NPM Scripts:**
-```json
-{
-  "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed"
-  }
-}
-```
-
-**Playwright Config Highlights:**
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  testDir: './e2e',
-  webServer: {
-    command: 'npm run dev',
-    port: 3000,
-    reuseExistingServer: !process.env.CI,
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 14'] } },
-  ],
-});
-```
-
-### Phase 6: Deployment
+### Phase 5: Deployment
 
 Deploy to Vercel from monorepo:
 
@@ -252,7 +242,7 @@ Deploy to Vercel from monorepo:
 - [ ] Test production deployment
 - [ ] Update App Store privacy policy URL
 
-### Phase 7: User Dashboard (Future)
+### Phase 6: User Dashboard (Future)
 
 Authenticated dashboard for viewing/exporting time entries. To be planned separately.
 
@@ -282,10 +272,11 @@ packages/web/
 │   ├── Screenshots.tsx
 │   └── Footer.tsx
 ├── e2e/
-│   ├── landing.spec.ts
-│   ├── legal.spec.ts
-│   ├── contact.spec.ts
-│   └── navigation.spec.ts
+│   ├── smoke.spec.ts         # Phase 1
+│   ├── landing.spec.ts       # Phase 2
+│   ├── navigation.spec.ts    # Phase 2
+│   ├── legal.spec.ts         # Phase 3
+│   └── contact.spec.ts       # Phase 4
 ├── lib/
 │   └── resend.ts
 ├── content/
@@ -327,37 +318,37 @@ packages/web/
 - [ ] `cd packages/web && npm run dev` starts dev server
 - [ ] Page loads at http://localhost:3000
 - [ ] Tailwind styles apply correctly
+- [ ] `npm test` runs Playwright smoke test
+- [ ] Smoke test passes
 
 ### Phase 2
 - [ ] Landing page renders all sections
 - [ ] App Store badge links correctly
 - [ ] Responsive on mobile/tablet/desktop
 - [ ] Images optimized and loading
+- [ ] `e2e/landing.spec.ts` tests pass
+- [ ] `e2e/navigation.spec.ts` tests pass
 
 ### Phase 3
 - [ ] /privacy loads privacy policy
 - [ ] /terms loads terms of service
 - [ ] Footer links work
 - [ ] Last updated date shows
+- [ ] `e2e/legal.spec.ts` tests pass
 
 ### Phase 4
 - [ ] Contact form submits successfully
 - [ ] Email received at destination
 - [ ] Validation errors display
 - [ ] Honeypot blocks spam submissions
+- [ ] `e2e/contact.spec.ts` tests pass
 
 ### Phase 5
-- [ ] Playwright installed and configured
-- [ ] All tests pass locally
-- [ ] Tests run in headed mode for debugging
-- [ ] Mobile viewport tests pass
-
-### Phase 6
 - [ ] Production site loads
 - [ ] Custom domain works with SSL
 - [ ] Contact form works in production
 - [ ] All pages accessible
-- [ ] Playwright tests pass against production URL
+- [ ] All Playwright tests pass against production URL
 
 ## Notes
 
