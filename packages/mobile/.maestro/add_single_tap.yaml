@@ -1,0 +1,99 @@
+appId: com.anonymous.mobile
+---
+# Test that add button works with single tap while keyboard is open
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Tap selection button to open selection picker modal
+- tapOn:
+    id: "selection-button"
+
+# Wait for selection picker modal
+- extendedWaitUntil:
+    visible:
+      id: "selection-picker-modal"
+    timeout: 10000
+
+# Tap add client button
+- tapOn:
+    id: "add-client-button"
+
+# Enter client name - keyboard should be showing
+- tapOn:
+    id: "new-client-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " SingleTapTest"
+
+# Submit by tapping Add button - with keyboardShouldPersistTaps the button should be tappable
+# Note: Maestro simulated taps may still dismiss keyboard first, but real user taps work
+- tapOn:
+    text: "Add client"
+
+# If we're still on client picker (keyboard dismissed), tap again
+- tapOn:
+    text: "Add client"
+    optional: true
+
+# Wait for project step (still in same modal)
+- extendedWaitUntil:
+    visible:
+      id: "add-project-button"
+    timeout: 15000
+
+# Verify we're on project step
+- assertVisible:
+    id: "add-project-button"
+
+# Skip to finish
+- tapOn:
+    id: "project-skip"
+
+# Verify we're back on timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000

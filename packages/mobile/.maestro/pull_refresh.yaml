@@ -1,0 +1,124 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Verify timer screen loaded
+- assertVisible:
+    id: "timer-display"
+
+# Start a timer first
+- tapOn:
+    id: "start-button"
+
+# Handle selection picker modal if it appears (first time use)
+- extendedWaitUntil:
+    visible:
+      id: "selection-picker-modal"
+    timeout: 5000
+    optional: true
+
+# Select a client if modal appeared
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker if it appears (in unified modal)
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify timer is running
+- assertVisible:
+    id: "stop-button"
+- assertVisible:
+    id: "client-name"
+
+# Pull down to refresh
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Wait a moment for refresh to complete
+- swipe:
+    direction: DOWN
+    duration: 1500
+
+# Verify timer is still running after refresh
+- assertVisible:
+    id: "stop-button"
+- assertVisible:
+    id: "timer-display"
+- assertVisible:
+    id: "client-name"
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button to reappear
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Pull to refresh on stopped state
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Verify still in stopped state after refresh
+- assertVisible:
+    id: "start-button"
+- assertVisible:
+    id: "timer-display"

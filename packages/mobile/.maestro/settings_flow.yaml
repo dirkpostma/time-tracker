@@ -1,0 +1,116 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen with tab bar
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Dismiss debug banner if present
+- tapOn:
+    text: "×"
+    optional: true
+
+# Wait a moment for banner to dismiss
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Verify tab bar has settings tab
+- assertVisible:
+    id: "tab-bar"
+
+# Navigate to Settings tab - try multiple tap methods
+# First try testID
+- tapOn:
+    id: "tab-settings"
+    optional: true
+
+# Then try percentage coordinates (right side, near bottom)
+- tapOn:
+    point: "83%,95%"
+    optional: true
+
+# Then try tapping "Settings" text
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# Verify settings elements are visible
+- assertVisible:
+    id: "notifications-section"
+
+# Verify long timer toggle exists
+- assertVisible:
+    id: "long-timer-toggle"
+
+# Verify daily reminder toggle exists
+- assertVisible:
+    id: "daily-reminder-toggle"
+
+# Navigate back to Timer tab
+- tapOn:
+    id: "tab-timer"
+    optional: true
+- tapOn:
+    point: "17%,95%"
+    optional: true
+- tapOn:
+    text: "Timer"
+    optional: true
+
+# Verify timer screen is shown
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
+
+- assertVisible:
+    id: "start-button"

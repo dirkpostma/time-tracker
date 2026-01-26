@@ -1,0 +1,201 @@
+appId: com.anonymous.mobile
+---
+# Theme Timer Flow Test - Tests timer functionality works correctly across all themes
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Dismiss debug banner
+- tapOn:
+    text: "×"
+    optional: true
+
+# ========== Test 1: Timer with Soft Blossom theme ==========
+
+# Switch to Soft Blossom theme
+- tapOn:
+    id: "tab-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "theme-picker"
+    timeout: 10000
+
+- tapOn:
+    id: "theme-option-softBlossom"
+
+# Go back to Timer
+- tapOn:
+    id: "tab-timer"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Start timer
+- tapOn:
+    id: "start-button"
+
+# Wait for timer to run
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 5000
+
+# Verify timer is running
+- assertVisible:
+    id: "timer-display"
+
+- takeScreenshot: "timer_running_soft_blossom"
+
+# Stop timer
+- tapOn:
+    id: "stop-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000
+
+# ========== Test 2: Timer with Brutalist theme ==========
+
+- tapOn:
+    id: "tab-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "theme-picker"
+    timeout: 10000
+
+- tapOn:
+    id: "theme-option-brutalist"
+
+- tapOn:
+    id: "tab-timer"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Start timer
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 5000
+
+- takeScreenshot: "timer_running_brutalist"
+
+# Stop timer
+- tapOn:
+    id: "stop-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000
+
+# ========== Test 3: Timer with Ocean Depth theme ==========
+
+- tapOn:
+    id: "tab-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "theme-picker"
+    timeout: 10000
+
+- tapOn:
+    id: "theme-option-oceanDepth"
+
+- tapOn:
+    id: "tab-timer"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Start timer
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 5000
+
+- takeScreenshot: "timer_running_ocean_depth"
+
+# Stop timer
+- tapOn:
+    id: "stop-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000
+
+# ========== Restore default theme ==========
+
+- tapOn:
+    id: "tab-settings"
+
+- extendedWaitUntil:
+    visible:
+      id: "theme-picker"
+    timeout: 10000
+
+- tapOn:
+    id: "theme-option-midnightAurora"
+
+# Verify settings still visible
+- assertVisible:
+    id: "notifications-section"

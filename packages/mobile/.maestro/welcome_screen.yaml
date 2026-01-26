@@ -1,0 +1,22 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Verify the login screen (welcome screen for unauthenticated users)
+- assertVisible: "Time Tracker"
+- assertVisible: "Sign in to continue"
+- assertVisible:
+    id: "forgot-password-button"
+- assertVisible:
+    id: "go-to-signup-button"

@@ -1,0 +1,149 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Login
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Tap selection button to open selection picker modal
+- tapOn:
+    id: "selection-button"
+
+# Wait for selection picker modal
+- extendedWaitUntil:
+    visible:
+      id: "selection-picker-modal"
+    timeout: 10000
+
+# Create a new client
+- tapOn:
+    id: "add-client-button"
+- tapOn:
+    id: "new-client-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " TaskFlowClient"
+- hideKeyboard
+- tapOn:
+    text: "Add client"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for project step (still in same modal)
+- extendedWaitUntil:
+    visible:
+      id: "add-project-button"
+    timeout: 15000
+
+# Create a new project
+- tapOn:
+    id: "add-project-button"
+- tapOn:
+    id: "new-project-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " TaskFlowProject"
+- hideKeyboard
+- tapOn:
+    text: "Add project"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for task step (still in same modal)
+- extendedWaitUntil:
+    visible:
+      id: "add-task-button"
+    timeout: 15000
+
+# Verify add task button is present
+- assertVisible:
+    id: "add-task-button"
+
+# Tap add task button
+- tapOn:
+    id: "add-task-button"
+
+# Verify add form appears
+- extendedWaitUntil:
+    visible:
+      id: "add-task-form"
+    timeout: 5000
+- assertVisible:
+    id: "new-task-name-input"
+- assertVisible:
+    id: "submit-new-task-button"
+
+# Enter unique task name
+- tapOn:
+    id: "new-task-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " AddTaskTest"
+- hideKeyboard
+- tapOn:
+    text: "Add task"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Timer screen should be back (task was selected)
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 15000

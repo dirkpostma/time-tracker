@@ -1,0 +1,162 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Tap selection button to open selection picker modal
+- tapOn:
+    id: "selection-button"
+
+# Wait for selection picker modal
+- extendedWaitUntil:
+    visible:
+      id: "selection-picker-modal"
+    timeout: 10000
+
+# Create a new client
+- tapOn:
+    id: "add-client-button"
+- tapOn:
+    id: "new-client-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " ContextClient"
+- hideKeyboard
+- tapOn:
+    text: "Add client"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for project step (still in same modal)
+- extendedWaitUntil:
+    visible:
+      id: "add-project-button"
+    timeout: 15000
+
+# Create a project
+- tapOn:
+    id: "add-project-button"
+- tapOn:
+    id: "new-project-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " ContextProject"
+- hideKeyboard
+- tapOn:
+    text: "Add project"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for task step (still in same modal)
+- extendedWaitUntil:
+    visible:
+      id: "add-task-button"
+    timeout: 15000
+
+# Create a task
+- tapOn:
+    id: "add-task-button"
+- tapOn:
+    id: "new-task-name-input"
+- inputRandomText:
+    length: 6
+- inputText: " ContextTask"
+- hideKeyboard
+- tapOn:
+    text: "Add task"
+
+# Dismiss any error alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for timer screen - timer should start
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
+
+# Timer may or may not auto-start
+- tapOn:
+    id: "start-button"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify client, project, and task are displayed
+- assertVisible:
+    id: "client-name"
+- assertVisible:
+    id: "project-name"
+- assertVisible:
+    id: "task-name"
+
+# Verify the names contain our test suffixes
+- assertVisible:
+    text: ".*ContextClient"
+- assertVisible:
+    text: ".*ContextProject"
+- assertVisible:
+    text: ".*ContextTask"
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000

@@ -1,0 +1,113 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Verify description input is visible
+- assertVisible:
+    id: "description-input"
+
+# Start the timer
+- tapOn:
+    id: "start-button"
+
+# Handle client picker modal if it appears
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Type a description while timer is running
+- tapOn:
+    id: "description-input"
+- inputText: "Working on mobile features"
+
+# Wait for debounce to save
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Verify description is still visible
+- assertVisible:
+    text: "Working on mobile features"
+
+# Edit the description
+- tapOn:
+    id: "description-input"
+- eraseText: 25
+- inputText: "Testing description"
+
+# Wait for save
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button to reappear
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Verify we're back to stopped state
+- assertVisible:
+    id: "start-button"
+- assertVisible:
+    id: "description-input"

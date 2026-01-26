@@ -1,0 +1,148 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen with tab bar
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Dismiss debug banner if present
+- tapOn:
+    text: "×"
+    optional: true
+
+# Wait a moment for banner to dismiss
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Verify tab bar is visible
+- assertVisible:
+    id: "tab-bar"
+
+# Create a time entry first
+- tapOn:
+    id: "start-button"
+
+# Handle client picker modal if it appears
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Wait a moment
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to History tab - try multiple tap methods
+- tapOn:
+    id: "tab-history"
+    optional: true
+- tapOn:
+    point: "50%,95%"
+    optional: true
+- tapOn:
+    text: "History"
+    optional: true
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+# Verify history list is visible
+- assertVisible:
+    id: "history-list"
+
+# Pull to refresh on history
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Wait for refresh
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Navigate back to Timer tab
+- tapOn:
+    id: "tab-timer"
+    optional: true
+- tapOn:
+    point: "17%,95%"
+    optional: true
+- tapOn:
+    text: "Timer"
+    optional: true
+
+# Verify timer screen is shown
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
+
+- assertVisible:
+    id: "start-button"

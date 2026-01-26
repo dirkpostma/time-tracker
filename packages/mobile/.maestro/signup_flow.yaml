@@ -1,0 +1,78 @@
+appId: com.anonymous.mobile
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# If already logged in, logout first
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+
+# Verify signup button is visible
+- assertVisible:
+    id: "go-to-signup-button"
+
+# Navigate to signup screen
+- tapOn:
+    id: "go-to-signup-button"
+
+# Verify signup screen elements
+- extendedWaitUntil:
+    visible: "Create Account"
+    timeout: 5000
+- assertVisible: "Sign up to start tracking time"
+- assertVisible:
+    id: "signup-email-input"
+- assertVisible:
+    id: "signup-password-input"
+- assertVisible:
+    id: "signup-confirm-password-input"
+- assertVisible:
+    id: "signup-button"
+- assertVisible:
+    id: "back-to-login-from-signup"
+
+# Test password mismatch validation
+- tapOn:
+    id: "signup-email-input"
+- inputText: "newuser@example.com"
+
+- tapOn:
+    id: "signup-password-input"
+- inputText: "Password123"
+
+- tapOn:
+    id: "signup-confirm-password-input"
+- inputText: "WrongPassword"
+
+- tapOn:
+    id: "signup-button"
+
+# Expect error alert about password mismatch
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Navigate back to login
+- tapOn:
+    id: "back-to-login-from-signup"
+
+# Verify login screen is visible again
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 5000
