@@ -34,6 +34,7 @@ npx supabase start     # Start local DB
 - **Write failing test first**, then implement
 - **Ask before committing** - never commit automatically
 - Use `/start-feature <name>` for new features
+- **Never make up facts** - no fake stats, testimonials, user counts, or social proof on marketing/public pages. Stick to verifiable truths. (Mock data in demo components and showcases is fine.)
 
 ## Test User
 

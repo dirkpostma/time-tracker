@@ -6,34 +6,39 @@ const features = [
     description:
       "Start and stop time entries with a single tap. No complicated setup required.",
     icon: "play",
+    color: "from-primary to-primary-light",
   },
   {
     title: "Clients & Projects",
     description:
       "Organize your work by client and project. Keep everything structured and easy to find.",
     icon: "folder",
+    color: "from-accent to-accent-light",
   },
   {
     title: "History & Reports",
     description:
       "View your time entries by day, week, or month. See where your time goes.",
     icon: "chart",
+    color: "from-primary to-accent",
   },
   {
     title: "Offline Support",
     description:
       "Track time even without internet. Everything syncs when you're back online.",
     icon: "cloud",
+    color: "from-accent-light to-accent",
   },
   {
     title: "Beautiful Themes",
     description:
       "Choose from multiple stunning themes to match your style and mood.",
     icon: "palette",
+    color: "from-primary-light to-primary",
   },
 ];
 
-function FeatureIcon({ icon }: { icon: string }) {
+function FeatureIcon({ icon, colorClass }: { icon: string; colorClass: string }) {
   const icons: Record<string, React.ReactNode> = {
     play: (
       <svg
@@ -119,7 +124,7 @@ function FeatureIcon({ icon }: { icon: string }) {
   };
 
   return (
-    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${colorClass} text-white shadow-lg`}>
       {icons[icon]}
     </div>
   );
@@ -128,26 +133,32 @@ function FeatureIcon({ icon }: { icon: string }) {
 export function Features() {
   return (
     <Section variant="light" id="features" data-testid="features-section">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-light-text md:text-4xl">
-          Everything you need to track your time
+      <div className="text-center max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold tracking-tight text-light-text md:text-4xl lg:text-5xl">
+          Everything you need to
+          <span className="gradient-text"> track your time</span>
         </h2>
         <p className="mt-4 text-lg text-muted">
-          Simple, powerful features designed for freelancers
+          Simple, powerful features designed for freelancers who value their time
         </p>
       </div>
-      <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature) => (
+
+      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {features.map((feature, index) => (
           <div
             key={feature.title}
-            className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            className={`feature-card gradient-border p-6 ${
+              index === features.length - 1 && features.length % 3 === 2
+                ? "sm:col-span-2 lg:col-span-1"
+                : ""
+            }`}
             data-testid="feature-card"
           >
-            <FeatureIcon icon={feature.icon} />
-            <h3 className="mt-4 text-lg font-semibold text-light-text">
+            <FeatureIcon icon={feature.icon} colorClass={feature.color} />
+            <h3 className="mt-5 text-xl font-semibold text-light-text">
               {feature.title}
             </h3>
-            <p className="mt-2 text-muted">{feature.description}</p>
+            <p className="mt-3 text-muted leading-relaxed">{feature.description}</p>
           </div>
         ))}
       </div>

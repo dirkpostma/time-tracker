@@ -4,45 +4,89 @@ import { Section } from "./ui/Section";
 
 export function Hero() {
   return (
-    <Section variant="light" id="hero">
-      <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between lg:gap-12">
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-lg">
+    <Section variant="light" id="hero" className="pt-24 md:pt-32 overflow-hidden">
+      <div className="flex flex-col items-center gap-12 lg:flex-row lg:justify-between lg:gap-16">
+        {/* Content */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-xl">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            <span className="text-sm font-medium text-primary">Now on iOS</span>
+          </div>
+
           <h1
-            className="text-4xl font-bold tracking-tight text-light-text md:text-5xl lg:text-6xl"
+            className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl"
             data-testid="hero-title"
           >
-            Time Tracker
+            <span className="text-light-text">Track time.</span>
+            <br />
+            <span className="gradient-text">Get paid.</span>
           </h1>
+
           <p
-            className="mt-4 text-lg text-muted md:text-xl"
+            className="mt-6 text-lg text-muted md:text-xl max-w-md"
             data-testid="hero-tagline"
           >
-            Simple time tracking for freelancers
+            The beautifully simple time tracker for freelancers. One tap to start, one tap to stop.
           </p>
-          <Link
-            href="#"
-            className="mt-8 inline-block transition-opacity hover:opacity-80"
-            data-testid="app-store-badge"
-          >
+
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+            <Link
+              href="#"
+              className="inline-block transition-all hover:scale-105 hover:shadow-lg"
+              data-testid="app-store-badge"
+            >
+              <Image
+                src="/app-store-badge.svg"
+                alt="Download on the App Store"
+                width={180}
+                height={60}
+                priority
+              />
+            </Link>
+            <Link
+              href="#features"
+              className="inline-flex items-center gap-2 text-muted hover:text-light-text transition-colors group"
+            >
+              <span>See features</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
+
+        </div>
+
+        {/* Hero Image */}
+        <div className="relative w-full max-w-sm lg:max-w-md">
+          {/* Background glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl rounded-full scale-150 opacity-50" />
+
+          {/* Phone mockup */}
+          <div className="relative animate-float">
             <Image
-              src="/app-store-badge.svg"
-              alt="Download on the App Store"
-              width={180}
-              height={60}
+              src="/screenshots/timer-midnight-aurora.png"
+              alt="Time Tracker app screenshot"
+              width={350}
+              height={758}
+              className="mx-auto screenshot-shadow rounded-[2.5rem]"
+              data-testid="hero-screenshot"
               priority
             />
-          </Link>
-        </div>
-        <div className="relative w-full max-w-xs lg:max-w-sm">
-          <Image
-            src="/screenshots/timer-midnight-aurora.png"
-            alt="Time Tracker app screenshot"
-            width={300}
-            height={650}
-            className="mx-auto drop-shadow-2xl"
-            data-testid="hero-screenshot"
-            priority
-          />
+          </div>
+
+          {/* Floating accent elements */}
+          <div className="absolute -top-4 -right-4 w-20 h-20 bg-accent/10 rounded-2xl rotate-12 animate-float-delayed" />
+          <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-primary/10 rounded-full animate-float" />
         </div>
       </div>
     </Section>

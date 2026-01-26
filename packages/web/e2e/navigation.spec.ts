@@ -31,7 +31,7 @@ test.describe("Navigation Links", () => {
       const link = page.getByTestId("footer-terms-link");
 
       await expect(link).toHaveAttribute("href", "/terms");
-      await expect(link).toHaveText("Terms");
+      await expect(link).toHaveText("Terms of Service");
     });
 
     test("contact link is visible in footer", async ({ page }) => {

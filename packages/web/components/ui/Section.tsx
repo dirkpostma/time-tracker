@@ -20,10 +20,14 @@ export function Section({
   className = "",
   "data-testid": testId,
 }: SectionProps) {
+  // Extract py classes from className to avoid duplication
+  const hasCustomPadding = className.includes("pt-") || className.includes("py-");
+  const paddingClasses = hasCustomPadding ? "" : "py-16 md:py-24";
+
   return (
     <section
       id={id}
-      className={`py-16 md:py-24 ${variantStyles[variant]} ${className}`}
+      className={`${paddingClasses} ${variantStyles[variant]} ${className}`}
       data-testid={testId}
     >
       <div className="container mx-auto px-4 md:px-6">{children}</div>

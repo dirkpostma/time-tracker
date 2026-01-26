@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { Screenshots } from "@/components/Screenshots";
@@ -6,12 +7,15 @@ import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main>
-      <Hero />
-      <Features />
-      <Screenshots />
-      <CTA />
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <Features />
+        <Screenshots />
+        <CTA />
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

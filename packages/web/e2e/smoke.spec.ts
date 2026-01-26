@@ -10,7 +10,7 @@ test.describe("Smoke tests", () => {
   test("homepage displays heading and tagline", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("heading", { name: "Time Tracker" })).toBeVisible();
-    await expect(page.getByText("Simple time tracking for freelancers")).toBeVisible();
+    await expect(page.getByTestId("hero-title")).toBeVisible();
+    await expect(page.getByTestId("hero-tagline")).toBeVisible();
   });
 });

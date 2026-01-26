@@ -1,0 +1,86 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#0F0F1A"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+
+    <!-- Gradient for the clock circle -->
+    <linearGradient id="clockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#06B6D4"/>
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Inner shadow for depth -->
+    <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset dx="0" dy="4" result="offsetBlur"/>
+      <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners for iOS -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="url(#bgGradient)"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="512" cy="512" r="340" fill="none" stroke="url(#clockGradient)" stroke-width="8" opacity="0.3" filter="url(#glow)"/>
+
+  <!-- Main clock circle -->
+  <circle cx="512" cy="512" r="300" fill="none" stroke="url(#clockGradient)" stroke-width="24" filter="url(#glow)"/>
+
+  <!-- Clock tick marks -->
+  <g stroke="#7C3AED" stroke-width="8" stroke-linecap="round">
+    <!-- 12 o'clock -->
+    <line x1="512" y1="252" x2="512" y2="292" opacity="0.9"/>
+    <!-- 3 o'clock -->
+    <line x1="772" y1="512" x2="732" y2="512" opacity="0.9"/>
+    <!-- 6 o'clock -->
+    <line x1="512" y1="772" x2="512" y2="732" opacity="0.9"/>
+    <!-- 9 o'clock -->
+    <line x1="252" y1="512" x2="292" y2="512" opacity="0.9"/>
+  </g>
+
+  <!-- Small tick marks -->
+  <g stroke="#06B6D4" stroke-width="4" stroke-linecap="round" opacity="0.6">
+    <!-- 1 o'clock -->
+    <line x1="642" y1="282" x2="625" y2="312"/>
+    <!-- 2 o'clock -->
+    <line x1="742" y1="382" x2="712" y2="399"/>
+    <!-- 4 o'clock -->
+    <line x1="742" y1="642" x2="712" y2="625"/>
+    <!-- 5 o'clock -->
+    <line x1="642" y1="742" x2="625" y2="712"/>
+    <!-- 7 o'clock -->
+    <line x1="382" y1="742" x2="399" y2="712"/>
+    <!-- 8 o'clock -->
+    <line x1="282" y1="642" x2="312" y2="625"/>
+    <!-- 10 o'clock -->
+    <line x1="282" y1="382" x2="312" y2="399"/>
+    <!-- 11 o'clock -->
+    <line x1="382" y1="282" x2="399" y2="312"/>
+  </g>
+
+  <!-- Hour hand -->
+  <line x1="512" y1="512" x2="512" y2="340" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Minute hand -->
+  <line x1="512" y1="512" x2="680" y2="400" stroke="url(#clockGradient)" stroke-width="14" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Center dot -->
+  <circle cx="512" cy="512" r="24" fill="url(#clockGradient)" filter="url(#glow)"/>
+  <circle cx="512" cy="512" r="12" fill="#FFFFFF"/>
+
+  <!-- Play triangle (indicating timer/tracking) -->
+  <polygon points="580,512 620,540 620,484" fill="#06B6D4" opacity="0.8" filter="url(#glow)"/>
+</svg>
