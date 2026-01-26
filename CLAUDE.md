@@ -20,6 +20,7 @@ npx supabase start     # Start local DB
 |------|-------|
 | CLI specs | `specs/cli/` |
 | Mobile specs | `specs/mobile/` |
+| **Web specs** | `specs/web/` |
 | **Mobile next features** | `specs/mobile/next-features.md` |
 | Local dev setup | `docs/local-development.md` |
 | Mobile dev setup | `docs/mobile-development.md` |
