@@ -72,10 +72,12 @@ Error: `{ "error": "message" }` (400 or 500)
 
 If `RESEND_API_KEY` and `CONTACT_EMAIL` environment variables are set:
 - Send email via Resend API
-- From: `Time Tracker <noreply@timetracker.app>`
+- From: `Time Tracker <onboarding@resend.dev>` (test domain, no verification needed)
 - To: `CONTACT_EMAIL`
 - Subject: `Contact Form: {name}`
 - Reply-To: submitter's email
+
+Note: Using Resend's test domain requires `CONTACT_EMAIL` to be the same email as the Resend account. For production with arbitrary recipients, verify a custom domain and update the "from" address.
 
 Email failures are logged but don't fail the request.
 

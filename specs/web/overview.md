@@ -78,3 +78,20 @@ npm run test:headed
 |-----------------|------------------------------------|----------|
 | RESEND_API_KEY  | API key for sending contact emails | No       |
 | CONTACT_EMAIL   | Destination for contact form       | No       |
+
+## Deployment
+
+Deployed to Vercel via CLI:
+
+```bash
+cd packages/web
+npx vercel login
+npx vercel link --yes
+npx vercel --prod
+```
+
+Environment variables configured in Vercel dashboard or via CLI:
+```bash
+npx vercel env add RESEND_API_KEY production
+npx vercel env add CONTACT_EMAIL production
+```
