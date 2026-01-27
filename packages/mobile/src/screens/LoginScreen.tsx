@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert, TextInput } from 'react-native';
+import { Alert, TextInput, Pressable } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import {
   DSButton,
@@ -22,9 +22,29 @@ interface LoginScreenProps {
 export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, onSignup }: LoginScreenProps) {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [devModeEnabled, setDevModeEnabled] = useState(false);
   const emailRef = useRef('');
   const passwordRef = useRef('');
   const passwordInputRef = useRef<TextInput>(null);
+  const tapCountRef = useRef(0);
+  const lastTapTimeRef = useRef(0);
+
+  // Easter egg: tap title 5 times quickly to show dev buttons
+  const handleTitleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current > 500) {
+      // Reset if more than 500ms between taps
+      tapCountRef.current = 1;
+    } else {
+      tapCountRef.current += 1;
+    }
+    lastTapTimeRef.current = now;
+
+    if (tapCountRef.current >= 5) {
+      setDevModeEnabled(true);
+      tapCountRef.current = 0;
+    }
+  }, []);
 
   const handleEmailChange = useCallback((text: string) => {
     emailRef.current = text;
@@ -71,9 +91,11 @@ export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, on
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>
         <DSCenter padding="xxl">
           <DSStack gap="md" align="stretch" style={{ width: '100%' }}>
-            <DSText variant="h1" align="center">
-              Time Tracker
-            </DSText>
+            <Pressable onPress={handleTitleTap}>
+              <DSText variant="h1" align="center">
+                Time Tracker
+              </DSText>
+            </Pressable>
             <DSText variant="body" color="secondary" align="center">
               Sign in to continue
             </DSText>
@@ -130,7 +152,7 @@ export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, on
               accessibilityLabel="Create Account"
             />
 
-            {__DEV__ && (
+            {devModeEnabled && (
               <DSButton
                 title="Dev Login (test@example.com)"
                 onPress={handleDevLogin}
@@ -140,7 +162,7 @@ export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, on
                 size="sm"
               />
             )}
-            {__DEV__ && onOpenShowcase && (
+            {devModeEnabled && onOpenShowcase && (
               <DSButton
                 title="Open Component Showcase"
                 onPress={onOpenShowcase}
@@ -149,7 +171,7 @@ export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, on
                 testID="open-showcase-button"
               />
             )}
-            {__DEV__ && onOpenThemes && (
+            {devModeEnabled && onOpenThemes && (
               <DSButton
                 title="Theme Showcase (5 Themes)"
                 onPress={onOpenThemes}

@@ -33,7 +33,7 @@ export function Header() {
               href="#screenshots"
               className="text-sm text-muted hover:text-light-text transition-colors hidden sm:block"
             >
-              Themes
+              Screenshots
             </Link>
             <Link
               href="/contact"
