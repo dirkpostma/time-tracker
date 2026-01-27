@@ -1,47 +1,26 @@
 import Image from "next/image";
 
-const themes = [
-  {
-    src: "/screenshots/timer-midnight-aurora.png",
-    alt: "Midnight Aurora theme",
-    name: "Midnight Aurora",
-    description: "Deep purple gradients",
-  },
-  {
-    src: "/screenshots/timer-soft-blossom.png",
-    alt: "Soft Blossom theme",
-    name: "Soft Blossom",
-    description: "Gentle pink tones",
-  },
-  {
-    src: "/screenshots/timer-brutalist.png",
-    alt: "Brutalist theme",
-    name: "Brutalist",
-    description: "Bold & minimal",
-  },
-  {
-    src: "/screenshots/timer-ocean-depth.png",
-    alt: "Ocean Depth theme",
-    name: "Ocean Depth",
-    description: "Calming blues",
-  },
-  {
-    src: "/screenshots/timer-sunset-warmth.png",
-    alt: "Sunset Warmth theme",
-    name: "Sunset Warmth",
-    description: "Warm amber glow",
-  },
-];
-
 const screens = [
   {
-    src: "/screenshots/history-screen.png",
-    alt: "History screen",
-    name: "History",
-    description: "Track your progress",
+    src: "/screenshots/timer-stopped.png",
+    alt: "Timer screen ready to start",
+    name: "Start Tracking",
+    description: "One tap to begin",
   },
   {
-    src: "/screenshots/settings-screen.png",
+    src: "/screenshots/timer-running.png",
+    alt: "Timer actively running",
+    name: "Track Time",
+    description: "See your progress live",
+  },
+  {
+    src: "/screenshots/history.png",
+    alt: "History screen showing time entries",
+    name: "View History",
+    description: "All your entries organized",
+  },
+  {
+    src: "/screenshots/settings.png",
     alt: "Settings screen",
     name: "Settings",
     description: "Customize your experience",
@@ -56,83 +35,117 @@ export function Screenshots() {
       data-testid="screenshots-section"
     >
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center max-w-2xl mx-auto">
+        {/* Header with prominent logo */}
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              {/* Glow effect behind logo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent blur-3xl opacity-40 scale-150" />
+              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-[2rem] overflow-hidden shadow-2xl pulse-glow">
+                <Image
+                  src="/logo.svg"
+                  alt="Time Tracker"
+                  fill
+                  className="object-cover"
+                  data-testid="screenshots-logo"
+                />
+              </div>
+            </div>
+          </div>
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            Beautiful themes to
-            <span className="block mt-1 gradient-text">match your style</span>
+            See it in
+            <span className="block mt-1 gradient-text">action</span>
           </h2>
           <p className="mt-4 text-lg text-dark-text/70">
-            Choose from five carefully crafted themes. Light or dark, minimal or vibrant.
+            A clean, focused interface designed to get out of your way
           </p>
         </div>
 
-        {/* Themes showcase - Featured */}
-        <div className="mt-16 relative">
-          {/* Main featured theme in center */}
-          <div className="flex justify-center">
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary via-accent to-primary rounded-[3rem] opacity-30 blur-2xl group-hover:opacity-50 transition-opacity" />
+        {/* Main showcase - Three phones in a row */}
+        <div className="relative">
+          {/* Background glow */}
+          <div className="absolute inset-0 flex justify-center items-center">
+            <div className="w-[600px] h-[600px] bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20 rounded-full blur-3xl" />
+          </div>
+
+          {/* Phone stack - Desktop */}
+          <div className="hidden md:flex justify-center items-end gap-6 lg:gap-10 relative">
+            {/* Left phone - Timer stopped */}
+            <div className="relative group transform -rotate-6 translate-y-8">
+              <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-accent/20 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <Image
-                src={themes[0].src}
-                alt={themes[0].alt}
+                src={screens[0].src}
+                alt={screens[0].alt}
+                width={220}
+                height={476}
+                className="relative rounded-[2rem] shadow-2xl transition-transform group-hover:scale-105"
+                data-testid="screenshot-image"
+              />
+              <div className="mt-4 text-center opacity-70 group-hover:opacity-100 transition-opacity">
+                <p className="font-medium text-dark-text">{screens[0].name}</p>
+                <p className="text-sm text-dark-text/60">{screens[0].description}</p>
+              </div>
+            </div>
+
+            {/* Center phone - Timer running (featured) */}
+            <div className="relative group z-10">
+              <div className="absolute -inset-6 bg-gradient-to-r from-primary via-accent to-primary rounded-[3.5rem] opacity-30 blur-2xl group-hover:opacity-50 transition-opacity" />
+              <Image
+                src={screens[1].src}
+                alt={screens[1].alt}
                 width={280}
                 height={606}
                 className="relative rounded-[2.5rem] screenshot-shadow"
                 data-testid="screenshot-image"
                 priority
               />
+              <div className="mt-4 text-center">
+                <p className="font-semibold text-dark-text text-lg">{screens[1].name}</p>
+                <p className="text-dark-text/70">{screens[1].description}</p>
+              </div>
+            </div>
+
+            {/* Right phone - History */}
+            <div className="relative group transform rotate-6 translate-y-8">
+              <div className="absolute -inset-4 bg-gradient-to-br from-accent/20 to-primary/20 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Image
+                src={screens[2].src}
+                alt={screens[2].alt}
+                width={220}
+                height={476}
+                className="relative rounded-[2rem] shadow-2xl transition-transform group-hover:scale-105"
+                data-testid="screenshot-image"
+              />
+              <div className="mt-4 text-center opacity-70 group-hover:opacity-100 transition-opacity">
+                <p className="font-medium text-dark-text">{screens[2].name}</p>
+                <p className="text-sm text-dark-text/60">{screens[2].description}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* All themes grid */}
-        <div className="mt-16 -mx-4 md:mx-0">
           {/* Mobile: Horizontal scroll */}
           <div className="flex gap-6 overflow-x-auto px-4 pb-4 snap-x snap-mandatory md:hidden scrollbar-hide">
-            {themes.map((theme) => (
+            {screens.map((screen, index) => (
               <div
-                key={theme.src}
+                key={screen.src}
                 className="flex-shrink-0 snap-center"
               >
                 <div className="relative group">
+                  {index === 1 && (
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary to-accent rounded-[2.5rem] opacity-20 blur-xl" />
+                  )}
                   <Image
-                    src={theme.src}
-                    alt={theme.alt}
-                    width={180}
-                    height={390}
-                    className="rounded-[2rem] shadow-2xl transition-transform group-hover:scale-105"
+                    src={screen.src}
+                    alt={screen.alt}
+                    width={index === 1 ? 240 : 200}
+                    height={index === 1 ? 519 : 433}
+                    className={`relative rounded-[2rem] shadow-2xl ${index === 1 ? 'screenshot-shadow' : ''}`}
                     data-testid="screenshot-image"
+                    priority={index === 1}
                   />
                   <div className="mt-3 text-center">
-                    <p className="font-medium text-dark-text">{theme.name}</p>
-                    <p className="text-sm text-dark-text/60">{theme.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop: Grid */}
-          <div className="hidden md:grid md:grid-cols-5 gap-6">
-            {themes.map((theme, index) => (
-              <div
-                key={theme.src}
-                className="group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="relative overflow-hidden rounded-[2rem]">
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                  <Image
-                    src={theme.src}
-                    alt={theme.alt}
-                    width={200}
-                    height={433}
-                    className="w-full h-auto shadow-2xl transition-transform group-hover:scale-105"
-                    data-testid="screenshot-image"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-full group-hover:translate-y-0 transition-transform">
-                    <p className="font-medium text-dark-text">{theme.name}</p>
-                    <p className="text-sm text-dark-text/70">{theme.description}</p>
+                    <p className="font-medium text-dark-text">{screen.name}</p>
+                    <p className="text-sm text-dark-text/60">{screen.description}</p>
                   </div>
                 </div>
               </div>
@@ -140,30 +153,20 @@ export function Screenshots() {
           </div>
         </div>
 
-        {/* Additional screens */}
+        {/* Settings screen - separate showcase */}
         <div className="mt-20 text-center">
-          <h3 className="text-xl font-semibold text-dark-text/90 mb-8">
-            And more screens to help you stay organized
-          </h3>
-          <div className="flex justify-center gap-8">
-            {screens.map((screen) => (
-              <div key={screen.src} className="group">
-                <div className="relative overflow-hidden rounded-[2rem]">
-                  <Image
-                    src={screen.src}
-                    alt={screen.alt}
-                    width={160}
-                    height={346}
-                    className="shadow-2xl transition-transform group-hover:scale-105"
-                    data-testid="screenshot-image"
-                  />
-                </div>
-                <div className="mt-3 text-center">
-                  <p className="font-medium text-dark-text">{screen.name}</p>
-                  <p className="text-sm text-dark-text/60">{screen.description}</p>
-                </div>
-              </div>
-            ))}
+          <p className="text-dark-text/60 mb-6">Plus settings to customize your experience</p>
+          <div className="flex justify-center">
+            <div className="relative group">
+              <Image
+                src={screens[3].src}
+                alt={screens[3].alt}
+                width={160}
+                height={346}
+                className="rounded-[1.5rem] shadow-xl opacity-80 group-hover:opacity-100 transition-opacity"
+                data-testid="screenshot-image"
+              />
+            </div>
           </div>
         </div>
       </div>

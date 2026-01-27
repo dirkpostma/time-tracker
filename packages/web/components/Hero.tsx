@@ -8,13 +8,24 @@ export function Hero() {
       <div className="flex flex-col items-center gap-12 lg:flex-row lg:justify-between lg:gap-16">
         {/* Content */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-xl">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            <span className="text-sm font-medium text-primary">Now on iOS</span>
+          {/* Logo + Badge combo */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden shadow-lg pulse-glow">
+              <Image
+                src="/logo.svg"
+                alt="Time Tracker"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <span className="text-sm font-medium text-primary">Now on iOS</span>
+            </div>
           </div>
 
           <h1
@@ -66,15 +77,28 @@ export function Hero() {
 
         </div>
 
-        {/* Hero Image */}
+        {/* Hero Image - Creative logo and phone composition */}
         <div className="relative w-full max-w-sm lg:max-w-md">
           {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl rounded-full scale-150 opacity-50" />
 
+          {/* Large floating logo behind phone */}
+          <div className="absolute -top-8 -left-8 lg:-top-12 lg:-left-12 z-0">
+            <div className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-[2rem] overflow-hidden opacity-20 rotate-12">
+              <Image
+                src="/logo.svg"
+                alt=""
+                fill
+                className="object-cover"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
           {/* Phone mockup */}
-          <div className="relative animate-float">
+          <div className="relative animate-float z-10">
             <Image
-              src="/screenshots/timer-midnight-aurora.png"
+              src="/screenshots/timer-running.png"
               alt="Time Tracker app screenshot"
               width={350}
               height={758}
@@ -84,9 +108,20 @@ export function Hero() {
             />
           </div>
 
+          {/* Small floating logo accent */}
+          <div className="absolute -bottom-4 -right-4 lg:-bottom-6 lg:-right-6 z-20">
+            <div className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-2xl overflow-hidden shadow-2xl pulse-glow animate-float-delayed">
+              <Image
+                src="/logo.svg"
+                alt="Time Tracker"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+
           {/* Floating accent elements */}
           <div className="absolute -top-4 -right-4 w-20 h-20 bg-accent/10 rounded-2xl rotate-12 animate-float-delayed" />
-          <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-primary/10 rounded-full animate-float" />
         </div>
       </div>
     </Section>

@@ -29,13 +29,6 @@ const features = [
     icon: "cloud",
     color: "from-accent-light to-accent",
   },
-  {
-    title: "Beautiful Themes",
-    description:
-      "Choose from multiple stunning themes to match your style and mood.",
-    icon: "palette",
-    color: "from-primary-light to-primary",
-  },
 ];
 
 function FeatureIcon({ icon, colorClass }: { icon: string; colorClass: string }) {
@@ -106,21 +99,6 @@ function FeatureIcon({ icon, colorClass }: { icon: string; colorClass: string })
         />
       </svg>
     ),
-    palette: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-        />
-      </svg>
-    ),
   };
 
   return (
@@ -143,15 +121,11 @@ export function Features() {
         </p>
       </div>
 
-      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature, index) => (
+      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map((feature) => (
           <div
             key={feature.title}
-            className={`feature-card gradient-border p-6 ${
-              index === features.length - 1 && features.length % 3 === 2
-                ? "sm:col-span-2 lg:col-span-1"
-                : ""
-            }`}
+            className="feature-card gradient-border p-6"
             data-testid="feature-card"
           >
             <FeatureIcon icon={feature.icon} colorClass={feature.color} />

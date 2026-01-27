@@ -31,12 +31,12 @@ test.describe("Landing Page", () => {
   });
 
   test.describe("Features Section", () => {
-    test("displays 5 feature cards", async ({ page }) => {
+    test("displays 4 feature cards", async ({ page }) => {
       const section = page.getByTestId("features-section");
       const cards = page.getByTestId("feature-card");
 
       await expect(section).toBeVisible();
-      await expect(cards).toHaveCount(5);
+      await expect(cards).toHaveCount(4);
     });
 
     test("displays feature titles", async ({ page }) => {
@@ -53,9 +53,6 @@ test.describe("Landing Page", () => {
       await expect(
         featuresSection.getByRole("heading", { name: "Offline Support" })
       ).toBeVisible();
-      await expect(
-        featuresSection.getByRole("heading", { name: "Beautiful Themes" })
-      ).toBeVisible();
     });
   });
 
@@ -69,10 +66,14 @@ test.describe("Landing Page", () => {
     test("displays screenshot images", async ({ page }) => {
       const images = page.getByTestId("screenshot-image");
 
-      // Images are shown in different layouts
-      // Featured (1) + mobile scroll (5) + desktop grid (5) + additional screens (2) = 13 minimum
+      // Desktop: 3 phones + 1 settings + mobile scroll (4) = 8 minimum
       const count = await images.count();
-      expect(count).toBeGreaterThanOrEqual(7);
+      expect(count).toBeGreaterThanOrEqual(4);
+    });
+
+    test("displays app logo in screenshots section", async ({ page }) => {
+      const logo = page.getByTestId("screenshots-logo");
+      await expect(logo).toBeVisible();
     });
   });
 
