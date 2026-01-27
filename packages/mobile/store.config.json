@@ -1,0 +1,45 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "info": {
+      "en-US": {
+        "title": "Time Tracker",
+        "subtitle": "Simple time tracking for freelancers",
+        "description": "Track your billable hours effortlessly with Time Tracker, the minimalist time tracking app designed for freelancers and professionals.\n\nSTART TRACKING IN SECONDS\nTap to start, tap to stop. Select your client and project, add an optional description, and Time Tracker handles the rest. No complicated setup, no learning curve.\n\nORGANIZE BY CLIENT & PROJECT\nKeep your work organized with a clear hierarchy: Clients contain Projects, and Projects can have optional Tasks. Perfect for juggling multiple clients or managing different project phases.\n\nREVIEW YOUR HISTORY\nSee all your time entries grouped by day with daily totals. Quickly review what you worked on and for how long.\n\nBEAUTIFUL THEMES\nChoose from 5 distinctive visual themes:\n• Midnight Aurora - Dark with vibrant neon accents\n• Soft Blossom - Light and elegant pink tones\n• Brutalist - Bold black and red high contrast\n• Ocean Depth - Deep blues with glass effects\n• Sunset Warmth - Warm orange golden hour vibes\n\nWORKS OFFLINE\nStart and stop timers even without internet connection. Your entries sync automatically when you're back online.\n\nYOUR DATA, YOUR CONTROL\nTime Tracker stores your data securely and never shares it with third parties. Export or delete your data anytime.\n\nPERFECT FOR:\n• Freelancers tracking billable hours\n• Consultants managing multiple clients\n• Anyone who needs simple, reliable time tracking",
+        "keywords": "time tracking,timesheet,hours,freelance,billable,timer,productivity,work,clients,projects",
+        "marketingUrl": "https://web-phi-ruddy-48.vercel.app",
+        "supportUrl": "https://web-phi-ruddy-48.vercel.app/contact",
+        "privacyPolicyUrl": "https://web-phi-ruddy-48.vercel.app/privacy",
+        "privacyChoicesUrl": "https://web-phi-ruddy-48.vercel.app/privacy",
+        "whatsNew": "Initial release of Time Tracker!\n\n• Start and stop timers with one tap\n• Organize work by client, project, and task\n• View time entry history grouped by day\n• Choose from 5 beautiful themes\n• Works offline with automatic sync"
+      }
+    },
+    "categories": {
+      "primary": "PRODUCTIVITY",
+      "secondary": "BUSINESS"
+    },
+    "copyright": "2025 Time Tracker",
+    "ageRating": {
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gambling": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "unrestrictedWebAccess": false
+    },
+    "review": {
+      "firstName": "Dirk",
+      "lastName": "Postma",
+      "email": "dirkpostma@gmail.com",
+      "phone": "",
+      "notes": "Test credentials:\nEmail: test@example.com\nPassword: Test1234\n\nThe app requires an account to use. You can create a new account or use the test credentials above."
+    }
+  }
+}

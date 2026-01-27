@@ -1,0 +1,196 @@
+appId: nl.dirkpostma.timetracker
+---
+# App Store Screenshot Flow
+# Run with: maestro test .maestro/appstore_screenshots.yaml
+# Screenshots are saved to ~/.maestro/tests/
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Dismiss dev menu popup if it appears
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# Wait a moment for popup to dismiss
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# === SCREENSHOT 1: Login Screen ===
+- takeScreenshot: 01_login
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Dismiss debug banner if present
+- tapOn:
+    text: "×"
+    optional: true
+
+# Wait a moment for UI to settle
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# === SCREENSHOT 2: Timer Screen (Stopped) ===
+- takeScreenshot: 02_timer_stopped
+
+# Start the timer
+- tapOn:
+    id: "start-button"
+
+# Dismiss any error dialog that might appear (from cached invalid client)
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait a moment
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Tap client selector to open picker
+- tapOn:
+    text: "Tap to select client..."
+    optional: true
+- tapOn:
+    text: "Selected:"
+    optional: true
+
+# Select Acme Corp from client picker
+- tapOn:
+    text: "Acme Corp"
+    optional: true
+
+# Select Website Redesign project
+- tapOn:
+    text: "Website Redesign"
+    optional: true
+
+# Skip task selection if shown
+- tapOn:
+    text: "Continue without task"
+    optional: true
+
+# If there's a confirm/done button, tap it
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn:
+    text: "Confirm"
+    optional: true
+
+# Now tap Start again if needed
+- tapOn:
+    id: "start-button"
+    optional: true
+
+# Wait for stop button to appear (timer running)
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 15000
+
+# Let the timer run for a few seconds for a better screenshot
+- swipe:
+    direction: DOWN
+    duration: 3000
+
+# === SCREENSHOT 3: Timer Screen (Running) ===
+- takeScreenshot: 03_timer_running
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to History tab
+- tapOn:
+    id: "tab-history"
+    optional: true
+- tapOn:
+    text: "History"
+    optional: true
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+# Wait for list to load
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# === SCREENSHOT 4: History Screen ===
+- takeScreenshot: 04_history
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-settings"
+    optional: true
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# Wait for UI to settle
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# === SCREENSHOT 5: Settings Screen ===
+- takeScreenshot: 05_settings
