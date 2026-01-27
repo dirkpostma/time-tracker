@@ -12,9 +12,10 @@
     "test:headed": "playwright test --headed"
   },
   "dependencies": {
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "@supabase/supabase-js": "^2.49.1",
+    "next": "^15.1.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "resend": "^6.8.0"
   },
   "devDependencies": {
