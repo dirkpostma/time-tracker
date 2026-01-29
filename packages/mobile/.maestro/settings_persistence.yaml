@@ -1,4 +1,4 @@
-appId: com.anonymous.mobile
+appId: nl.dirkpostma.timetracker
 ---
 # Test that settings screen works and shows save button when value changes
 # Note: Full persistence test is tricky due to iOS permission dialogs

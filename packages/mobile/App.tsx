@@ -7,7 +7,6 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
-import { OfflineProvider } from './src/contexts/OfflineContext';
 import { ThemeProvider, useTheme } from './src/design-system/themes/ThemeContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
@@ -16,9 +15,7 @@ import { TimerScreen } from './src/screens/TimerScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TabBar, TabName } from './src/components/TabBar';
-import { OfflineIndicator } from './src/components/OfflineIndicator';
 import { ShowcaseScreen } from './src/design-system/showcase';
-import { ThemeShowcaseScreen } from './src/design-system/showcase/themed';
 
 type AuthScreen = 'login' | 'forgotPassword' | 'signup';
 
@@ -41,7 +38,6 @@ function MainApp() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <OfflineIndicator />
       <View style={styles.screenContainer}>
         {renderScreen()}
       </View>
@@ -52,10 +48,8 @@ function MainApp() {
 
 function AuthScreens({
   onOpenShowcase,
-  onOpenThemes,
 }: {
   onOpenShowcase?: () => void;
-  onOpenThemes?: () => void;
 }) {
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
 
@@ -73,7 +67,6 @@ function AuthScreens({
       return (
         <LoginScreen
           onOpenShowcase={onOpenShowcase}
-          onOpenThemes={onOpenThemes}
           onForgotPassword={goToForgotPassword}
           onSignup={goToSignup}
         />
@@ -81,12 +74,10 @@ function AuthScreens({
   }
 }
 
-type ShowcaseType = 'none' | 'components' | 'themes';
-
 function AppContent() {
   const { user, loading } = useAuth();
   const { theme } = useTheme();
-  const [showcase, setShowcase] = useState<ShowcaseType>('none');
+  const [showShowcase, setShowShowcase] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -103,20 +94,15 @@ function AppContent() {
     );
   }
 
-  if (showcase === 'components') {
-    return <ShowcaseScreen onClose={() => setShowcase('none')} />;
-  }
-
-  if (showcase === 'themes') {
-    return <ThemeShowcaseScreen onClose={() => setShowcase('none')} />;
+  if (showShowcase) {
+    return <ShowcaseScreen onClose={() => setShowShowcase(false)} />;
   }
 
   return user ? (
     <MainApp />
   ) : (
     <AuthScreens
-      onOpenShowcase={() => setShowcase('components')}
-      onOpenThemes={() => setShowcase('themes')}
+      onOpenShowcase={() => setShowShowcase(true)}
     />
   );
 }
@@ -131,10 +117,8 @@ export default function App() {
     <KeyboardProvider>
       <ThemeProvider>
         <AuthProvider>
-          <OfflineProvider>
-            <ThemedStatusBar />
-            <AppContent />
-          </OfflineProvider>
+          <ThemedStatusBar />
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </KeyboardProvider>

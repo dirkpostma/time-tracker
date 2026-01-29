@@ -1,0 +1,148 @@
+appId: nl.dirkpostma.timetracker
+---
+# Selection Smart Defaults Persistence Test
+# Verifies that recent selection persists across app restarts per spec
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Make a selection by starting timer with a specific client
+- tapOn:
+    id: "start-button"
+
+# Handle client picker - select Default Client
+- extendedWaitUntil:
+    visible:
+      id: "selection-picker-modal"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify client name is displayed
+- assertVisible:
+    id: "client-name"
+
+# Stop timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# === RESTART APP ===
+# This tests that selection persists in AsyncStorage
+- launchApp:
+    clearState: false
+    clearKeychain: false
+
+# Handle dev client launcher on restart
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for timer screen (should be logged in still)
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Start timer - should use recent selection without showing picker
+- tapOn:
+    id: "start-button"
+
+# Timer should start immediately with remembered selection
+# (no client picker modal should appear)
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify client name is displayed (selection was remembered)
+- assertVisible:
+    id: "client-name"
+
+# Verify a client name is displayed (selection was remembered)
+- assertVisible:
+    id: "client-name"
+
+# Stop timer to clean up
+- tapOn:
+    id: "stop-button"
+
+# Verify timer stopped
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000

@@ -14,12 +14,11 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 interface LoginScreenProps {
   onOpenShowcase?: () => void;
-  onOpenThemes?: () => void;
   onForgotPassword: () => void;
   onSignup: () => void;
 }
 
-export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, onSignup }: LoginScreenProps) {
+export function LoginScreen({ onOpenShowcase, onForgotPassword, onSignup }: LoginScreenProps) {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [devModeEnabled, setDevModeEnabled] = useState(false);
@@ -169,15 +168,6 @@ export function LoginScreen({ onOpenShowcase, onOpenThemes, onForgotPassword, on
                 variant="secondary"
                 size="sm"
                 testID="open-showcase-button"
-              />
-            )}
-            {devModeEnabled && onOpenThemes && (
-              <DSButton
-                title="Theme Showcase (5 Themes)"
-                onPress={onOpenThemes}
-                variant="primary"
-                size="sm"
-                testID="open-themes-button"
               />
             )}
           </DSStack>

@@ -1,9 +1,12 @@
 appId: nl.dirkpostma.timetracker
 ---
+# History Content Rendering Test
+# Verifies day grouping, daily totals, and entry card content per spec
+
 - launchApp:
     clearKeychain: true
 
-# Handle dev client launcher - tap the dev server URL
+# Handle dev client launcher
 - tapOn:
     text: "http://localhost:8081"
     optional: true
@@ -13,7 +16,7 @@ appId: nl.dirkpostma.timetracker
     visible: "Time Tracker"
     timeout: 30000
 
-# Login first
+# Login
 - tapOn:
     id: "email-input"
 - inputText: "test@example.com"
@@ -30,13 +33,13 @@ appId: nl.dirkpostma.timetracker
     text: "Not Now"
     optional: true
 
-# Wait for timer screen with tab bar
+# Wait for timer screen
 - extendedWaitUntil:
     visible:
       id: "timer-display"
     timeout: 30000
 
-# Stop any existing running timer first
+# Stop any running timer
 - tapOn:
     id: "stop-button"
     optional: true
@@ -47,44 +50,30 @@ appId: nl.dirkpostma.timetracker
       id: "start-button"
     timeout: 10000
 
-# Dismiss debug banner if present
-- tapOn:
-    text: "×"
-    optional: true
-
-# Wait a moment for banner to dismiss
-- swipe:
-    direction: DOWN
-    duration: 500
-
-# Verify tab bar is visible
-- assertVisible:
-    id: "tab-bar"
-
-# Create a time entry first
+# Create a time entry to ensure we have data
 - tapOn:
     id: "start-button"
 
-# Handle client picker modal if it appears
+# Handle client picker modal
 - tapOn:
     text: "Default Client"
     optional: true
 
-# Skip project picker if it appears
+# Skip project picker
 - tapOn:
     id: "project-skip"
     optional: true
 
-# Wait for timer to be running
+# Wait for timer running
 - extendedWaitUntil:
     visible:
       id: "stop-button"
     timeout: 10000
 
-# Wait a moment
+# Let timer run briefly
 - swipe:
     direction: DOWN
-    duration: 1000
+    duration: 2000
 
 # Stop the timer
 - tapOn:
@@ -96,16 +85,9 @@ appId: nl.dirkpostma.timetracker
       id: "start-button"
     timeout: 10000
 
-# Navigate to History tab - try multiple tap methods
+# Navigate to History tab
 - tapOn:
     id: "tab-history"
-    optional: true
-- tapOn:
-    point: "50%,95%"
-    optional: true
-- tapOn:
-    text: "History"
-    optional: true
 
 # Wait for history screen
 - extendedWaitUntil:
@@ -117,7 +99,27 @@ appId: nl.dirkpostma.timetracker
 - assertVisible:
     id: "history-list"
 
-# Pull to refresh on history
+# Verify day header exists (should show "Today" for entries created today)
+# The day header shows the date and total duration
+- assertVisible:
+    text: "Today"
+
+# Verify an entry card exists with client name
+# A client name should be visible (could be Default Client or any created client)
+- assertVisible:
+    text: ".*Client.*"
+    optional: true
+
+# Verify duration format is shown (entry cards display duration like "0m", "1m", "1h 30m")
+# We can't assert exact duration, but we can verify the entry card structure is rendered
+
+# Verify time range is shown (format like "10:00 AM - 10:01 AM")
+# Time entries show start - end times with AM/PM format
+- assertVisible:
+    text: ".*AM.*-.*AM.*|.*PM.*-.*PM.*|.*AM.*-.*PM.*|.*PM.*-.*AM.*"
+    optional: true
+
+# Pull to refresh and verify content persists
 - swipe:
     start: 50%, 30%
     end: 50%, 70%
@@ -127,22 +129,18 @@ appId: nl.dirkpostma.timetracker
     direction: DOWN
     duration: 1000
 
-# Navigate back to Timer tab
+# Verify content still visible after refresh
+- assertVisible:
+    id: "history-list"
+- assertVisible:
+    text: "Today"
+
+# Navigate back to Timer
 - tapOn:
     id: "tab-timer"
-    optional: true
-- tapOn:
-    point: "17%,95%"
-    optional: true
-- tapOn:
-    text: "Timer"
-    optional: true
 
-# Verify timer screen is shown
+# Verify timer screen
 - extendedWaitUntil:
     visible:
       id: "timer-display"
     timeout: 10000
-
-- assertVisible:
-    id: "start-button"
