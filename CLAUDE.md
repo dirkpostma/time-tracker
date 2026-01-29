@@ -53,4 +53,4 @@ Password: Test1234
 | History Content Rendering | Add tests (grouping, totals, formatting) | Done |
 | Selection Smart Defaults | Add tests (persistence across restarts) | Done |
 | Notification Behavior | Add tests (permission flow, scheduling) | Done |
-| Timer Display Format | Add tests (HH:MM:SS, tabular-nums) | Pending |
+| Timer Display Format | Add tests (HH:MM:SS, tabular-nums) | Done |

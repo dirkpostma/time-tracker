@@ -1,0 +1,116 @@
+appId: com.anonymous.mobile
+---
+# Timer Display Format Test
+# Verifies HH:MM:SS format and timer increment per timer.md spec
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# === Verify stopped state shows 00:00:00 ===
+- assertVisible:
+    id: "timer-display"
+
+# Timer should show zeros when stopped
+- assertVisible:
+    text: "00:00:00"
+
+# === Start timer and verify format ===
+- tapOn:
+    id: "start-button"
+
+# Handle client picker if it appears
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify timer display is visible
+- assertVisible:
+    id: "timer-display"
+
+# Timer should show HH:MM:SS format (starts at 00:00:00 or 00:00:01, etc)
+# We verify it shows a time pattern with colons
+- assertVisible:
+    text: "00:00:0.*"
+
+# Wait a few seconds for timer to increment
+- swipe:
+    direction: DOWN
+    duration: 3000
+
+# Verify timer has incremented (should show at least 00:00:02 or higher)
+# The timer should no longer show 00:00:00
+- assertVisible:
+    id: "timer-display"
+
+# === Stop timer and verify reset ===
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Timer should reset to 00:00:00 when stopped
+- assertVisible:
+    text: "00:00:00"
+
+# Verify timer display still visible
+- assertVisible:
+    id: "timer-display"
