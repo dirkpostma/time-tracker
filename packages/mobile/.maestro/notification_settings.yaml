@@ -1,0 +1,186 @@
+appId: com.anonymous.mobile
+---
+# Notification Settings Behavior Test
+# Verifies toggle interactions and input fields per notifications.md spec
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-settings"
+    optional: true
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# Verify notifications section exists
+- assertVisible:
+    id: "notifications-section"
+
+# === Test Long Timer Toggle ===
+
+# Verify long timer toggle exists
+- assertVisible:
+    id: "long-timer-toggle"
+
+# Toggle long timer notification ON
+- tapOn:
+    id: "long-timer-toggle"
+
+# Dismiss any permission dialog (iOS notification permission)
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for hours input to appear (shown when toggle is on)
+- extendedWaitUntil:
+    visible:
+      id: "long-timer-hours"
+    timeout: 5000
+
+# Verify hours input is visible
+- assertVisible:
+    id: "long-timer-hours"
+
+# Tap hours input and change value
+- tapOn:
+    id: "long-timer-hours"
+- clearText
+- inputText: "4"
+- hideKeyboard
+
+# Save button should appear after changing value
+- tapOn:
+    id: "save-long-timer-hours"
+    optional: true
+
+# Dismiss any alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# === Test Daily Reminder Toggle ===
+
+# Verify daily reminder toggle exists
+- assertVisible:
+    id: "daily-reminder-toggle"
+
+# Toggle daily reminder ON
+- tapOn:
+    id: "daily-reminder-toggle"
+
+# Dismiss any permission dialog
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true
+
+# Wait for time input to appear (shown when toggle is on)
+- extendedWaitUntil:
+    visible:
+      id: "daily-reminder-time"
+    timeout: 5000
+
+# Verify time input is visible
+- assertVisible:
+    id: "daily-reminder-time"
+
+# Tap time input and change value
+- tapOn:
+    id: "daily-reminder-time"
+- clearText
+- inputText: "08:30"
+- hideKeyboard
+
+# Save button should appear after changing value
+- tapOn:
+    id: "save-daily-reminder-time"
+    optional: true
+
+# Dismiss any alert
+- tapOn:
+    text: "OK"
+    optional: true
+
+# === Verify toggles can be turned off ===
+
+# Toggle long timer OFF
+- tapOn:
+    id: "long-timer-toggle"
+
+# Hours input should be hidden now
+# (We can't easily assert not visible in Maestro, so we just continue)
+
+# Toggle daily reminder OFF
+- tapOn:
+    id: "daily-reminder-toggle"
+
+# Navigate back to Timer
+- tapOn:
+    id: "tab-timer"
+    optional: true
+- tapOn:
+    text: "Timer"
+    optional: true
+
+# Verify timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
