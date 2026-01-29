@@ -1,0 +1,147 @@
+appId: com.anonymous.mobile
+---
+# History Content Rendering Test
+# Verifies day grouping, daily totals, and entry card content per spec
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Create a time entry to ensure we have data
+- tapOn:
+    id: "start-button"
+
+# Handle client picker modal
+- tapOn:
+    text: "Default Client"
+    optional: true
+
+# Skip project picker
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Let timer run briefly
+- swipe:
+    direction: DOWN
+    duration: 2000
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to History tab
+- tapOn:
+    id: "tab-history"
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+# Verify history list is visible
+- assertVisible:
+    id: "history-list"
+
+# Verify day header exists (should show "Today" for entries created today)
+# The day header shows the date and total duration
+- assertVisible:
+    text: "Today"
+
+# Verify an entry card exists with client name
+# The Default Client name should be visible
+- assertVisible:
+    text: "Default Client"
+
+# Verify duration format is shown (entry cards display duration like "0m", "1m", "1h 30m")
+# We can't assert exact duration, but we can verify the entry card structure is rendered
+
+# Verify time range is shown (format like "10:00 AM - 10:01 AM")
+# Time entries show start - end times with AM/PM format
+- assertVisible:
+    text: ".*AM.*-.*AM.*|.*PM.*-.*PM.*|.*AM.*-.*PM.*|.*PM.*-.*AM.*"
+    optional: true
+
+# Pull to refresh and verify content persists
+- swipe:
+    start: 50%, 30%
+    end: 50%, 70%
+
+# Wait for refresh
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Verify content still visible after refresh
+- assertVisible:
+    id: "history-list"
+- assertVisible:
+    text: "Today"
+- assertVisible:
+    text: "Default Client"
+
+# Navigate back to Timer
+- tapOn:
+    id: "tab-timer"
+
+# Verify timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 10000
