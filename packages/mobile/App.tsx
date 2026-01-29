@@ -16,7 +16,6 @@ import { HistoryScreen } from './src/screens/HistoryScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TabBar, TabName } from './src/components/TabBar';
 import { ShowcaseScreen } from './src/design-system/showcase';
-import { ThemeShowcaseScreen } from './src/design-system/showcase/themed';
 
 type AuthScreen = 'login' | 'forgotPassword' | 'signup';
 
@@ -49,10 +48,8 @@ function MainApp() {
 
 function AuthScreens({
   onOpenShowcase,
-  onOpenThemes,
 }: {
   onOpenShowcase?: () => void;
-  onOpenThemes?: () => void;
 }) {
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
 
@@ -70,7 +67,6 @@ function AuthScreens({
       return (
         <LoginScreen
           onOpenShowcase={onOpenShowcase}
-          onOpenThemes={onOpenThemes}
           onForgotPassword={goToForgotPassword}
           onSignup={goToSignup}
         />
@@ -78,12 +74,10 @@ function AuthScreens({
   }
 }
 
-type ShowcaseType = 'none' | 'components' | 'themes';
-
 function AppContent() {
   const { user, loading } = useAuth();
   const { theme } = useTheme();
-  const [showcase, setShowcase] = useState<ShowcaseType>('none');
+  const [showShowcase, setShowShowcase] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -100,20 +94,15 @@ function AppContent() {
     );
   }
 
-  if (showcase === 'components') {
-    return <ShowcaseScreen onClose={() => setShowcase('none')} />;
-  }
-
-  if (showcase === 'themes') {
-    return <ThemeShowcaseScreen onClose={() => setShowcase('none')} />;
+  if (showShowcase) {
+    return <ShowcaseScreen onClose={() => setShowShowcase(false)} />;
   }
 
   return user ? (
     <MainApp />
   ) : (
     <AuthScreens
-      onOpenShowcase={() => setShowcase('components')}
-      onOpenThemes={() => setShowcase('themes')}
+      onOpenShowcase={() => setShowShowcase(true)}
     />
   );
 }

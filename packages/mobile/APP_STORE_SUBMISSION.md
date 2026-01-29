@@ -52,8 +52,7 @@ Capture 5-10 screenshots showing the app's key features:
 1. **Timer Screen (stopped)** - Shows clean timer at 00:00:00 with client/project selection
 2. **Timer Screen (running)** - Timer actively counting with client/project selected
 3. **History Screen** - Time entries grouped by day with totals
-4. **Settings Screen** - Theme selection and account options
-5. **Theme Variety** - Show 2-3 different themes to highlight customization
+4. **Settings Screen** - Notification options and account settings
 
 ### How to Capture Screenshots
 
@@ -87,8 +86,6 @@ For pixel-perfect App Store screenshots:
   - Projects: "Website Redesign", "Mobile App", "Branding"
   - Durations: Mix of short (45m) and long (2h 30m) entries
 - Show the app with content, not empty states
-- Use the same theme across main screenshots (suggest: Sunset Warmth or Midnight Aurora)
-- Include 1-2 screenshots showing theme variety
 - Clean status bar (full battery, WiFi, 9:41 time)
 
 ### Screenshot Folder Structure
@@ -182,7 +179,6 @@ Initial release of Time Tracker!
 • Start and stop timers with one tap
 • Organize work by client, project, and task
 • View time entry history grouped by day
-• Choose from 5 beautiful themes
 ```
 
 ## Quick Commands Reference

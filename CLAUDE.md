@@ -48,7 +48,7 @@ Password: Test1234
 | Task | Action | Status |
 |------|--------|--------|
 | Offline Support | Remove feature (spec + implementation) | Done |
-| Theme System | Remove feature (implementation + tests) | Pending |
+| Theme System | Remove feature (implementation + tests) | Done |
 | Signup Flow | Add spec (`specs/mobile/signup.md`) | Pending |
 | History Content Rendering | Add tests (grouping, totals, formatting) | Pending |
 | Selection Smart Defaults | Add tests (persistence across restarts) | Pending |
