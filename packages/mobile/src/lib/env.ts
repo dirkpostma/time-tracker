@@ -18,11 +18,6 @@ function getNumber(value: string | undefined, defaultValue: number): number {
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
-function getBoolean(value: string | undefined, defaultValue: boolean): boolean {
-  if (value === undefined) return defaultValue;
-  return value.toLowerCase() === 'true' || value === '1';
-}
-
 export const env = {
   // Supabase configuration
   supabaseUrl: getString(process.env.EXPO_PUBLIC_SUPABASE_URL, 'http://127.0.0.1:54321'),
@@ -30,9 +25,6 @@ export const env = {
 
   // API settings
   apiTimeout: getNumber(process.env.EXPO_PUBLIC_API_TIMEOUT, 30000),
-
-  // Feature flags
-  enableOfflineMode: getBoolean(process.env.EXPO_PUBLIC_ENABLE_OFFLINE_MODE, true),
 
   // Runtime checks
   isDev: __DEV__,

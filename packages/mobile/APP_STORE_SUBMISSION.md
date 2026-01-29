@@ -183,7 +183,6 @@ Initial release of Time Tracker!
 • Organize work by client, project, and task
 • View time entry history grouped by day
 • Choose from 5 beautiful themes
-• Works offline with automatic sync
 ```
 
 ## Quick Commands Reference

@@ -42,3 +42,15 @@ npx supabase start     # Start local DB
 Email: test@example.com
 Password: Test1234
 ```
+
+## Mobile Spec/Test Gap Resolution (Jan 2026)
+
+| Task | Action | Status |
+|------|--------|--------|
+| Offline Support | Remove feature (spec + implementation) | Done |
+| Theme System | Remove feature (implementation + tests) | Pending |
+| Signup Flow | Add spec (`specs/mobile/signup.md`) | Pending |
+| History Content Rendering | Add tests (grouping, totals, formatting) | Pending |
+| Selection Smart Defaults | Add tests (persistence across restarts) | Pending |
+| Notification Behavior | Add tests (permission flow, scheduling) | Pending |
+| Timer Display Format | Add tests (HH:MM:SS, tabular-nums) | Pending |
