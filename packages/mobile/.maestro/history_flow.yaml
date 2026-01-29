@@ -1,4 +1,4 @@
-appId: com.anonymous.mobile
+appId: nl.dirkpostma.timetracker
 ---
 - launchApp:
     clearKeychain: true

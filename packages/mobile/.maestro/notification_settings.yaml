@@ -1,4 +1,4 @@
-appId: com.anonymous.mobile
+appId: nl.dirkpostma.timetracker
 ---
 # Notification Settings Behavior Test
 # Verifies toggle interactions and input fields per notifications.md spec
@@ -99,7 +99,8 @@ appId: com.anonymous.mobile
 # Tap hours input and change value
 - tapOn:
     id: "long-timer-hours"
-- clearText
+- eraseText:
+    charactersToErase: 5
 - inputText: "4"
 - hideKeyboard
 
@@ -144,7 +145,8 @@ appId: com.anonymous.mobile
 # Tap time input and change value
 - tapOn:
     id: "daily-reminder-time"
-- clearText
+- eraseText:
+    charactersToErase: 10
 - inputText: "08:30"
 - hideKeyboard
 

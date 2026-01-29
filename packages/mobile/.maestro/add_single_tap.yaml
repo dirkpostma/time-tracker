@@ -1,4 +1,4 @@
-appId: com.anonymous.mobile
+appId: nl.dirkpostma.timetracker
 ---
 # Test that add button works with single tap while keyboard is open
 
