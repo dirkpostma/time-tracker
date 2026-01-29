@@ -51,6 +51,6 @@ Password: Test1234
 | Theme System | Remove feature (implementation + tests) | Done |
 | Signup Flow | Add spec (`specs/mobile/signup.md`) | Done |
 | History Content Rendering | Add tests (grouping, totals, formatting) | Done |
-| Selection Smart Defaults | Add tests (persistence across restarts) | Pending |
+| Selection Smart Defaults | Add tests (persistence across restarts) | Done |
 | Notification Behavior | Add tests (permission flow, scheduling) | Pending |
 | Timer Display Format | Add tests (HH:MM:SS, tabular-nums) | Pending |
