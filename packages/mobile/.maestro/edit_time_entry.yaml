@@ -1,0 +1,189 @@
+appId: nl.dirkpostma.timetracker
+---
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher - tap the dev server URL
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Dismiss dev menu popup if it appears
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# Close dev menu if it's open (swipe down to dismiss)
+- swipe:
+    direction: DOWN
+    duration: 300
+
+# Login first
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog if it appears
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen with tab bar
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any existing running timer first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Create a time entry first
+- tapOn:
+    id: "start-button"
+
+# Handle client picker modal if it appears
+- tapOn:
+    text: "Test Client"
+    optional: true
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Wait a moment
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to History tab
+- tapOn:
+    id: "tab-history"
+    optional: true
+- tapOn:
+    text: "History"
+    optional: true
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+# Wait a moment for entries to load
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Tap on first entry card to open detail screen
+- tapOn:
+    id: "entry-card-.*"
+    index: 0
+
+# Wait for entry detail screen
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-screen"
+    timeout: 10000
+
+# Verify all expected elements are visible
+- assertVisible:
+    id: "back-button"
+
+- assertVisible:
+    id: "save-entry-button"
+
+- assertVisible:
+    id: "entry-client-field"
+
+- assertVisible:
+    id: "entry-start-time"
+
+- assertVisible:
+    id: "entry-end-time"
+
+- assertVisible:
+    id: "entry-duration"
+
+- assertVisible:
+    id: "entry-description-input"
+
+# Edit the description
+- tapOn:
+    id: "entry-description-input"
+- eraseText
+- inputText: "Edited description"
+
+# Hide keyboard
+- hideKeyboard
+
+# Save changes
+- tapOn:
+    id: "save-entry-button"
+
+# Wait for history screen to return
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
+
+# Tap on the entry again to verify the change persisted
+- tapOn:
+    id: "entry-card-.*"
+    index: 0
+
+# Wait for entry detail screen
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-screen"
+    timeout: 10000
+
+# Verify description was updated
+- assertVisible:
+    text: "Edited description"
+
+# Go back to history
+- tapOn:
+    id: "back-button"
+
+# Verify we're back on history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 10000
