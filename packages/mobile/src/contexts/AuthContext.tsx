@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
@@ -10,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,8 +58,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const deleteAccount = async (password: string) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    // 1. Delete user account via RPC (also verifies password)
+    const { error: deleteError } = await supabase.rpc('delete_user_account', {
+      password,
+    });
+
+    if (deleteError) {
+      // Check if it's a password error
+      if (deleteError.message.includes('Incorrect password')) {
+        throw new Error('Incorrect password');
+      }
+      throw new Error('Failed to delete account. Please try again.');
+    }
+
+    // 2. Clear local storage
+    try {
+      await AsyncStorage.multiRemove([
+        '@time_tracker/notification_settings',
+        '@time_tracker/recent_selection',
+      ]);
+    } catch {
+      // Ignore storage cleanup errors
+    }
+
+    // 3. Sign out (clears auth tokens)
+    await supabase.auth.signOut();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, resetPassword, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, resetPassword, signOut, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
