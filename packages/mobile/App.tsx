@@ -14,14 +14,30 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { TimerScreen } from './src/screens/TimerScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { DeleteAccountScreen } from './src/screens/DeleteAccountScreen';
 import { TabBar, TabName } from './src/components/TabBar';
 import { ShowcaseScreen } from './src/design-system/showcase';
 
 type AuthScreen = 'login' | 'forgotPassword' | 'signup';
+type SettingsSubScreen = 'main' | 'deleteAccount';
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<TabName>('timer');
+  const [settingsSubScreen, setSettingsSubScreen] = useState<SettingsSubScreen>('main');
   const { theme } = useTheme();
+
+  const handleDeleteAccountRequest = useCallback(() => {
+    setSettingsSubScreen('deleteAccount');
+  }, []);
+
+  const handleDeleteAccountCancel = useCallback(() => {
+    setSettingsSubScreen('main');
+  }, []);
+
+  const handleDeleteAccountComplete = useCallback(() => {
+    // Account deleted - auth state will change and show login screen
+    setSettingsSubScreen('main');
+  }, []);
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -30,7 +46,15 @@ function MainApp() {
       case 'history':
         return <HistoryScreen />;
       case 'settings':
-        return <SettingsScreen />;
+        if (settingsSubScreen === 'deleteAccount') {
+          return (
+            <DeleteAccountScreen
+              onCancel={handleDeleteAccountCancel}
+              onDeleted={handleDeleteAccountComplete}
+            />
+          );
+        }
+        return <SettingsScreen onDeleteAccount={handleDeleteAccountRequest} />;
       default:
         return <TimerScreen />;
     }

@@ -15,7 +15,11 @@ import {
   spacing,
 } from '../design-system';
 
-export function SettingsScreen() {
+interface SettingsScreenProps {
+  onDeleteAccount: () => void;
+}
+
+export function SettingsScreen({ onDeleteAccount }: SettingsScreenProps) {
   const { signOut } = useAuth();
   const {
     settings,
@@ -207,6 +211,14 @@ export function SettingsScreen() {
           variant="ghost"
           fullWidth={false}
           testID="settings-logout-button"
+        />
+        <DSSeparator spacing="sm" />
+        <DSButton
+          title="Delete Account"
+          onPress={onDeleteAccount}
+          variant="danger"
+          fullWidth={false}
+          testID="delete-account-button"
         />
       </DSSection>
     </DSScreen>

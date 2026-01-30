@@ -1,0 +1,196 @@
+appId: nl.dirkpostma.timetracker
+---
+# Account Deletion Flow Tests
+# Tests account deletion feature per account-deletion.md spec
+
+- launchApp:
+    clearKeychain: true
+
+# Handle dev client launcher
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Time Tracker"
+    timeout: 30000
+
+# Login with test user
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "Test1234"
+
+- tapOn:
+    id: "login-button"
+
+# Dismiss iOS password save dialog
+- tapOn:
+    text: "Not Now"
+    optional: true
+
+# Wait for timer screen
+- extendedWaitUntil:
+    visible:
+      id: "timer-display"
+    timeout: 30000
+
+# Stop any running timer
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 10000
+
+# Navigate to Settings tab
+- tapOn:
+    id: "tab-settings"
+    optional: true
+- tapOn:
+    text: "Settings"
+    optional: true
+
+# Wait for settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 10000
+
+# === Test 1: account.delete.cancel ===
+# Verify delete account button exists
+- assertVisible:
+    id: "delete-account-button"
+
+# Tap delete account button
+- tapOn:
+    id: "delete-account-button"
+
+# Wait for delete account screen
+- extendedWaitUntil:
+    visible:
+      id: "delete-account-screen"
+    timeout: 5000
+
+# Verify warning text is visible
+- assertVisible:
+    id: "delete-warning-text"
+
+# Verify password input is visible
+- assertVisible:
+    id: "delete-password-input"
+
+# Verify cancel button is visible
+- assertVisible:
+    id: "delete-cancel-button"
+
+# Verify confirm button is visible
+- assertVisible:
+    id: "delete-confirm-button"
+
+# Tap cancel button
+- tapOn:
+    id: "delete-cancel-button"
+
+# Verify returned to settings screen
+- extendedWaitUntil:
+    visible:
+      id: "settings-screen"
+    timeout: 5000
+
+# === Test 2: account.delete.empty_password ===
+# Tap delete account button again
+- tapOn:
+    id: "delete-account-button"
+
+# Wait for delete account screen
+- extendedWaitUntil:
+    visible:
+      id: "delete-account-screen"
+    timeout: 5000
+
+# Tap confirm without entering password
+- tapOn:
+    id: "delete-confirm-button"
+
+# Verify error message appears
+- assertVisible:
+    text: "Password is required"
+
+# Dismiss error alert
+- tapOn:
+    text: "OK"
+
+# Wait for delete account screen to stabilize after alert dismissal
+- extendedWaitUntil:
+    visible:
+      id: "delete-account-screen"
+    timeout: 5000
+
+# === Test 3: account.delete.wrong_password ===
+# Enter wrong password
+- tapOn:
+    id: "delete-password-input"
+- inputText: "WrongPassword123"
+
+# Dismiss keyboard by tapping title
+- tapOn:
+    text: "Delete Account"
+
+# Tap confirm button
+- tapOn:
+    id: "delete-confirm-button"
+
+# Wait for error (may take time for server response)
+- extendedWaitUntil:
+    visible:
+      text: "Incorrect password"
+    timeout: 10000
+
+# Dismiss error alert
+- tapOn:
+    text: "OK"
+
+# === Test 4: account.delete.success ===
+# Clear and enter correct password
+- tapOn:
+    id: "delete-password-input"
+- eraseText:
+    charactersToErase: 20
+- inputText: "Test1234"
+
+# Dismiss keyboard by tapping title
+- tapOn:
+    text: "Delete Account"
+
+# Tap confirm button
+- tapOn:
+    id: "delete-confirm-button"
+
+# Wait for success message
+- extendedWaitUntil:
+    visible:
+      text: "Account Deleted"
+    timeout: 15000
+
+# Dismiss success alert
+- tapOn:
+    text: "OK"
+
+# Verify redirected to login screen
+- extendedWaitUntil:
+    visible: "Sign in to continue"
+    timeout: 10000
+
+# Verify login elements are visible
+- assertVisible:
+    id: "email-input"
+- assertVisible:
+    id: "password-input"
