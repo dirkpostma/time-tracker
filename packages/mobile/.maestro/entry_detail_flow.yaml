@@ -80,16 +80,19 @@ appId: nl.dirkpostma.timetracker
 - eraseText: 100
 - inputText: "Test from Maestro"
 
-# Dismiss keyboard by pressing return/done
-- pressKey: Enter
+# Dismiss keyboard by tapping on the TIME section header (above keyboard)
+- tapOn:
+    text: "TIME"
 
-# Wait for keyboard to dismiss
+# Wait a moment for keyboard to dismiss
 - swipe:
     direction: DOWN
-    duration: 800
+    duration: 500
 
-# Scroll to make sure Save button is visible
-- scroll
+# Scroll down to make Save button visible
+- swipe:
+    start: 50%, 60%
+    end: 50%, 30%
 
 # Save changes
 - tapOn:

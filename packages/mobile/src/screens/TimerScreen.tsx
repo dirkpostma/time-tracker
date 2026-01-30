@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
-import { Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAuth } from '../contexts/AuthContext';
 import {
   DSButton,
@@ -18,8 +19,17 @@ import { useTimer } from '../hooks/useTimer';
 import { useSelectionFlow } from '../hooks/useSelectionFlow';
 import { TimerSelection } from '../types/timer';
 
+function formatStartTime(date: Date): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
 export function TimerScreen() {
   const { user, signOut } = useAuth();
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
 
   const {
     running,
@@ -34,10 +44,35 @@ export function TimerScreen() {
     selection,
     startTimer,
     stopTimer,
+    updateStartTime,
     onRefresh,
     handleDescriptionChange,
     formatTime,
   } = useTimer();
+
+  const startedAt = running ? new Date(running.started_at) : new Date();
+
+  const handleStartTimeChange = useCallback(async (
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    if (Platform.OS === 'android') {
+      setShowStartTimePicker(false);
+    }
+    
+    if (event.type === 'dismissed' || !selectedDate) {
+      return;
+    }
+
+    const success = await updateStartTime(selectedDate);
+    if (success && Platform.OS === 'ios') {
+      // Keep picker open on iOS for adjustments
+    }
+  }, [updateStartTime]);
+
+  const closeStartTimePicker = useCallback(() => {
+    setShowStartTimePicker(false);
+  }, []);
 
   const handleTimerStart = useCallback(
     (timerSelection: TimerSelection) => {
@@ -106,6 +141,41 @@ export function TimerScreen() {
         isRunning={!!running}
       />
 
+      {running && (
+        <TouchableOpacity
+          style={styles.startTimeContainer}
+          onPress={() => setShowStartTimePicker(true)}
+          testID="timer-start-time-button"
+          accessibilityLabel="Edit start time"
+          accessibilityHint="Opens time picker to change when the timer started"
+        >
+          <DSText 
+            variant="bodySmall" 
+            color="secondary"
+            testID="timer-start-time-display"
+          >
+            Started at {formatStartTime(startedAt)} ✎
+          </DSText>
+        </TouchableOpacity>
+      )}
+
+      {showStartTimePicker && running && (
+        <View style={styles.pickerContainer} testID="timer-start-time-picker">
+          <View style={styles.pickerHeader}>
+            <DSText variant="body">Edit Start Time</DSText>
+            <TouchableOpacity onPress={closeStartTimePicker} testID="timer-start-time-picker-done">
+              <DSText variant="body" color="primary">Done</DSText>
+            </TouchableOpacity>
+          </View>
+          <DateTimePicker
+            value={startedAt}
+            mode="time"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleStartTimeChange}
+          />
+        </View>
+      )}
+
       {!running && (
         <SelectionCard selection={selection} onPress={handleSelectionPress} />
       )}
@@ -154,3 +224,26 @@ export function TimerScreen() {
     </DSScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  startTimeContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  pickerContainer: {
+    backgroundColor: '#2a2a3e',
+    borderRadius: 12,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    overflow: 'hidden',
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3a4e',
+  },
+});
