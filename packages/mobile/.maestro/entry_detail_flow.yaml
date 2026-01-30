@@ -76,11 +76,31 @@ appId: nl.dirkpostma.timetracker
 - tapOn:
     id: "entry-detail-description-input"
 
-- inputText: "Test description from Maestro"
+# Clear existing text and enter new description
+- eraseText: 100
+- inputText: "Test from Maestro"
+
+# Dismiss keyboard by pressing return/done
+- pressKey: Enter
+
+# Wait for keyboard to dismiss
+- swipe:
+    direction: DOWN
+    duration: 800
+
+# Scroll to make sure Save button is visible
+- scroll
 
 # Save changes
 - tapOn:
     id: "entry-detail-save-button"
+
+# Dismiss the success alert
+- extendedWaitUntil:
+    visible: "OK"
+    timeout: 5000
+- tapOn:
+    text: "OK"
 
 # Wait for save to complete and return to history
 - extendedWaitUntil:
