@@ -1,34 +1,26 @@
 appId: nl.dirkpostma.timetracker
 ---
 - launchApp:
-    clearKeychain: true
+    clearKeychain: false
+    clearState: false
 
-# Handle dev client launcher - tap the dev server URL
-- tapOn:
-    text: "http://localhost:8081"
-    optional: true
-
-# Wait for login screen
-- extendedWaitUntil:
-    visible: "Time Tracker"
-    timeout: 30000
-
-# Login first
+# Handle login if needed (conditional flow)
 - tapOn:
     id: "email-input"
-- inputText: "test@example.com"
-
-- tapOn:
-    id: "password-input"
-- inputText: "Test1234"
-
-- tapOn:
-    id: "login-button"
-
-# Dismiss iOS password save dialog if it appears
-- tapOn:
-    text: "Not Now"
     optional: true
+- runFlow:
+    when:
+      visible: "Sign in to continue"
+    commands:
+      - inputText: "test@example.com"
+      - tapOn:
+          id: "password-input"
+      - inputText: "Test1234"
+      - tapOn:
+          id: "login-button"
+      - tapOn:
+          text: "Not Now"
+          optional: true
 
 # Wait for timer screen with tab bar
 - extendedWaitUntil:
@@ -67,7 +59,7 @@ appId: nl.dirkpostma.timetracker
 
 # Handle client picker modal if it appears
 - tapOn:
-    text: "Default Client"
+    text: "Test Client"
     optional: true
 
 # Skip project picker if it appears

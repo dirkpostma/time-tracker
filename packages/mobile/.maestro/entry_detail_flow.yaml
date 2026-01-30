@@ -1,0 +1,89 @@
+appId: nl.dirkpostma.timetracker
+---
+# This test assumes app is already running and connected to Metro
+# Run with: maestro test .maestro/entry_detail_flow.yaml
+
+- launchApp:
+    clearKeychain: false
+    clearState: false
+
+# If on login screen, log in first
+- tapOn:
+    id: "email-input"
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign in to continue"
+    commands:
+      - inputText: "test@example.com"
+      - tapOn:
+          id: "password-input"
+      - inputText: "Test1234"
+      - tapOn:
+          id: "login-button"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+
+# Wait for main app
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 30000
+
+# Navigate to History tab
+- tapOn:
+    point: "50%,95%"
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000
+
+# Verify history list is visible
+- assertVisible:
+    id: "history-list"
+
+# Tap on first entry card (using testID pattern)
+- tapOn:
+    id: "entry-card-.*"
+
+# Wait for entry detail screen
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-screen"
+    timeout: 5000
+
+# Verify entry detail elements
+- assertVisible:
+    id: "entry-detail-client"
+
+- assertVisible:
+    id: "entry-detail-date"
+
+- assertVisible:
+    id: "entry-detail-duration"
+
+- assertVisible:
+    id: "entry-detail-description-input"
+
+# Test editing description
+- tapOn:
+    id: "entry-detail-description-input"
+
+- inputText: "Test description from Maestro"
+
+# Save changes
+- tapOn:
+    id: "entry-detail-save-button"
+
+# Wait for save to complete and return to history
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000
+
+# Verify we're back on history
+- assertVisible:
+    id: "history-list"
