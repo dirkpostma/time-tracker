@@ -1,80 +1,31 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Alert } from 'react-native';
-import { supabase } from '../lib/supabase';
-import { TimeEntry, Client, Project, Task, TimerSelection } from '../types/timer';
+import { createTimeEntryRepository } from '../lib/repositories';
+import { Client, Project, Task, TimerSelection } from '../types/timer';
 import { useRecentSelection } from './useRecentSelection';
+import type { TimeEntryWithRelationNames } from '@time-tracker/core';
 
 export function useTimer() {
   const { selection, updateSelection } = useRecentSelection();
-  const [running, setRunning] = useState<TimeEntry | null>(null);
-  const [client, setClient] = useState<Client | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
-  const [task, setTask] = useState<Task | null>(null);
+  const [running, setRunning] = useState<TimeEntryWithRelationNames | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [description, setDescription] = useState('');
   const descriptionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeEntryRepo = useMemo(() => createTimeEntryRepository(), []);
 
   const fetchRunningTimer = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: entries, error } = await supabase
-        .from('time_entries')
-        .select('*')
-        .is('ended_at', null)
-        .limit(1);
+      const entry = await timeEntryRepo.findRunningWithRelations();
 
-      if (error) throw error;
-
-      if (entries && entries.length > 0) {
-        const entry = entries[0] as TimeEntry;
+      if (entry) {
         setRunning(entry);
         setDescription(entry.description || '');
-
-        const { data: clientData } = await supabase
-          .from('clients')
-          .select('*')
-          .eq('id', entry.client_id)
-          .single();
-
-        if (clientData) {
-          setClient(clientData as Client);
-        }
-
-        // Fetch project if exists
-        if (entry.project_id) {
-          const { data: projectData } = await supabase
-            .from('projects')
-            .select('*')
-            .eq('id', entry.project_id)
-            .single();
-
-          if (projectData) {
-            setProject(projectData as Project);
-          }
-        } else {
-          setProject(null);
-        }
-
-        // Fetch task if exists
-        if (entry.task_id) {
-          const { data: taskData } = await supabase
-            .from('tasks')
-            .select('*')
-            .eq('id', entry.task_id)
-            .single();
-
-          if (taskData) {
-            setTask(taskData as Task);
-          }
-        } else {
-          setTask(null);
-        }
       } else {
         setRunning(null);
-        setClient(null);
         setDescription('');
       }
     } catch (error) {
@@ -82,7 +33,7 @@ export function useTimer() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [timeEntryRepo]);
 
   useEffect(() => {
     fetchRunningTimer();
@@ -102,15 +53,12 @@ export function useTimer() {
     async (text: string) => {
       if (!running) return;
       try {
-        await supabase
-          .from('time_entries')
-          .update({ description: text || null })
-          .eq('id', running.id);
+        await timeEntryRepo.update(running.id, { description: text || null });
       } catch (error) {
         console.error('Error saving description:', error);
       }
     },
-    [running]
+    [running, timeEntryRepo]
   );
 
   const handleDescriptionChange = useCallback(
@@ -159,30 +107,19 @@ export function useTimer() {
     async (timerSelection: TimerSelection) => {
       setActionLoading(true);
       try {
-        const entryData: Record<string, unknown> = {
+        const entry = await timeEntryRepo.create({
           client_id: timerSelection.clientId,
-          started_at: new Date().toISOString(),
-        };
+          project_id: timerSelection.projectId ?? null,
+          task_id: timerSelection.taskId ?? null,
+        });
 
-        if (timerSelection.projectId) entryData.project_id = timerSelection.projectId;
-        if (timerSelection.taskId) entryData.task_id = timerSelection.taskId;
-
-        const { data: entry, error } = await supabase
-          .from('time_entries')
-          .insert(entryData)
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setRunning(entry as TimeEntry);
-        setClient({ id: timerSelection.clientId, name: timerSelection.clientName });
-        if (timerSelection.projectId && timerSelection.projectName) {
-          setProject({ id: timerSelection.projectId, name: timerSelection.projectName });
-        }
-        if (timerSelection.taskId && timerSelection.taskName) {
-          setTask({ id: timerSelection.taskId, name: timerSelection.taskName });
-        }
+        // Set running entry with relation names from the selection
+        setRunning({
+          ...entry,
+          client_name: timerSelection.clientName,
+          project_name: timerSelection.projectName ?? null,
+          task_name: timerSelection.taskName ?? null,
+        });
 
         await updateSelection(timerSelection);
       } catch (error) {
@@ -192,7 +129,7 @@ export function useTimer() {
         setActionLoading(false);
       }
     },
-    [updateSelection]
+    [updateSelection, timeEntryRepo]
   );
 
   const stopTimer = useCallback(async () => {
@@ -200,16 +137,8 @@ export function useTimer() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from('time_entries')
-        .update({ ended_at: new Date().toISOString() })
-        .eq('id', running.id);
-
-      if (error) throw error;
+      await timeEntryRepo.stop(running.id);
       setRunning(null);
-      setClient(null);
-      setProject(null);
-      setTask(null);
       setElapsed(0);
       setDescription('');
     } catch (error) {
@@ -218,7 +147,7 @@ export function useTimer() {
     } finally {
       setActionLoading(false);
     }
-  }, [running]);
+  }, [running, timeEntryRepo]);
 
   const formatTime = useCallback((seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -226,6 +155,11 @@ export function useTimer() {
     const s = seconds % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }, []);
+
+  // Derive client/project/task from running entry for backwards compatibility
+  const client = running ? { id: running.client_id, name: running.client_name } : null;
+  const project = running?.project_id ? { id: running.project_id, name: running.project_name ?? '' } : null;
+  const task = running?.task_id ? { id: running.task_id, name: running.task_name ?? '' } : null;
 
   return {
     // State

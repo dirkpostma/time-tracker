@@ -2,6 +2,7 @@ import { getSupabaseClient, formatSupabaseError } from './connection.js';
 import { RepositoryError, type TimeEntryRepository } from '../types.js';
 import type {
   TimeEntry,
+  TimeEntryWithRelationNames,
   CreateTimeEntryInput,
   UpdateTimeEntryInput,
 } from '@time-tracker/core';
@@ -148,5 +149,100 @@ export class SupabaseTimeEntryRepository implements TimeEntryRepository {
     }
 
     return data as TimeEntry;
+  }
+
+  /**
+   * Finds recent time entries with their relation names (client, project, task).
+   * Uses JOINs to avoid N+1 queries.
+   */
+  async findRecentWithRelations(limit: number): Promise<TimeEntryWithRelationNames[]> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select(`
+        id,
+        client_id,
+        project_id,
+        task_id,
+        description,
+        started_at,
+        ended_at,
+        created_at,
+        updated_at,
+        clients (name),
+        projects (name),
+        tasks (name)
+      `)
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw new RepositoryError(
+        `Failed to find recent time entries: ${formatSupabaseError(error.message)}`
+      );
+    }
+
+    return (data ?? []).map((entry) => this.mapEntryWithRelations(entry));
+  }
+
+  /**
+   * Finds the currently running time entry with its relation names.
+   * Uses JOINs to avoid N+1 queries.
+   */
+  async findRunningWithRelations(): Promise<TimeEntryWithRelationNames | null> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select(`
+        id,
+        client_id,
+        project_id,
+        task_id,
+        description,
+        started_at,
+        ended_at,
+        created_at,
+        updated_at,
+        clients (name),
+        projects (name),
+        tasks (name)
+      `)
+      .is('ended_at', null)
+      .maybeSingle();
+
+    if (error) {
+      throw new RepositoryError(
+        `Failed to find running time entry: ${formatSupabaseError(error.message)}`
+      );
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return this.mapEntryWithRelations(data);
+  }
+
+  /**
+   * Maps a raw Supabase query result to TimeEntryWithRelationNames.
+   */
+  private mapEntryWithRelations(entry: Record<string, unknown>): TimeEntryWithRelationNames {
+    return {
+      id: entry.id as string,
+      client_id: entry.client_id as string,
+      project_id: entry.project_id as string | null,
+      task_id: entry.task_id as string | null,
+      description: entry.description as string | null,
+      started_at: entry.started_at as string,
+      ended_at: entry.ended_at as string | null,
+      created_at: entry.created_at as string,
+      updated_at: entry.updated_at as string,
+      client_name: (entry.clients as { name: string } | null)?.name ?? 'Unknown Client',
+      project_name: (entry.projects as { name: string } | null)?.name ?? null,
+      task_name: (entry.tasks as { name: string } | null)?.name ?? null,
+    };
   }
 }

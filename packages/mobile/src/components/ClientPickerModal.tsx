@@ -16,7 +16,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { createClientRepository, type ClientRepository } from '../lib/repositories';
 import { typography, spacing } from '../design-system/tokens';
 import { useTheme } from '../design-system/themes/ThemeContext';
 
@@ -53,13 +53,9 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name')
-        .order('name');
-
-      if (error) throw error;
-      setClients(data || []);
+      const clientRepo = createClientRepository();
+      const data = await clientRepo.findAll();
+      setClients(data.map(c => ({ id: c.id, name: c.name })));
     } catch (error) {
       console.error('Error fetching clients:', error);
     } finally {
@@ -80,16 +76,9 @@ export function ClientPickerModal({ visible, onClose, onSelect }: ClientPickerMo
 
     setAdding(true);
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert({ name })
-        .select('id, name')
-        .single();
-
-      if (error) throw error;
-      if (data) {
-        onSelect(data);
-      }
+      const clientRepo = createClientRepository();
+      const data = await clientRepo.create({ name });
+      onSelect({ id: data.id, name: data.name });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to add client';
       Alert.alert('Error', message);

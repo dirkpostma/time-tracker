@@ -10,7 +10,7 @@ import {
   type StopTimerResult,
 } from './timer.js';
 import type { TimeEntryRepository } from './repository-types.js';
-import type { TimeEntry, CreateTimeEntryInput } from './types.js';
+import type { TimeEntry, TimeEntryWithRelationNames, CreateTimeEntryInput } from './types.js';
 
 // Mock repository factory
 function createMockRepository(): TimeEntryRepository & {
@@ -80,6 +80,20 @@ function createMockRepository(): TimeEntryRepository & {
         return stopped;
       }
       throw new Error('Entry not found');
+    },
+
+    async findRecentWithRelations(): Promise<TimeEntryWithRelationNames[]> {
+      return [];
+    },
+
+    async findRunningWithRelations(): Promise<TimeEntryWithRelationNames | null> {
+      if (!runningEntry) return null;
+      return {
+        ...runningEntry,
+        client_name: 'Mock Client',
+        project_name: null,
+        task_name: null,
+      };
     },
   };
 }

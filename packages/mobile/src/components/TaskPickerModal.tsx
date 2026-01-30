@@ -15,7 +15,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { createTaskRepository, type TaskRepository } from '../lib/repositories';
 import { typography, spacing } from '../design-system/tokens';
 import { useTheme } from '../design-system/themes/ThemeContext';
 
@@ -61,14 +61,9 @@ export function TaskPickerModal({
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('id, name')
-        .eq('project_id', projectId)
-        .order('name');
-
-      if (error) throw error;
-      setTasks(data || []);
+      const taskRepo = createTaskRepository();
+      const data = await taskRepo.findByProjectId(projectId);
+      setTasks(data.map(t => ({ id: t.id, name: t.name })));
     } catch (error) {
       console.error('Error fetching tasks:', error);
       setTasks([]);
@@ -91,16 +86,9 @@ export function TaskPickerModal({
 
     setAdding(true);
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert({ name, project_id: projectId })
-        .select('id, name')
-        .single();
-
-      if (error) throw error;
-      if (data) {
-        onSelect(data);
-      }
+      const taskRepo = createTaskRepository();
+      const data = await taskRepo.create({ name, project_id: projectId });
+      onSelect({ id: data.id, name: data.name });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to add task';
       Alert.alert('Error', message);
