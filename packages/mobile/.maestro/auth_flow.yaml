@@ -3,10 +3,8 @@ appId: nl.dirkpostma.timetracker
 - launchApp:
     clearKeychain: true
 
-# Handle dev client launcher - tap the dev server URL
-- tapOn:
-    text: "http://localhost:8081"
-    optional: true
+# Dev client auto-connects to Metro if running
+# No URL tapping needed - just wait for app to load
 
 # Wait for app to load (either login or timer screen)
 - extendedWaitUntil:
