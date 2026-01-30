@@ -1,11 +1,15 @@
 appId: nl.dirkpostma.timetracker
 ---
-# This test assumes app is already running and connected to Metro
-# Run with: maestro test .maestro/entry_detail_flow.yaml
+# Entry Detail Flow Test
+# 
+# Run with helper script (recommended):
+#   .maestro/run-test.sh entry_detail_flow.yaml
+#
+# Or if app is already connected:
+#   maestro test .maestro/entry_detail_flow.yaml
 
-- launchApp:
-    clearKeychain: false
-    clearState: false
+# Note: launchApp may disconnect from Metro with Dev Client
+# Use run-test.sh to auto-reconnect
 
 # If on login screen, log in first
 - tapOn:
