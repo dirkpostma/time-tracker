@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { SupabaseTimeEntryRepository } from '../lib/repositories';
+import type { TimeEntryWithRelationNames } from '@time-tracker/core';
 
 export interface TimeEntryDisplay {
   id: string;
@@ -71,6 +72,9 @@ function groupEntriesByDay(entries: TimeEntryDisplay[]): DayGroup[] {
   return Array.from(groups.values()).sort((a, b) => b.date.localeCompare(a.date));
 }
 
+// Create repository instance outside component to avoid recreating on every render
+const timeEntryRepo = new SupabaseTimeEntryRepository();
+
 export function useTimeEntries() {
   const [groups, setGroups] = useState<DayGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,34 +82,19 @@ export function useTimeEntries() {
 
   const fetchEntries = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select(`
-          id,
-          started_at,
-          ended_at,
-          description,
-          clients (name),
-          projects (name),
-          tasks (name)
-        `)
-        .not('ended_at', 'is', null)
-        .order('started_at', { ascending: false })
-        .limit(100);
+      const data: TimeEntryWithRelationNames[] = await timeEntryRepo.findRecentWithRelations(100);
 
-      if (error) throw error;
-
-      const entries: TimeEntryDisplay[] = (data || []).map((entry: Record<string, unknown>) => {
-        const startedAt = new Date(entry.started_at as string);
+      const entries: TimeEntryDisplay[] = data.map((entry) => {
+        const startedAt = new Date(entry.started_at);
         const endedAt = new Date(entry.ended_at as string);
         const duration = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
 
         return {
-          id: entry.id as string,
-          clientName: (entry.clients as { name: string } | null)?.name || 'Unknown Client',
-          projectName: (entry.projects as { name: string } | null)?.name,
-          taskName: (entry.tasks as { name: string } | null)?.name,
-          description: entry.description as string | undefined,
+          id: entry.id,
+          clientName: entry.client_name,
+          projectName: entry.project_name ?? undefined,
+          taskName: entry.task_name ?? undefined,
+          description: entry.description ?? undefined,
           startedAt,
           endedAt,
           duration,

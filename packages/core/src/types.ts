@@ -78,3 +78,14 @@ export interface TimeEntryWithRelations {
   project: Project | null;
   task: Task | null;
 }
+
+/**
+ * TimeEntry with just the relation names (not full entities).
+ * Used for list displays where only names are needed.
+ * More efficient than TimeEntryWithRelations for mobile/UI use cases.
+ */
+export interface TimeEntryWithRelationNames extends TimeEntry {
+  client_name: string;
+  project_name: string | null;
+  task_name: string | null;
+}

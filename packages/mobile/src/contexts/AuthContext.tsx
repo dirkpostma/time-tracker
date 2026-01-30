@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../lib/supabase';
+import { createAuthRepository, type AuthUser, type AuthSession, type AuthRepository } from '../lib/repositories';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
+  session: AuthSession | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -14,48 +13,47 @@ interface AuthContextType {
   deleteAccount: (password: string) => Promise<void>;
 }
 
+// Create auth repository instance
+const authRepo: AuthRepository = createAuthRepository();
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    authRepo.getSession().then((session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const unsubscribe = authRepo.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    await authRepo.signIn(email, password);
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+    await authRepo.signUp(email, password);
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) throw error;
+    await authRepo.resetPassword(email);
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await authRepo.signOut();
   };
 
   const deleteAccount = async (password: string) => {
@@ -63,18 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('No user logged in');
     }
 
-    // 1. Delete user account via RPC (also verifies password)
-    const { error: deleteError } = await supabase.rpc('delete_user_account', {
-      password,
-    });
-
-    if (deleteError) {
-      // Check if it's a password error
-      if (deleteError.message.includes('Incorrect password')) {
-        throw new Error('Incorrect password');
-      }
-      throw new Error('Failed to delete account. Please try again.');
-    }
+    // 1. Delete user account via repository (handles RPC, token cleanup, and sign out)
+    await authRepo.deleteAccount(password);
 
     // 2. Clear local storage
     try {
@@ -85,9 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Ignore storage cleanup errors
     }
-
-    // 3. Sign out (clears auth tokens)
-    await supabase.auth.signOut();
   };
 
   return (

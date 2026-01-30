@@ -12,6 +12,7 @@ import type {
   Project,
   Task,
   TimeEntry,
+  TimeEntryWithRelationNames,
   CreateClientInput,
   CreateProjectInput,
   CreateTaskInput,
@@ -160,4 +161,110 @@ export interface TimeEntryRepository {
    * @throws RepositoryError if stop fails or entry not found
    */
   stop(id: string): Promise<TimeEntry>;
+
+  /**
+   * Finds recent time entries with their relation names (client, project, task).
+   * Uses JOINs to avoid N+1 queries.
+   * @param limit - Maximum number of entries to return
+   * @returns An array of time entries with relation names, ordered by started_at descending
+   * @throws RepositoryError if the query fails
+   */
+  findRecentWithRelations(limit: number): Promise<TimeEntryWithRelationNames[]>;
+
+  /**
+   * Finds the currently running time entry with its relation names.
+   * Uses JOINs to avoid N+1 queries.
+   * @returns The running time entry with relation names if one exists, null otherwise
+   * @throws RepositoryError if the query fails
+   */
+  findRunningWithRelations(): Promise<TimeEntryWithRelationNames | null>;
+}
+
+/**
+ * User type for authentication.
+ * Platform-agnostic representation of an authenticated user.
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+/**
+ * Session type for authentication.
+ * Contains the user and token information.
+ */
+export interface AuthSession {
+  user: AuthUser;
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+}
+
+/**
+ * Callback for auth state changes.
+ */
+export type AuthStateChangeCallback = (
+  event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_DELETED',
+  session: AuthSession | null
+) => void;
+
+/**
+ * Unsubscribe function returned by onAuthStateChange.
+ */
+export type AuthUnsubscribe = () => void;
+
+/**
+ * Repository interface for authentication operations.
+ */
+export interface AuthRepository {
+  /**
+   * Signs in with email and password.
+   * @param email - User's email address
+   * @param password - User's password
+   * @returns The authenticated user
+   * @throws RepositoryError if sign in fails
+   */
+  signIn(email: string, password: string): Promise<AuthUser>;
+
+  /**
+   * Signs up with email and password.
+   * @param email - User's email address
+   * @param password - User's password
+   * @returns The created user
+   * @throws RepositoryError if sign up fails
+   */
+  signUp(email: string, password: string): Promise<AuthUser>;
+
+  /**
+   * Signs out the current user.
+   * @throws RepositoryError if sign out fails
+   */
+  signOut(): Promise<void>;
+
+  /**
+   * Sends a password reset email.
+   * @param email - User's email address
+   * @throws RepositoryError if request fails
+   */
+  resetPassword(email: string): Promise<void>;
+
+  /**
+   * Gets the current session.
+   * @returns The current session if one exists, null otherwise
+   */
+  getSession(): Promise<AuthSession | null>;
+
+  /**
+   * Subscribes to auth state changes.
+   * @param callback - Function to call when auth state changes
+   * @returns An unsubscribe function
+   */
+  onAuthStateChange(callback: AuthStateChangeCallback): AuthUnsubscribe;
+
+  /**
+   * Deletes the current user's account.
+   * @param password - User's password for verification
+   * @throws RepositoryError if deletion fails or password is incorrect
+   */
+  deleteAccount(password: string): Promise<void>;
 }

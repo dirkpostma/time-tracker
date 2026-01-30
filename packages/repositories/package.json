@@ -40,6 +40,10 @@
     "./supabase/auth": {
       "types": "./dist/supabase/auth.d.ts",
       "import": "./dist/supabase/auth.js"
+    },
+    "./supabase/storage": {
+      "types": "./dist/supabase/storage.d.ts",
+      "import": "./dist/supabase/storage.js"
     }
   },
   "scripts": {

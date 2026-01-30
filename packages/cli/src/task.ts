@@ -30,5 +30,9 @@ export async function listTasks(projectId: string): Promise<Task[]> {
   return taskRepository.findByProjectId(projectId);
 }
 
+export async function findTaskByName(name: string, projectId: string): Promise<Task | null> {
+  return taskRepository.findByName(name, projectId);
+}
+
 // Export the repository for direct access when needed
 export { taskRepository, SupabaseTaskRepository, createTaskRepository };

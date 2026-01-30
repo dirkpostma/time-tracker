@@ -15,7 +15,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { createProjectRepository, type ProjectRepository } from '../lib/repositories';
 import { typography, spacing } from '../design-system/tokens';
 import { useTheme } from '../design-system/themes/ThemeContext';
 
@@ -61,14 +61,9 @@ export function ProjectPickerModal({
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id, name')
-        .eq('client_id', clientId)
-        .order('name');
-
-      if (error) throw error;
-      setProjects(data || []);
+      const projectRepo = createProjectRepository();
+      const data = await projectRepo.findByClientId(clientId);
+      setProjects(data.map(p => ({ id: p.id, name: p.name })));
     } catch (error) {
       console.error('Error fetching projects:', error);
       setProjects([]);
@@ -91,16 +86,9 @@ export function ProjectPickerModal({
 
     setAdding(true);
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({ name, client_id: clientId })
-        .select('id, name')
-        .single();
-
-      if (error) throw error;
-      if (data) {
-        onSelect(data);
-      }
+      const projectRepo = createProjectRepository();
+      const data = await projectRepo.create({ name, client_id: clientId });
+      onSelect({ id: data.id, name: data.name });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to add project';
       Alert.alert('Error', message);

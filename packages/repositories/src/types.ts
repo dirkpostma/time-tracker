@@ -12,6 +12,11 @@ export type {
   ProjectRepository,
   TaskRepository,
   TimeEntryRepository,
+  AuthRepository,
+  AuthUser,
+  AuthSession,
+  AuthStateChangeCallback,
+  AuthUnsubscribe,
 } from '@time-tracker/core';
 
 /**

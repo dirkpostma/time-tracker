@@ -7,12 +7,11 @@ import { program } from 'commander';
 import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './client.js';
 import { addProject, listProjects, findClientByName } from './project.js';
-import { listTasks, findProjectByName, addTask } from './task.js';
+import { listTasks, findProjectByName, addTask, findTaskByName } from './task.js';
 import { startTimer, stopTimer, getStatus, getRunningTimer } from './timeEntry.js';
 import { runInteractiveMode } from './interactive.js';
 import { configCommand, ensureConfig, showConfig } from './config.js';
 import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.js';
-import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
 
 // Commands that don't require authentication
 const AUTH_EXEMPT = ['config', 'login', 'logout', 'whoami'];
@@ -237,12 +236,7 @@ program
 
         // Find or create task if provided (requires project)
         if (options.task) {
-          const { data: existingTask } = await getSupabaseClient()
-            .from('tasks')
-            .select('*')
-            .eq('name', options.task)
-            .eq('project_id', projectId)
-            .maybeSingle();
+          const existingTask = await findTaskByName(options.task, projectId);
 
           if (!existingTask) {
             const shouldCreate = await confirm({
@@ -264,12 +258,7 @@ program
       // Find task ID if provided
       let taskId: string | undefined;
       if (options.task && projectId) {
-        const { data: existingTask } = await getSupabaseClient()
-          .from('tasks')
-          .select('*')
-          .eq('name', options.task)
-          .eq('project_id', projectId)
-          .maybeSingle();
+        const existingTask = await findTaskByName(options.task, projectId);
         taskId = existingTask?.id;
       }
 
