@@ -38,6 +38,24 @@ maestro test .maestro/
 | `history_flow.yaml` | Create timer, view history |
 | `entry_detail_flow.yaml` | Tap entry, view/edit details |
 
+## Troubleshooting
+
+### "tab-bar not visible" or app stuck on launcher screen
+Metro isn't running or app isn't connected. Fix:
+1. Start Metro: `npx expo start --ios` in packages/mobile
+2. Check simulator shows the app (not "No development servers found")
+3. If stuck on launcher, tap the localhost entry or run `./run-test.sh`
+
+### Maestro command not found
+Maestro requires Java. Set up your environment:
+```bash
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$HOME/.maestro/bin:$PATH"
+```
+
+### Debug output location
+Screenshots and logs from failed tests: `~/.maestro/tests/YYYY-MM-DD_HHMMSS/`
+
 ## Known Issues
 
 - **Dev Client disconnects**: Maestro's `launchApp` terminates the app, which disconnects from Metro. Use `run-test.sh` to auto-reconnect.
