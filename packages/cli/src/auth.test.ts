@@ -7,7 +7,7 @@ vi.mock('@inquirer/prompts', () => ({
 }));
 
 // Mock the auth repository
-vi.mock('@time-tracker/repositories/supabase/auth', () => ({
+vi.mock('@time-tracker/repositories/supabase/auth-cli', () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),
   getCurrentUser: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('@time-tracker/repositories/supabase/auth', () => ({
 
 import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.js';
 import { input, password } from '@inquirer/prompts';
-import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth';
+import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth-cli';
 
 describe('loginCommand', () => {
   beforeEach(() => {

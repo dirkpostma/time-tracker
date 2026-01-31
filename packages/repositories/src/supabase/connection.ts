@@ -104,32 +104,6 @@ export function getSupabaseClient(): SupabaseClient {
 }
 
 /**
- * Initializes the Supabase client from config file or environment variables.
- * This is for CLI usage only - mobile should use initSupabaseClient() directly.
- * Note: This function dynamically imports the config module which uses Node.js fs,
- * so it will fail on React Native. Mobile apps should never call this.
- */
-export async function initSupabaseClientFromConfig(): Promise<SupabaseClient> {
-  if (client) return client;
-
-  // Dynamic import to avoid bundling Node.js modules in React Native
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const configModule = await (import('./config.js') as Promise<any>);
-  const config = configModule.getConfig();
-
-  if (!config) {
-    throw new Error(
-      `Missing configuration. Run 'tt config' to set up your credentials.\n` +
-      `Or create ${configModule.getConfigPath()} with:\n` +
-      `  {"supabaseUrl": "your-url", "supabaseKey": "your-key"}`
-    );
-  }
-
-  client = createClient(config.supabaseUrl, config.supabaseKey);
-  return client;
-}
-
-/**
  * Wraps Supabase operations with better error messages.
  * Use this to provide user-friendly errors for auth/connection issues.
  */
