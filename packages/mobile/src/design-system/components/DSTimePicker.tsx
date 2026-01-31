@@ -9,11 +9,15 @@ import {
   Dimensions,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { colors, typography, spacing } from '../tokens';
+import { defaultTheme } from '../themes';
+import { spacing } from '../tokens';
 import { DSText } from './DSText';
 import { DSButton } from './DSButton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Use theme colors for dark mode
+const themeColors = defaultTheme.colors;
 
 export interface DSTimePickerProps {
   /**
@@ -123,12 +127,13 @@ export function DSTimePicker({
             variant="h3" 
             color={disabled ? 'secondary' : 'primary'}
             testID={testID ? `${testID}-value` : undefined}
+            style={styles.timeText}
           >
             {formatTime(value)}
           </DSText>
           {!disabled && (
-            <View style={styles.editIcon}>
-              <DSText variant="bodySmall" color="primary">Edit</DSText>
+            <View style={styles.editBadge}>
+              <DSText variant="bodySmall" style={styles.editText}>Edit</DSText>
             </View>
           )}
         </View>
@@ -143,56 +148,58 @@ export function DSTimePicker({
           onRequestClose={handleCancel}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              {/* Header */}
-              <View style={styles.modalHeader}>
-                <TouchableOpacity 
-                  onPress={handleCancel} 
-                  style={styles.headerButton}
-                  testID={testID ? `${testID}-cancel` : undefined}
-                >
-                  <DSText variant="body" color="secondary">Cancel</DSText>
-                </TouchableOpacity>
-                
-                <DSText variant="body" style={styles.modalTitle}>
-                  {label || 'Select Time'}
-                </DSText>
-                
-                <TouchableOpacity 
-                  onPress={handleConfirm} 
-                  style={styles.headerButton}
-                  testID={testID ? `${testID}-done` : undefined}
-                >
-                  <DSText variant="body" color="primary" style={styles.doneText}>Done</DSText>
-                </TouchableOpacity>
-              </View>
+            <SafeAreaView style={styles.modalSafeArea}>
+              <View style={styles.modalContent}>
+                {/* Header */}
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity 
+                    onPress={handleCancel} 
+                    style={styles.headerButton}
+                    testID={testID ? `${testID}-cancel` : undefined}
+                  >
+                    <DSText variant="body" style={styles.cancelText}>Cancel</DSText>
+                  </TouchableOpacity>
+                  
+                  <DSText variant="body" style={styles.modalTitle}>
+                    {label || 'Select Time'}
+                  </DSText>
+                  
+                  <TouchableOpacity 
+                    onPress={handleConfirm} 
+                    style={styles.headerButton}
+                    testID={testID ? `${testID}-done` : undefined}
+                  >
+                    <DSText variant="body" style={styles.doneText}>Done</DSText>
+                  </TouchableOpacity>
+                </View>
 
-              {/* Picker */}
-              <View style={styles.pickerContainer}>
-                <DateTimePicker
-                  value={tempValue}
-                  mode="time"
-                  display="spinner"
-                  onChange={handleChange}
-                  minimumDate={minimumDate}
-                  maximumDate={maximumDate}
-                  testID={testID ? `${testID}-picker` : undefined}
-                  textColor={colors.textPrimary}
-                  themeVariant="dark"
-                  style={styles.picker}
-                />
-              </View>
+                {/* Picker */}
+                <View style={styles.pickerContainer}>
+                  <DateTimePicker
+                    value={tempValue}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleChange}
+                    minimumDate={minimumDate}
+                    maximumDate={maximumDate}
+                    testID={testID ? `${testID}-picker` : undefined}
+                    textColor={themeColors.textPrimary}
+                    themeVariant="dark"
+                    style={styles.picker}
+                  />
+                </View>
 
-              {/* Confirm Button */}
-              <View style={styles.confirmButtonContainer}>
-                <DSButton
-                  title="Confirm"
-                  onPress={handleConfirm}
-                  variant="primary"
-                  testID={testID ? `${testID}-confirm` : undefined}
-                />
+                {/* Confirm Button */}
+                <View style={styles.confirmButtonContainer}>
+                  <DSButton
+                    title="Confirm Time"
+                    onPress={handleConfirm}
+                    variant="primary"
+                    testID={testID ? `${testID}-confirm` : undefined}
+                  />
+                </View>
               </View>
-            </View>
+            </SafeAreaView>
           </View>
         </Modal>
       )}
@@ -251,7 +258,7 @@ DSTimePicker.Inline = function DSTimePickerInline({
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           testID={testID ? `${testID}-picker` : undefined}
-          textColor={colors.textPrimary}
+          textColor={themeColors.textPrimary}
           themeVariant="dark"
         />
       </View>
@@ -269,13 +276,13 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    backgroundColor: colors.cardBackground,
+    backgroundColor: themeColors.backgroundCard,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: themeColors.border,
   },
   buttonDisabled: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: themeColors.backgroundTertiary,
     opacity: 0.6,
   },
   buttonContent: {
@@ -283,52 +290,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  editIcon: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 6,
+  timeText: {
+    color: themeColors.textPrimary,
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  editBadge: {
+    backgroundColor: themeColors.primary + '25',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: 8,
+  },
+  editText: {
+    color: themeColors.primary,
+    fontWeight: '600',
   },
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
   },
+  modalSafeArea: {
+    backgroundColor: themeColors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
   modalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: spacing.xl,
-    maxHeight: '70%',
+    paddingBottom: spacing.xxl,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.md + 4,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: themeColors.border,
   },
   headerButton: {
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
     minWidth: 70,
   },
+  cancelText: {
+    color: themeColors.textSecondary,
+    fontSize: 16,
+  },
   modalTitle: {
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
+    fontWeight: '600',
+    color: themeColors.textPrimary,
     textAlign: 'center',
     flex: 1,
+    fontSize: 17,
   },
   doneText: {
-    fontWeight: typography.fontWeight.semibold,
+    color: themeColors.primary,
+    fontWeight: '600',
     textAlign: 'right',
+    fontSize: 16,
   },
   pickerContainer: {
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xl,
     alignItems: 'center',
+    backgroundColor: themeColors.backgroundSecondary,
   },
   picker: {
     width: SCREEN_WIDTH - spacing.xl * 2,
@@ -336,7 +361,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonContainer: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
   },
   // Inline styles
   inlineContainer: {
@@ -344,9 +369,11 @@ const styles = StyleSheet.create({
   },
   inlinePickerWrapper: {
     alignItems: 'center',
-    backgroundColor: colors.cardBackground,
+    backgroundColor: themeColors.backgroundCard,
     borderRadius: 12,
     paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: themeColors.border,
   },
   pickerDisabled: {
     opacity: 0.5,
