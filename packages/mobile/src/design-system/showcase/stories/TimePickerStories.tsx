@@ -4,7 +4,7 @@ import { DSTimePicker } from '../../components/DSTimePicker';
 import { DSText } from '../../components/DSText';
 import { DSSpacer } from '../../components/DSSpacer';
 import { DSCard } from '../../components/DSCard';
-import { spacing } from '../../tokens';
+import { colors, spacing } from '../../tokens';
 
 function DefaultStory() {
   const [time, setTime] = useState(new Date());
@@ -12,19 +12,23 @@ function DefaultStory() {
   return (
     <View style={styles.container}>
       <DSText variant="h3">Default Time Picker</DSText>
-      <DSSpacer size="md" />
-      <DSCard variant="elevated" style={styles.card}>
-        <DSTimePicker
-          value={time}
-          onChange={setTime}
-          label="Select Time"
-          testID="time-picker-default"
-        />
-      </DSCard>
-      <DSSpacer size="sm" />
       <DSText variant="bodySmall" color="secondary">
-        Selected: {time.toLocaleTimeString()}
+        Tap to open the time selection modal
       </DSText>
+      <DSSpacer size="lg" />
+      
+      <DSTimePicker
+        value={time}
+        onChange={setTime}
+        label="Select Time"
+        testID="time-picker-default"
+      />
+      
+      <DSSpacer size="md" />
+      <View style={styles.resultBox}>
+        <DSText variant="bodySmall" color="secondary">Selected:</DSText>
+        <DSText variant="body">{time.toLocaleTimeString()}</DSText>
+      </View>
     </View>
   );
 }
@@ -35,14 +39,16 @@ function WithoutLabelStory() {
   return (
     <View style={styles.container}>
       <DSText variant="h3">Without Label</DSText>
-      <DSSpacer size="md" />
-      <DSCard variant="elevated" style={styles.card}>
-        <DSTimePicker
-          value={time}
-          onChange={setTime}
-          testID="time-picker-no-label"
-        />
-      </DSCard>
+      <DSText variant="bodySmall" color="secondary">
+        Time picker without a label
+      </DSText>
+      <DSSpacer size="lg" />
+      
+      <DSTimePicker
+        value={time}
+        onChange={setTime}
+        testID="time-picker-no-label"
+      />
     </View>
   );
 }
@@ -53,16 +59,18 @@ function DisabledStory() {
   return (
     <View style={styles.container}>
       <DSText variant="h3">Disabled State</DSText>
-      <DSSpacer size="md" />
-      <DSCard variant="elevated" style={styles.card}>
-        <DSTimePicker
-          value={time}
-          onChange={() => {}}
-          label="Disabled Time"
-          disabled
-          testID="time-picker-disabled"
-        />
-      </DSCard>
+      <DSText variant="bodySmall" color="secondary">
+        Non-interactive time picker
+      </DSText>
+      <DSSpacer size="lg" />
+      
+      <DSTimePicker
+        value={time}
+        onChange={() => {}}
+        label="Disabled Time"
+        disabled
+        testID="time-picker-disabled"
+      />
     </View>
   );
 }
@@ -92,28 +100,36 @@ function StartEndStory() {
   return (
     <View style={styles.container}>
       <DSText variant="h3">Start & End Time</DSText>
-      <DSSpacer size="md" />
-      <DSCard variant="elevated" style={styles.card}>
-        <DSTimePicker
-          value={startTime}
-          onChange={handleStartChange}
-          label="Start Time"
-          maximumDate={endTime}
-          testID="time-picker-start"
-        />
-        <DSSpacer size="sm" />
-        <DSTimePicker
-          value={endTime}
-          onChange={handleEndChange}
-          label="End Time"
-          minimumDate={startTime}
-          testID="time-picker-end"
-        />
-      </DSCard>
-      <DSSpacer size="sm" />
       <DSText variant="bodySmall" color="secondary">
-        Duration: {hours > 0 ? `${hours}h ` : ''}{minutes}m
+        Two linked pickers with duration calculation
       </DSText>
+      <DSSpacer size="lg" />
+      
+      <DSTimePicker
+        value={startTime}
+        onChange={handleStartChange}
+        label="Start Time"
+        maximumDate={endTime}
+        testID="time-picker-start"
+      />
+      
+      <DSSpacer size="md" />
+      
+      <DSTimePicker
+        value={endTime}
+        onChange={handleEndChange}
+        label="End Time"
+        minimumDate={startTime}
+        testID="time-picker-end"
+      />
+      
+      <DSSpacer size="lg" />
+      <View style={styles.durationBox}>
+        <DSText variant="bodySmall" color="secondary">Duration</DSText>
+        <DSText variant="h2" color="primary">
+          {hours > 0 ? `${hours}h ` : ''}{minutes}m
+        </DSText>
+      </View>
     </View>
   );
 }
@@ -123,23 +139,24 @@ function InlineStory() {
 
   return (
     <View style={styles.container}>
-      <DSText variant="h3">Inline Picker (iOS)</DSText>
+      <DSText variant="h3">Inline Picker</DSText>
       <DSText variant="bodySmall" color="secondary">
-        Shows the picker directly without a modal
+        Shows the picker directly without a modal (iOS spinner)
       </DSText>
+      <DSSpacer size="lg" />
+      
+      <DSTimePicker.Inline
+        value={time}
+        onChange={setTime}
+        label="Time"
+        testID="time-picker-inline"
+      />
+      
       <DSSpacer size="md" />
-      <DSCard variant="elevated" style={styles.card}>
-        <DSTimePicker.Inline
-          value={time}
-          onChange={setTime}
-          label="Time"
-          testID="time-picker-inline"
-        />
-      </DSCard>
-      <DSSpacer size="sm" />
-      <DSText variant="bodySmall" color="secondary">
-        Selected: {time.toLocaleTimeString()}
-      </DSText>
+      <View style={styles.resultBox}>
+        <DSText variant="bodySmall" color="secondary">Selected:</DSText>
+        <DSText variant="body">{time.toLocaleTimeString()}</DSText>
+      </View>
     </View>
   );
 }
@@ -156,7 +173,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  card: {
+  resultBox: {
+    backgroundColor: colors.cardBackground,
     padding: spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  durationBox: {
+    backgroundColor: colors.cardBackground,
+    padding: spacing.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+    alignItems: 'center',
   },
 });

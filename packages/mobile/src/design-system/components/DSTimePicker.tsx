@@ -6,10 +6,14 @@ import {
   Platform,
   Modal,
   SafeAreaView,
+  Dimensions,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors, typography, spacing } from '../tokens';
 import { DSText } from './DSText';
+import { DSButton } from './DSButton';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export interface DSTimePickerProps {
   /**
@@ -86,7 +90,7 @@ export function DSTimePicker({
     }
   }, [onChange]);
 
-  const handleDone = useCallback(() => {
+  const handleConfirm = useCallback(() => {
     setShowPicker(false);
     onChange(tempValue);
   }, [onChange, tempValue]);
@@ -112,17 +116,22 @@ export function DSTimePicker({
         accessibilityLabel={label ? `${label}: ${formatTime(value)}` : formatTime(value)}
         accessibilityHint="Opens time picker"
         accessibilityRole="button"
+        activeOpacity={0.7}
       >
-        <DSText 
-          variant="body" 
-          color={disabled ? 'secondary' : 'primary'}
-          testID={testID ? `${testID}-value` : undefined}
-        >
-          {formatTime(value)}
-        </DSText>
-        {!disabled && (
-          <DSText variant="bodySmall" color="secondary"> ✎</DSText>
-        )}
+        <View style={styles.buttonContent}>
+          <DSText 
+            variant="h3" 
+            color={disabled ? 'secondary' : 'primary'}
+            testID={testID ? `${testID}-value` : undefined}
+          >
+            {formatTime(value)}
+          </DSText>
+          {!disabled && (
+            <View style={styles.editIcon}>
+              <DSText variant="bodySmall" color="primary">Edit</DSText>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
 
       {/* iOS Modal Picker */}
@@ -130,33 +139,61 @@ export function DSTimePicker({
         <Modal
           visible={showPicker}
           animationType="slide"
-          presentationStyle="pageSheet"
+          transparent={true}
           onRequestClose={handleCancel}
         >
-          <SafeAreaView style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={handleCancel} testID={testID ? `${testID}-cancel` : undefined}>
-                <DSText variant="body" color="secondary">Cancel</DSText>
-              </TouchableOpacity>
-              <DSText variant="body" style={styles.modalTitle}>
-                {label || 'Select Time'}
-              </DSText>
-              <TouchableOpacity onPress={handleDone} testID={testID ? `${testID}-done` : undefined}>
-                <DSText variant="body" color="primary">Done</DSText>
-              </TouchableOpacity>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <TouchableOpacity 
+                  onPress={handleCancel} 
+                  style={styles.headerButton}
+                  testID={testID ? `${testID}-cancel` : undefined}
+                >
+                  <DSText variant="body" color="secondary">Cancel</DSText>
+                </TouchableOpacity>
+                
+                <DSText variant="body" style={styles.modalTitle}>
+                  {label || 'Select Time'}
+                </DSText>
+                
+                <TouchableOpacity 
+                  onPress={handleConfirm} 
+                  style={styles.headerButton}
+                  testID={testID ? `${testID}-done` : undefined}
+                >
+                  <DSText variant="body" color="primary" style={styles.doneText}>Done</DSText>
+                </TouchableOpacity>
+              </View>
+
+              {/* Picker */}
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={tempValue}
+                  mode="time"
+                  display="spinner"
+                  onChange={handleChange}
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  testID={testID ? `${testID}-picker` : undefined}
+                  textColor={colors.textPrimary}
+                  themeVariant="dark"
+                  style={styles.picker}
+                />
+              </View>
+
+              {/* Confirm Button */}
+              <View style={styles.confirmButtonContainer}>
+                <DSButton
+                  title="Confirm"
+                  onPress={handleConfirm}
+                  variant="primary"
+                  testID={testID ? `${testID}-confirm` : undefined}
+                />
+              </View>
             </View>
-            <View style={styles.pickerWrapper}>
-              <DateTimePicker
-                value={tempValue}
-                mode="time"
-                display="spinner"
-                onChange={handleChange}
-                minimumDate={minimumDate}
-                maximumDate={maximumDate}
-                testID={testID ? `${testID}-picker` : undefined}
-              />
-            </View>
-          </SafeAreaView>
+          </View>
         </Modal>
       )}
 
@@ -214,6 +251,8 @@ DSTimePicker.Inline = function DSTimePickerInline({
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           testID={testID ? `${testID}-picker` : undefined}
+          textColor={colors.textPrimary}
+          themeVariant="dark"
         />
       </View>
     </View>
@@ -222,25 +261,46 @@ DSTimePicker.Inline = function DSTimePickerInline({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: spacing.xs,
+    marginVertical: spacing.sm,
   },
   label: {
     marginBottom: spacing.xs,
   },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(0, 122, 255, 0.05)',
-    borderRadius: 8,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.cardBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   buttonDisabled: {
     backgroundColor: colors.backgroundSecondary,
+    opacity: 0.6,
   },
-  modalContainer: {
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  editIcon: {
+    backgroundColor: colors.primary + '20',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 6,
+  },
+  // Modal styles
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
     backgroundColor: colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: spacing.xl,
+    maxHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -251,18 +311,42 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
   },
+  headerButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    minWidth: 70,
+  },
   modalTitle: {
     fontWeight: typography.fontWeight.semibold,
-  },
-  pickerWrapper: {
+    color: colors.textPrimary,
+    textAlign: 'center',
     flex: 1,
-    justifyContent: 'center',
   },
+  doneText: {
+    fontWeight: typography.fontWeight.semibold,
+    textAlign: 'right',
+  },
+  pickerContainer: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+  picker: {
+    width: SCREEN_WIDTH - spacing.xl * 2,
+    height: 200,
+  },
+  confirmButtonContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  // Inline styles
   inlineContainer: {
     marginVertical: spacing.xs,
   },
   inlinePickerWrapper: {
     alignItems: 'center',
+    backgroundColor: colors.cardBackground,
+    borderRadius: 12,
+    paddingVertical: spacing.sm,
   },
   pickerDisabled: {
     opacity: 0.5,
