@@ -1,446 +1,401 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import { runInteractiveMode, InteractiveResult, formatDuration, formatTimerInfo } from './interactive.js';
-import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
-import { addClient, Client } from './client.js';
-import { addProject, Project } from './project.js';
-import { addTask, Task } from './task.js';
-import { getRunningTimer, stopTimer, TimerStatus } from './timeEntry.js';
-import { saveRecent, loadRecent } from './recent.js';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Client, Project, Task, TimeEntry } from '@time-tracker/core';
+import type { TimerStatus } from './timeEntry.js';
 
-// Skip: These integration tests require Supabase authentication (RLS policies).
-describe.skip('interactive mode', () => {
-  const testId = Date.now();
-  let testClient: Client;
-  let testClient2: Client;
-  let testProject: Project;
-  let testTask: Task;
+// Mock all dependencies
+vi.mock('./client.js', () => ({
+  listClients: vi.fn(),
+  addClient: vi.fn(),
+}));
 
-  beforeAll(async () => {
-    // Create test data
-    testClient = await addClient(`Interactive Test Client ${testId}`);
-    testClient2 = await addClient(`Interactive Test Client 2 ${testId}`);
-    testProject = await addProject(`Interactive Test Project ${testId}`, testClient.id);
-    testTask = await addTask(`Interactive Test Task ${testId}`, testProject.id);
+vi.mock('./project.js', () => ({
+  listProjectsByClient: vi.fn(),
+  addProject: vi.fn(),
+}));
+
+vi.mock('./task.js', () => ({
+  listTasks: vi.fn(),
+  addTask: vi.fn(),
+}));
+
+vi.mock('./timeEntry.js', () => ({
+  getStatus: vi.fn(),
+  startTimer: vi.fn(),
+  stopTimer: vi.fn(),
+  getRunningTimer: vi.fn(),
+}));
+
+vi.mock('./recent.js', () => ({
+  loadRecent: vi.fn(),
+  saveRecent: vi.fn(),
+}));
+
+import { listClients, addClient } from './client.js';
+import { listProjectsByClient, addProject } from './project.js';
+import { listTasks, addTask } from './task.js';
+import { getStatus, startTimer, stopTimer, getRunningTimer } from './timeEntry.js';
+import { loadRecent, saveRecent } from './recent.js';
+import { runInteractiveMode, formatDuration, formatTimerInfo } from './interactive.js';
+
+describe('interactive mode', () => {
+  const mockClient: Client = {
+    id: 'client-123',
+    name: 'Test Client',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  const mockClient2: Client = {
+    id: 'client-456',
+    name: 'Test Client 2',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  const mockProject: Project = {
+    id: 'project-123',
+    name: 'Test Project',
+    client_id: 'client-123',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  const mockTask: Task = {
+    id: 'task-123',
+    name: 'Test Task',
+    project_id: 'project-123',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  const mockTimeEntry: TimeEntry = {
+    id: 'entry-123',
+    client_id: 'client-123',
+    project_id: 'project-123',
+    task_id: 'task-123',
+    description: null,
+    started_at: new Date().toISOString(),
+    ended_at: null,
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Default mocks
+    vi.mocked(listClients).mockResolvedValue([mockClient, mockClient2]);
+    vi.mocked(listProjectsByClient).mockResolvedValue([mockProject]);
+    vi.mocked(listTasks).mockResolvedValue([mockTask]);
+    vi.mocked(getStatus).mockResolvedValue(null);
+    vi.mocked(startTimer).mockResolvedValue(mockTimeEntry);
+    vi.mocked(loadRecent).mockReturnValue({});
+    vi.mocked(saveRecent).mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
-  afterAll(async () => {
-    const supabase = getSupabaseClient();
-
-    // Stop any running timer
-    const running = await getRunningTimer();
-    if (running) {
-      await stopTimer();
-    }
-
-    // Clean up test data
-    await supabase.from('tasks').delete().eq('id', testTask.id);
-    await supabase.from('projects').delete().eq('id', testProject.id);
-    await supabase.from('clients').delete().eq('id', testClient.id);
-    await supabase.from('clients').delete().eq('id', testClient2.id);
-  });
-
-  beforeEach(async () => {
-    // Stop any running timer before each test
-    const running = await getRunningTimer();
-    if (running) {
-      await stopTimer();
-    }
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('no timer running', () => {
     /** @spec interactive.select.start */
     it('starts timer after selecting client, project, and task', async () => {
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return testProject.id;
-        if (opts.message.includes('task')) return testTask.id;
-        return '';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)    // Select client
+        .mockResolvedValueOnce(mockProject.id)   // Select project
+        .mockResolvedValueOnce(mockTask.id);     // Select task
 
-      const mockInput = async () => 'Test description';
+      const mockInput = vi.fn().mockResolvedValue('Test description');
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
       expect(result.action).toBe('started');
       expect(result.timerStarted).toBe(true);
-
-      const running = await getRunningTimer();
-      expect(running).not.toBeNull();
-      expect(running?.client_id).toBe(testClient.id);
-      expect(running?.project_id).toBe(testProject.id);
-      expect(running?.task_id).toBe(testTask.id);
-      expect(running?.description).toBe('Test description');
+      expect(startTimer).toHaveBeenCalledWith(
+        mockClient.id,
+        mockProject.id,
+        mockTask.id,
+        'Test description'
+      );
     });
 
     it('starts timer with only client (skip project and task)', async () => {
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return '__skip__';
-        return '__skip__';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)    // Select client
+        .mockResolvedValueOnce('__skip__');      // Skip project
 
-      const mockInput = async () => '';
+      const mockInput = vi.fn().mockResolvedValue('');
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
       expect(result.action).toBe('started');
-
-      const running = await getRunningTimer();
-      expect(running).not.toBeNull();
-      expect(running?.client_id).toBe(testClient.id);
-      expect(running?.project_id).toBeNull();
-      expect(running?.task_id).toBeNull();
+      expect(startTimer).toHaveBeenCalledWith(
+        mockClient.id,
+        undefined,
+        undefined,
+        undefined
+      );
     });
 
     /** @spec interactive.select.client */
     it('creates new client when selected', async () => {
-      let createClientPromptShown = false;
-      const newClientName = `New Client ${testId}`;
+      const newClient: Client = { ...mockClient, id: 'new-client-id', name: 'New Client' };
+      vi.mocked(addClient).mockResolvedValue(newClient);
 
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return '__new__';
-        if (opts.message.includes('project')) return '__skip__';
-        return '__skip__';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce('__new__')        // Create new client
+        .mockResolvedValueOnce('__skip__');      // Skip project
 
-      const mockInput = async (opts: { message: string }) => {
-        if (opts.message.includes('client') || opts.message.includes('Client')) {
-          createClientPromptShown = true;
-          return newClientName;
-        }
-        return '';
-      };
+      const mockInput = vi.fn()
+        .mockResolvedValueOnce('New Client')     // New client name
+        .mockResolvedValueOnce('');              // Description
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
-      expect(createClientPromptShown).toBe(true);
+      expect(addClient).toHaveBeenCalledWith('New Client');
       expect(result.action).toBe('started');
-
-      // Clean up new client
-      const supabase = getSupabaseClient();
-      await supabase.from('time_entries').delete().eq('client_id', result.clientId!);
-      await supabase.from('clients').delete().eq('name', newClientName);
     });
 
     /** @spec interactive.select.project */
     it('creates new project when [+ New project] is selected', async () => {
-      let createProjectPromptShown = false;
-      const newProjectName = `New Project ${testId}`;
+      const newProject: Project = { ...mockProject, id: 'new-project-id', name: 'New Project' };
+      vi.mocked(addProject).mockResolvedValue(newProject);
 
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return '__new__';
-        if (opts.message.includes('task')) return '__skip__';
-        return '';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)    // Select client
+        .mockResolvedValueOnce('__new__')        // Create new project
+        .mockResolvedValueOnce('__skip__');      // Skip task
 
-      const mockInput = async (opts: { message: string }) => {
-        if (opts.message.includes('Project')) {
-          createProjectPromptShown = true;
-          return newProjectName;
-        }
-        return '';
-      };
+      const mockInput = vi.fn()
+        .mockResolvedValueOnce('New Project')    // New project name
+        .mockResolvedValueOnce('');              // Description
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
-      expect(createProjectPromptShown).toBe(true);
+      expect(addProject).toHaveBeenCalledWith('New Project', mockClient.id);
       expect(result.action).toBe('started');
-      expect(result.projectId).toBeDefined();
-
-      // Verify project was created
-      const supabase = getSupabaseClient();
-      const { data: project } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', result.projectId!)
-        .single();
-      expect(project?.name).toBe(newProjectName);
-
-      // Clean up
-      await supabase.from('time_entries').delete().eq('project_id', result.projectId!);
-      await supabase.from('projects').delete().eq('id', result.projectId!);
+      expect(result.projectId).toBe('new-project-id');
     });
 
     /** @spec interactive.select.task */
     it('creates new task when [+ New task] is selected', async () => {
-      let createTaskPromptShown = false;
-      const newTaskName = `New Task ${testId}`;
+      const newTask: Task = { ...mockTask, id: 'new-task-id', name: 'New Task' };
+      vi.mocked(addTask).mockResolvedValue(newTask);
 
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return testProject.id;
-        if (opts.message.includes('task')) return '__new__';
-        return '';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)    // Select client
+        .mockResolvedValueOnce(mockProject.id)   // Select project
+        .mockResolvedValueOnce('__new__');       // Create new task
 
-      const mockInput = async (opts: { message: string }) => {
-        if (opts.message.includes('Task')) {
-          createTaskPromptShown = true;
-          return newTaskName;
-        }
-        return '';
-      };
+      const mockInput = vi.fn()
+        .mockResolvedValueOnce('New Task')       // New task name
+        .mockResolvedValueOnce('');              // Description
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
-      expect(createTaskPromptShown).toBe(true);
+      expect(addTask).toHaveBeenCalledWith('New Task', mockProject.id);
       expect(result.action).toBe('started');
-      expect(result.taskId).toBeDefined();
-
-      // Verify task was created
-      const supabase = getSupabaseClient();
-      const { data: task } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', result.taskId!)
-        .single();
-      expect(task?.name).toBe(newTaskName);
-
-      // Clean up
-      await supabase.from('time_entries').delete().eq('task_id', result.taskId!);
-      await supabase.from('tasks').delete().eq('id', result.taskId!);
+      expect(result.taskId).toBe('new-task-id');
     });
 
     /** @spec interactive.select.description */
     it('shows optional description prompt after selections', async () => {
-      let descriptionPromptMessage: string | undefined;
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)
+        .mockResolvedValueOnce(mockProject.id)
+        .mockResolvedValueOnce(mockTask.id);
 
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return testProject.id;
-        if (opts.message.includes('task')) return testTask.id;
-        return '';
-      };
-
-      const mockInput = async (opts: { message: string }) => {
-        if (opts.message.includes('Description')) {
-          descriptionPromptMessage = opts.message;
-        }
-        return '';
-      };
+      const mockInput = vi.fn().mockResolvedValue('');
 
       await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: mockInput as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
-      // Verify description prompt was shown with correct message
-      expect(descriptionPromptMessage).toBeDefined();
-      expect(descriptionPromptMessage).toContain('optional');
+      // Verify input was called for description
+      expect(mockInput).toHaveBeenCalledWith({ message: 'Description (optional):' });
     });
   });
 
   describe('timer running', () => {
-    beforeEach(async () => {
-      // Start a timer
-      const supabase = getSupabaseClient();
-      await supabase.from('time_entries').insert({
-        client_id: testClient.id,
-        project_id: testProject.id,
-        started_at: new Date().toISOString(),
-      });
+    const mockRunningStatus: TimerStatus = {
+      entry: mockTimeEntry,
+      client: mockClient,
+      project: mockProject,
+      task: null,
+      duration: 3600, // 1 hour
+    };
+
+    beforeEach(() => {
+      vi.mocked(getStatus).mockResolvedValue(mockRunningStatus);
     });
 
     /** @spec interactive.running.show-info */
     it('shows timer info when timer is running', async () => {
-      // Capture console.log output
-      const logs: string[] = [];
-      const originalLog = console.log;
-      console.log = (...args: unknown[]) => {
-        logs.push(args.map(String).join(' '));
-      };
+      const consoleSpy = vi.spyOn(console, 'log');
 
-      try {
-        const mockSelect = async (opts: { message: string }) => {
-          if (opts.message.includes('What would you like to do')) return 'cancel';
-          return '';
-        };
+      const mockSelect = vi.fn().mockResolvedValue('cancel');
 
-        await runInteractiveMode({
-          selectFn: mockSelect as never,
-          inputFn: (async () => '') as never,
-        });
+      await runInteractiveMode({
+        selectFn: mockSelect as any,
+        inputFn: vi.fn() as any,
+      });
 
-        // Check that timer info was displayed
-        const timerInfoLog = logs.find((log) => log.includes('Timer running:'));
-        expect(timerInfoLog).toBeDefined();
-        expect(timerInfoLog).toMatch(/Timer running: \d+h? ?\d*m on/);
-        expect(timerInfoLog).toContain(testClient.name);
-        expect(timerInfoLog).toContain(testProject.name);
-      } finally {
-        console.log = originalLog;
-      }
+      // Check that timer info was displayed
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/Timer running:.*1h 0m.*Test Client.*Test Project/)
+      );
     });
 
     /** @spec interactive.running.stop */
     it('stops timer when Stop is selected', async () => {
-      const mockSelect = async (opts: { message: string }) => {
-        if (opts.message.includes('What would you like to do')) return 'stop';
-        return '';
-      };
+      vi.mocked(stopTimer).mockResolvedValue({ ...mockTimeEntry, ended_at: new Date().toISOString() });
+
+      const mockSelect = vi.fn().mockResolvedValue('stop');
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+        selectFn: mockSelect as any,
+        inputFn: vi.fn() as any,
       });
 
       expect(result.action).toBe('stopped');
-
-      const running = await getRunningTimer();
-      expect(running).toBeNull();
+      expect(stopTimer).toHaveBeenCalled();
     });
 
     /** @spec interactive.running.switch */
     it('switches timer when Switch is selected', async () => {
-      const mockSelect = async (opts: { message: string }) => {
-        if (opts.message.includes('What would you like to do')) return 'switch';
-        if (opts.message.includes('client')) return testClient2.id;
-        if (opts.message.includes('project')) return '__skip__';
-        if (opts.message.includes('task')) return '__skip__';
-        return '';
-      };
+      vi.mocked(stopTimer).mockResolvedValue({ ...mockTimeEntry, ended_at: new Date().toISOString() });
+
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce('switch')         // Choose to switch
+        .mockResolvedValueOnce(mockClient2.id)   // Select new client
+        .mockResolvedValueOnce('__skip__');      // Skip project
+
+      const mockInput = vi.fn().mockResolvedValue('');
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
       expect(result.action).toBe('switched');
-
-      const running = await getRunningTimer();
-      expect(running).not.toBeNull();
-      expect(running?.client_id).toBe(testClient2.id);
+      expect(stopTimer).toHaveBeenCalled();
+      expect(startTimer).toHaveBeenCalledWith(
+        mockClient2.id,
+        undefined,
+        undefined,
+        undefined
+      );
     });
 
     /** @spec interactive.running.cancel */
     it('cancels without changes when Cancel is selected', async () => {
-      const runningBefore = await getRunningTimer();
-
-      const mockSelect = async (opts: { message: string }) => {
-        if (opts.message.includes('What would you like to do')) return 'cancel';
-        return '';
-      };
+      const mockSelect = vi.fn().mockResolvedValue('cancel');
 
       const result = await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+        selectFn: mockSelect as any,
+        inputFn: vi.fn() as any,
       });
 
       expect(result.action).toBe('cancelled');
-
-      const runningAfter = await getRunningTimer();
-      expect(runningAfter?.id).toBe(runningBefore?.id);
+      expect(stopTimer).not.toHaveBeenCalled();
+      expect(startTimer).not.toHaveBeenCalled();
     });
   });
 
   describe('smart defaults (last-used pre-selection)', () => {
-    const recentPath = path.join(os.tmpdir(), `.tt-recent-test-${Date.now()}.json`);
-
-    afterEach(() => {
-      // Clean up test config file
-      if (fs.existsSync(recentPath)) {
-        fs.unlinkSync(recentPath);
-      }
-    });
-
     /** @spec recent.save */
     it('saves last-used client and project after starting timer', async () => {
-      const mockSelect = async (opts: { message: string; choices: unknown[] }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) return testProject.id;
-        if (opts.message.includes('task')) return '__skip__';
-        return '';
-      };
+      const mockSelect = vi.fn()
+        .mockResolvedValueOnce(mockClient.id)
+        .mockResolvedValueOnce(mockProject.id)
+        .mockResolvedValueOnce('__skip__');
+
+      const mockInput = vi.fn().mockResolvedValue('');
 
       await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+        selectFn: mockSelect as any,
+        inputFn: mockInput as any,
       });
 
-      // Verify last-used was saved (check actual config file)
-      const recent = loadRecent();
-      expect(recent.clientId).toBe(testClient.id);
-      expect(recent.projectId).toBe(testProject.id);
+      expect(saveRecent).toHaveBeenCalledWith({
+        clientId: mockClient.id,
+        projectId: mockProject.id,
+      });
     });
 
     /** @spec interactive.defaults.client */
     it('pre-selects last-used client in choices', async () => {
-      // Save a recent client
-      saveRecent({ clientId: testClient.id });
+      vi.mocked(loadRecent).mockReturnValue({ clientId: mockClient.id });
 
-      let clientChoicesDefault: string | undefined;
-
-      const mockSelect = async (opts: { message: string; choices: unknown[]; default?: string }) => {
-        if (opts.message.includes('client')) {
-          clientChoicesDefault = opts.default;
-          return testClient.id;
+      let clientDefaultValue: string | undefined;
+      const mockSelect = vi.fn().mockImplementation((opts: { default?: string }) => {
+        if (!clientDefaultValue && opts.default) {
+          clientDefaultValue = opts.default;
         }
-        if (opts.message.includes('project')) return '__skip__';
-        return '__skip__';
-      };
+        return Promise.resolve(mockClient.id);
+      })
+        .mockResolvedValueOnce(mockClient.id)
+        .mockResolvedValueOnce('__skip__');
 
       await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+        selectFn: mockSelect as any,
+        inputFn: vi.fn().mockResolvedValue('') as any,
       });
 
-      // The default should be the last-used client ID
-      expect(clientChoicesDefault).toBe(testClient.id);
+      // The first call should have the default set to the last-used client
+      expect(mockSelect.mock.calls[0][0].default).toBe(mockClient.id);
     });
 
     /** @spec interactive.defaults.project */
     it('pre-selects last-used project in choices', async () => {
-      // Save recent client and project
-      saveRecent({ clientId: testClient.id, projectId: testProject.id });
-
-      let projectChoicesDefault: string | undefined;
-
-      const mockSelect = async (opts: { message: string; choices: unknown[]; default?: string }) => {
-        if (opts.message.includes('client')) return testClient.id;
-        if (opts.message.includes('project')) {
-          projectChoicesDefault = opts.default;
-          return testProject.id;
-        }
-        if (opts.message.includes('task')) return '__skip__';
-        return '';
-      };
-
-      await runInteractiveMode({
-        selectFn: mockSelect as never,
-        inputFn: (async () => '') as never,
+      vi.mocked(loadRecent).mockReturnValue({
+        clientId: mockClient.id,
+        projectId: mockProject.id,
       });
 
-      // The default should be the last-used project ID
-      expect(projectChoicesDefault).toBe(testProject.id);
+      const selectCalls: any[] = [];
+      const mockSelect = vi.fn().mockImplementation((opts: any) => {
+        selectCalls.push(opts);
+        if (opts.message.includes('client')) return Promise.resolve(mockClient.id);
+        if (opts.message.includes('project')) return Promise.resolve(mockProject.id);
+        return Promise.resolve('__skip__');
+      });
+
+      await runInteractiveMode({
+        selectFn: mockSelect as any,
+        inputFn: vi.fn().mockResolvedValue('') as any,
+      });
+
+      // Find the project selection call
+      const projectCall = selectCalls.find(c => c.message.includes('project'));
+      expect(projectCall?.default).toBe(mockProject.id);
     });
   });
 
   describe('formatting functions', () => {
     /** @spec interactive.running.show-info */
     it('formatDuration shows hours and minutes when duration >= 1 hour', () => {
-      expect(formatDuration(3600)).toBe('1h 0m'); // exactly 1 hour
-      expect(formatDuration(3661)).toBe('1h 1m'); // 1 hour 1 minute
-      expect(formatDuration(7200)).toBe('2h 0m'); // 2 hours
-      expect(formatDuration(8115)).toBe('2h 15m'); // 2 hours 15 minutes
+      expect(formatDuration(3600)).toBe('1h 0m');   // exactly 1 hour
+      expect(formatDuration(3661)).toBe('1h 1m');   // 1 hour 1 minute
+      expect(formatDuration(7200)).toBe('2h 0m');   // 2 hours
+      expect(formatDuration(8115)).toBe('2h 15m');  // 2 hours 15 minutes
     });
 
     /** @spec interactive.running.show-info */
@@ -454,37 +409,37 @@ describe.skip('interactive mode', () => {
     /** @spec interactive.running.show-info */
     it('formatTimerInfo shows client, project, and task names', () => {
       const status: TimerStatus = {
-        entry: { id: '0', client_id: '1', project_id: '2', task_id: '3', description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
-        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
-        project: { id: '2', name: 'Website', client_id: '1', created_at: '', updated_at: '' },
-        task: { id: '3', name: 'Homepage', project_id: '2', created_at: '', updated_at: '' },
+        entry: mockTimeEntry,
+        client: mockClient,
+        project: mockProject,
+        task: mockTask,
         duration: 0,
       };
-      expect(formatTimerInfo(status)).toBe('Acme Corp > Website > Homepage');
+      expect(formatTimerInfo(status)).toBe('Test Client > Test Project > Test Task');
     });
 
     /** @spec interactive.running.show-info */
     it('formatTimerInfo shows client and project when no task', () => {
       const status: TimerStatus = {
-        entry: { id: '0', client_id: '1', project_id: '2', task_id: null, description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
-        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
-        project: { id: '2', name: 'Website', client_id: '1', created_at: '', updated_at: '' },
+        entry: { ...mockTimeEntry, task_id: null },
+        client: mockClient,
+        project: mockProject,
         task: null,
         duration: 0,
       };
-      expect(formatTimerInfo(status)).toBe('Acme Corp > Website');
+      expect(formatTimerInfo(status)).toBe('Test Client > Test Project');
     });
 
     /** @spec interactive.running.show-info */
     it('formatTimerInfo shows only client when no project', () => {
       const status: TimerStatus = {
-        entry: { id: '0', client_id: '1', project_id: null, task_id: null, description: null, started_at: '', ended_at: null, created_at: '', updated_at: '' },
-        client: { id: '1', name: 'Acme Corp', created_at: '', updated_at: '' },
+        entry: { ...mockTimeEntry, project_id: null, task_id: null },
+        client: mockClient,
         project: null,
         task: null,
         duration: 0,
       };
-      expect(formatTimerInfo(status)).toBe('Acme Corp');
+      expect(formatTimerInfo(status)).toBe('Test Client');
     });
   });
 });

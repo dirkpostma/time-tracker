@@ -1,60 +1,83 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getSupabaseClient } from './connection.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SupabaseProjectRepository } from './project.js';
 import { RepositoryError } from '../types.js';
 import type { Project } from '@time-tracker/core';
 
-// Skip: These integration tests require Supabase authentication (RLS policies).
-// Use project.mock.test.ts for unit tests with mocked Supabase client.
-describe.skip('SupabaseProjectRepository', () => {
-  const testClientName = `Test Client Repo ${Date.now()}`;
-  const testProjectName = `Test Project Repo ${Date.now()}`;
-  let testClientId: string;
+// Mock the Supabase client module
+vi.mock('./connection.js', () => ({
+  getSupabaseClient: vi.fn(),
+}));
+
+import { getSupabaseClient } from './connection.js';
+
+describe('SupabaseProjectRepository', () => {
   let repository: SupabaseProjectRepository;
-  let createdProjectIds: string[] = [];
+  let mockSupabase: ReturnType<typeof createMockSupabase>;
 
-  beforeAll(async () => {
-    const supabase = getSupabaseClient();
-    // Create a test client first
-    const { data: client, error } = await supabase
-      .from('clients')
-      .insert({ name: testClientName })
-      .select()
-      .single();
+  const mockClientId = 'client-123';
 
-    if (error) throw error;
-    testClientId = client.id;
+  function createMockSupabase() {
+    const mockChain = {
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+      maybeSingle: vi.fn(),
+      order: vi.fn(),
+    };
+
+    return {
+      from: vi.fn().mockReturnValue(mockChain),
+      _chain: mockChain,
+    };
+  }
+
+  beforeEach(() => {
+    mockSupabase = createMockSupabase();
+    vi.mocked(getSupabaseClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof getSupabaseClient>);
     repository = new SupabaseProjectRepository();
   });
 
-  afterAll(async () => {
-    const supabase = getSupabaseClient();
-    // Clean up created projects
-    if (createdProjectIds.length > 0) {
-      await supabase.from('projects').delete().in('id', createdProjectIds);
-    }
-    // Clean up test client
-    await supabase.from('clients').delete().eq('name', testClientName);
+  afterEach(() => {
+    vi.clearAllMocks();
   });
+
+  const mockProject: Project = {
+    id: 'project-123',
+    name: 'Test Project',
+    client_id: mockClientId,
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
 
   describe('create', () => {
     it('should create a new project', async () => {
-      const result = await repository.create({
-        name: testProjectName,
-        client_id: testClientId,
+      mockSupabase._chain.single.mockResolvedValue({
+        data: mockProject,
+        error: null,
       });
 
-      createdProjectIds.push(result.id);
+      const result = await repository.create({
+        name: 'Test Project',
+        client_id: mockClientId,
+      });
 
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
-      expect(result.name).toBe(testProjectName);
-      expect(result.client_id).toBe(testClientId);
+      expect(result.name).toBe('Test Project');
+      expect(result.client_id).toBe(mockClientId);
       expect(result.created_at).toBeDefined();
       expect(result.updated_at).toBeDefined();
     });
 
     it('should throw RepositoryError on invalid client_id', async () => {
+      mockSupabase._chain.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Foreign key constraint violation' },
+      });
+
       await expect(
         repository.create({
           name: 'Invalid Project',
@@ -65,112 +88,147 @@ describe.skip('SupabaseProjectRepository', () => {
   });
 
   describe('findById', () => {
-    let existingProject: Project;
-
-    beforeAll(async () => {
-      existingProject = await repository.create({
-        name: `FindById Test ${Date.now()}`,
-        client_id: testClientId,
-      });
-      createdProjectIds.push(existingProject.id);
-    });
-
     it('should find project by id', async () => {
-      const result = await repository.findById(existingProject.id);
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: mockProject,
+        error: null,
+      });
+
+      const result = await repository.findById('project-123');
 
       expect(result).toBeDefined();
-      expect(result?.id).toBe(existingProject.id);
-      expect(result?.name).toBe(existingProject.name);
+      expect(result?.id).toBe('project-123');
+      expect(result?.name).toBe('Test Project');
     });
 
     it('should return null for non-existent id', async () => {
-      const result = await repository.findById(
-        '00000000-0000-0000-0000-000000000000'
-      );
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const result = await repository.findById('00000000-0000-0000-0000-000000000000');
       expect(result).toBeNull();
+    });
+
+    it('should throw RepositoryError when query fails', async () => {
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: { message: 'Database connection lost' },
+      });
+
+      await expect(repository.findById('project-123')).rejects.toThrow(RepositoryError);
+      await expect(repository.findById('project-123')).rejects.toThrow('Failed to find project');
     });
   });
 
   describe('findByName', () => {
-    let existingProject: Project;
-
-    beforeAll(async () => {
-      existingProject = await repository.create({
-        name: `FindByName Test ${Date.now()}`,
-        client_id: testClientId,
-      });
-      createdProjectIds.push(existingProject.id);
-    });
-
     it('should find project by name and client_id', async () => {
-      const result = await repository.findByName(
-        existingProject.name,
-        testClientId
-      );
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: mockProject,
+        error: null,
+      });
+
+      const result = await repository.findByName('Test Project', mockClientId);
 
       expect(result).toBeDefined();
-      expect(result?.id).toBe(existingProject.id);
-      expect(result?.name).toBe(existingProject.name);
+      expect(result?.id).toBe('project-123');
+      expect(result?.name).toBe('Test Project');
     });
 
     it('should return null for non-existent name', async () => {
-      const result = await repository.findByName(
-        'Non Existent Project',
-        testClientId
-      );
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const result = await repository.findByName('Non Existent Project', mockClientId);
       expect(result).toBeNull();
     });
 
     it('should return null when name exists but in different client', async () => {
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
       const result = await repository.findByName(
-        existingProject.name,
+        mockProject.name,
         '00000000-0000-0000-0000-000000000000'
       );
       expect(result).toBeNull();
     });
+
+    it('should throw RepositoryError when query fails', async () => {
+      mockSupabase._chain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: { message: 'Query timeout' },
+      });
+
+      await expect(repository.findByName('Test Project', mockClientId)).rejects.toThrow(RepositoryError);
+      await expect(repository.findByName('Test Project', mockClientId)).rejects.toThrow('Failed to find project by name');
+    });
   });
 
   describe('findByClientId', () => {
-    let projectsInClient: Project[];
-
-    beforeAll(async () => {
-      projectsInClient = [];
-      for (let i = 0; i < 2; i++) {
-        const project = await repository.create({
-          name: `ByClientId Test ${Date.now()}-${i}`,
-          client_id: testClientId,
-        });
-        projectsInClient.push(project);
-        createdProjectIds.push(project.id);
-      }
-    });
-
     it('should find all projects by client_id', async () => {
-      const result = await repository.findByClientId(testClientId);
+      const projectsInClient = [
+        mockProject,
+        { ...mockProject, id: 'project-456', name: 'Project 2' },
+      ];
+      mockSupabase._chain.order.mockResolvedValue({
+        data: projectsInClient,
+        error: null,
+      });
+
+      const result = await repository.findByClientId(mockClientId);
 
       expect(Array.isArray(result)).toBe(true);
-      // Should contain at least our test projects
-      for (const project of projectsInClient) {
-        const found = result.find((p) => p.id === project.id);
-        expect(found).toBeDefined();
-      }
+      expect(result.length).toBe(2);
     });
 
     it('should return empty array for client with no projects', async () => {
-      const result = await repository.findByClientId(
-        '00000000-0000-0000-0000-000000000000'
-      );
+      mockSupabase._chain.order.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const result = await repository.findByClientId('00000000-0000-0000-0000-000000000000');
       expect(result).toEqual([]);
+    });
+
+    it('should throw RepositoryError when query fails', async () => {
+      mockSupabase._chain.order.mockResolvedValue({
+        data: null,
+        error: { message: 'Permission denied' },
+      });
+
+      await expect(repository.findByClientId(mockClientId)).rejects.toThrow(RepositoryError);
+      await expect(repository.findByClientId(mockClientId)).rejects.toThrow('Failed to find projects by client');
     });
   });
 
   describe('findAll', () => {
     it('should return all projects', async () => {
+      mockSupabase._chain.order.mockResolvedValue({
+        data: [mockProject],
+        error: null,
+      });
+
       const result = await repository.findAll();
 
       expect(Array.isArray(result)).toBe(true);
-      // Should contain at least some projects from our tests
       expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('should throw RepositoryError when query fails', async () => {
+      mockSupabase._chain.order.mockResolvedValue({
+        data: null,
+        error: { message: 'Database unavailable' },
+      });
+
+      await expect(repository.findAll()).rejects.toThrow(RepositoryError);
+      await expect(repository.findAll()).rejects.toThrow('Failed to list projects');
     });
   });
 });

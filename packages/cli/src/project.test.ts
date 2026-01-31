@@ -1,35 +1,78 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
-import { addClient } from './client.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Client, Project } from '@time-tracker/core';
+
+// Mock the repositories
+vi.mock('@time-tracker/repositories/supabase/client', () => ({
+  createClientRepository: vi.fn(),
+}));
+
+vi.mock('@time-tracker/repositories/supabase/project', () => ({
+  createProjectRepository: vi.fn(),
+}));
+
+import { createClientRepository } from '@time-tracker/repositories/supabase/client';
+import { createProjectRepository } from '@time-tracker/repositories/supabase/project';
 import { addProject, listProjects, findClientByName } from './project.js';
 
-// Skip: These integration tests require Supabase authentication (RLS policies).
-describe.skip('project commands', () => {
-  const testClientName = `Test Client ${Date.now()}`;
-  const testProjectName = `Test Project ${Date.now()}`;
-  let testClientId: string;
+describe('project commands', () => {
+  const mockClient: Client = {
+    id: 'client-123',
+    name: 'Test Client',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
 
-  beforeAll(async () => {
-    const client = await addClient(testClientName);
-    testClientId = client.id;
+  const mockProject: Project = {
+    id: 'project-123',
+    name: 'Test Project',
+    client_id: 'client-123',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  let mockClientRepository: {
+    findByName: ReturnType<typeof vi.fn>;
+  };
+
+  let mockProjectRepository: {
+    create: ReturnType<typeof vi.fn>;
+    findAll: ReturnType<typeof vi.fn>;
+    findByClientId: ReturnType<typeof vi.fn>;
+  };
+
+  beforeEach(() => {
+    mockClientRepository = {
+      findByName: vi.fn(),
+    };
+    mockProjectRepository = {
+      create: vi.fn(),
+      findAll: vi.fn(),
+      findByClientId: vi.fn(),
+    };
+    vi.mocked(createClientRepository).mockReturnValue(mockClientRepository as any);
+    vi.mocked(createProjectRepository).mockReturnValue(mockProjectRepository as any);
   });
 
-  afterAll(async () => {
-    const supabase = getSupabaseClient();
-    await supabase.from('projects').delete().eq('name', testProjectName);
-    await supabase.from('clients').delete().eq('name', testClientName);
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('findClientByName', () => {
     /** @spec {entity.name-match.found} */
     it('should find client by name', async () => {
-      const client = await findClientByName(testClientName);
+      mockClientRepository.findByName.mockResolvedValue(mockClient);
+
+      const client = await findClientByName('Test Client');
+
       expect(client).toBeDefined();
-      expect(client?.name).toBe(testClientName);
+      expect(client?.name).toBe('Test Client');
     });
 
     it('should return null for non-existent client', async () => {
+      mockClientRepository.findByName.mockResolvedValue(null);
+
       const client = await findClientByName('Non Existent Client');
+
       expect(client).toBeNull();
     });
   });
@@ -37,37 +80,59 @@ describe.skip('project commands', () => {
   describe('addProject', () => {
     /** @spec project.add.success */
     it('should create a new project', async () => {
-      const result = await addProject(testProjectName, testClientId);
+      mockProjectRepository.create.mockResolvedValue(mockProject);
+
+      const result = await addProject('Test Project', 'client-123');
 
       expect(result).toBeDefined();
-      expect(result.name).toBe(testProjectName);
-      expect(result.client_id).toBe(testClientId);
+      expect(result.name).toBe('Test Project');
+      expect(result.client_id).toBe('client-123');
     });
 
     it('should store project in database', async () => {
-      const supabase = getSupabaseClient();
-      const { data } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('name', testProjectName)
-        .single();
+      mockProjectRepository.create.mockResolvedValue(mockProject);
 
-      expect(data).toBeDefined();
-      expect(data?.name).toBe(testProjectName);
+      await addProject('Test Project', 'client-123');
+
+      expect(mockProjectRepository.create).toHaveBeenCalledWith({
+        name: 'Test Project',
+        client_id: 'client-123',
+      });
+    });
+
+    it('should throw when repository fails', async () => {
+      mockProjectRepository.create.mockRejectedValue(new Error('Database error'));
+
+      await expect(addProject('Test Project', 'client-123')).rejects.toThrow('Database error');
     });
   });
 
   describe('listProjects', () => {
     /** @spec project.list.success */
     it('should return projects', async () => {
+      mockProjectRepository.findAll.mockResolvedValue([mockProject]);
+
       const projects = await listProjects();
+
       expect(Array.isArray(projects)).toBe(true);
     });
 
     it('should include created project', async () => {
+      mockProjectRepository.findAll.mockResolvedValue([mockProject]);
+
       const projects = await listProjects();
-      const found = projects.find(p => p.name === testProjectName);
+      const found = projects.find(p => p.name === 'Test Project');
+
       expect(found).toBeDefined();
+    });
+
+    it('should return empty array when no projects', async () => {
+      mockProjectRepository.findAll.mockResolvedValue([]);
+
+      const projects = await listProjects();
+
+      expect(Array.isArray(projects)).toBe(true);
+      expect(projects.length).toBe(0);
     });
   });
 });
