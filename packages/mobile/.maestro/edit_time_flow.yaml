@@ -95,35 +95,35 @@ appId: nl.dirkpostma.timetracker
 - tapOn:
     id: "entry-detail-start-time-button"
 
-# Wait for time picker to appear
+# Wait for time picker modal to appear
 - extendedWaitUntil:
     visible:
-      id: "time-picker"
+      id: "entry-detail-start-time-picker"
     timeout: 3000
 
-# Close the picker
+# Close the picker via Done button
 - tapOn:
-    id: "time-picker-done"
+    id: "entry-detail-start-time-done"
 
 # Verify picker closed
 - extendedWaitUntil:
     notVisible:
-      id: "time-picker"
+      id: "entry-detail-start-time-picker"
     timeout: 3000
 
 # Tap end time to open picker
 - tapOn:
     id: "entry-detail-end-time-button"
 
-# Wait for time picker
+# Wait for time picker modal
 - extendedWaitUntil:
     visible:
-      id: "time-picker"
+      id: "entry-detail-end-time-picker"
     timeout: 3000
 
-# Close the picker
+# Close the picker via Done button
 - tapOn:
-    id: "time-picker-done"
+    id: "entry-detail-end-time-done"
 
 # Go back to history
 - tapOn:

@@ -64,3 +64,6 @@ export type { DSListProps } from './components/DSList';
 
 export { DSKeyboardAvoidingView } from './components/DSKeyboardAvoidingView';
 export type { DSKeyboardAvoidingViewProps } from './components/DSKeyboardAvoidingView';
+
+export { DSTimePicker } from './components/DSTimePicker';
+export type { DSTimePickerProps } from './components/DSTimePicker';

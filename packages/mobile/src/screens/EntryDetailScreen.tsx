@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Alert, View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { Alert, View, StyleSheet } from 'react-native';
 import { TimeEntryDisplay } from '../hooks/useTimeEntries';
 import { useUpdateTimeEntry } from '../hooks/useUpdateTimeEntry';
 import {
@@ -11,6 +10,7 @@ import {
   DSScreenHeader,
   DSSection,
   DSSpacer,
+  DSTimePicker,
   spacing,
 } from '../design-system';
 
@@ -18,14 +18,6 @@ interface EntryDetailScreenProps {
   entry: TimeEntryDisplay;
   onBack: () => void;
   onSaved: () => void;
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
 }
 
 function formatDate(date: Date): string {
@@ -50,15 +42,12 @@ function formatDuration(seconds: number): string {
   return `${hours}h ${minutes}m`;
 }
 
-type PickerMode = 'start' | 'end' | null;
-
 export function EntryDetailScreen({ entry, onBack, onSaved }: EntryDetailScreenProps) {
   const { updateEntry, loading } = useUpdateTimeEntry();
   
   const [description, setDescription] = useState(entry.description ?? '');
   const [startTime, setStartTime] = useState(entry.startedAt);
   const [endTime, setEndTime] = useState(entry.endedAt);
-  const [pickerMode, setPickerMode] = useState<PickerMode>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
   const checkForChanges = useCallback((
@@ -79,45 +68,25 @@ export function EntryDetailScreen({ entry, onBack, onSaved }: EntryDetailScreenP
     checkForChanges(text, startTime, endTime);
   }, [checkForChanges, startTime, endTime]);
 
-  const handleTimeChange = useCallback((
-    event: DateTimePickerEvent,
-    selectedDate?: Date
-  ) => {
-    if (Platform.OS === 'android') {
-      setPickerMode(null);
-    }
-    
-    if (event.type === 'dismissed' || !selectedDate) {
-      setPickerMode(null);
+  const handleStartTimeChange = useCallback((date: Date) => {
+    // Validate: start must be before end
+    if (date >= endTime) {
+      Alert.alert('Invalid Time', 'Start time must be before end time');
       return;
     }
+    setStartTime(date);
+    checkForChanges(description, date, endTime);
+  }, [description, endTime, checkForChanges]);
 
-    if (pickerMode === 'start') {
-      // Validate: start must be before end
-      if (selectedDate >= endTime) {
-        Alert.alert('Invalid Time', 'Start time must be before end time');
-        return;
-      }
-      setStartTime(selectedDate);
-      checkForChanges(description, selectedDate, endTime);
-    } else if (pickerMode === 'end') {
-      // Validate: end must be after start
-      if (selectedDate <= startTime) {
-        Alert.alert('Invalid Time', 'End time must be after start time');
-        return;
-      }
-      setEndTime(selectedDate);
-      checkForChanges(description, startTime, selectedDate);
+  const handleEndTimeChange = useCallback((date: Date) => {
+    // Validate: end must be after start
+    if (date <= startTime) {
+      Alert.alert('Invalid Time', 'End time must be after start time');
+      return;
     }
-    
-    if (Platform.OS === 'ios') {
-      // iOS picker stays open, user can adjust
-    }
-  }, [pickerMode, startTime, endTime, description, checkForChanges]);
-
-  const closePicker = useCallback(() => {
-    setPickerMode(null);
-  }, []);
+    setEndTime(date);
+    checkForChanges(description, startTime, date);
+  }, [description, startTime, checkForChanges]);
 
   const handleSave = useCallback(async () => {
     try {
@@ -190,41 +159,21 @@ export function EntryDetailScreen({ entry, onBack, onSaved }: EntryDetailScreenP
           <DSText variant="body" testID="entry-detail-date">{formatDate(startTime)}</DSText>
         </View>
         
-        <TouchableOpacity 
-          style={styles.editableRow} 
-          onPress={() => setPickerMode('start')}
-          testID="entry-detail-start-time-button"
-          accessibilityLabel="Edit start time"
-          accessibilityHint="Opens time picker to change start time"
-        >
-          <View style={styles.infoRow}>
-            <DSText variant="bodySmall" color="secondary">Start Time</DSText>
-            <View style={styles.editableValue}>
-              <DSText variant="body" color="primary" testID="entry-detail-start-time">
-                {formatTime(startTime)}
-              </DSText>
-              <DSText variant="bodySmall" color="secondary"> ✎</DSText>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <DSTimePicker
+          value={startTime}
+          onChange={handleStartTimeChange}
+          label="Start Time"
+          maximumDate={endTime}
+          testID="entry-detail-start-time"
+        />
         
-        <TouchableOpacity 
-          style={styles.editableRow} 
-          onPress={() => setPickerMode('end')}
-          testID="entry-detail-end-time-button"
-          accessibilityLabel="Edit end time"
-          accessibilityHint="Opens time picker to change end time"
-        >
-          <View style={styles.infoRow}>
-            <DSText variant="bodySmall" color="secondary">End Time</DSText>
-            <View style={styles.editableValue}>
-              <DSText variant="body" color="primary" testID="entry-detail-end-time">
-                {formatTime(endTime)}
-              </DSText>
-              <DSText variant="bodySmall" color="secondary"> ✎</DSText>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <DSTimePicker
+          value={endTime}
+          onChange={handleEndTimeChange}
+          label="End Time"
+          minimumDate={startTime}
+          testID="entry-detail-end-time"
+        />
         
         <View style={styles.infoRow}>
           <DSText variant="bodySmall" color="secondary">Duration</DSText>
@@ -233,27 +182,6 @@ export function EntryDetailScreen({ entry, onBack, onSaved }: EntryDetailScreenP
           </DSText>
         </View>
       </DSSection>
-
-      {/* Time Picker Modal */}
-      {pickerMode && (
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
-            <DSText variant="body">
-              {pickerMode === 'start' ? 'Select Start Time' : 'Select End Time'}
-            </DSText>
-            <TouchableOpacity onPress={closePicker} testID="time-picker-done">
-              <DSText variant="body" color="primary">Done</DSText>
-            </TouchableOpacity>
-          </View>
-          <DateTimePicker
-            value={pickerMode === 'start' ? startTime : endTime}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleTimeChange}
-            testID="time-picker"
-          />
-        </View>
-      )}
 
       <DSSection title="Description" testID="entry-detail-description-section">
         <DSTextInput
@@ -298,33 +226,7 @@ const styles = StyleSheet.create({
   infoRow: {
     paddingVertical: spacing.sm,
   },
-  editableRow: {
-    marginHorizontal: -spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0, 122, 255, 0.05)',
-  },
-  editableValue: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   buttonContainer: {
     paddingHorizontal: spacing.lg,
-  },
-  pickerContainer: {
-    backgroundColor: '#f8f8f8',
-    borderRadius: 12,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    overflow: 'hidden',
-  },
-  pickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
 });
