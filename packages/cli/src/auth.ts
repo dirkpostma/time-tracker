@@ -8,7 +8,7 @@
  */
 
 import { input, password } from '@inquirer/prompts';
-import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth';
+import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth-cli';
 
 /**
  * Login command handler.
