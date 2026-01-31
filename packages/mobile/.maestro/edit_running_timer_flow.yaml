@@ -1,0 +1,106 @@
+appId: nl.dirkpostma.timetracker
+---
+# Edit Running Timer Start Time Flow
+# Tests the ability to edit start time while timer is running
+
+# Login if needed
+- tapOn:
+    id: "email-input"
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign in to continue"
+    commands:
+      - inputText: "test@example.com"
+      - tapOn:
+          id: "password-input"
+      - inputText: "Test1234"
+      - tapOn:
+          id: "login-button"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+
+# Wait for main app
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 30000
+
+# Make sure we're on Timer tab
+- tapOn:
+    id: "tab-timer"
+    optional: true
+
+# If timer is already running, stop it first
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for start button
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000
+
+# Start a new timer
+- tapOn:
+    id: "start-button"
+
+# Handle client picker if it appears
+- tapOn:
+    text: "Test Client"
+    optional: true
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# Wait for timer to be running
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 10000
+
+# Verify start time display is visible
+- assertVisible:
+    id: "timer-start-time-display"
+
+# Verify start time is tappable (has edit button)
+- assertVisible:
+    id: "timer-start-time-button"
+
+# Tap to edit start time
+- tapOn:
+    id: "timer-start-time-button"
+
+# Wait for time picker to appear
+- extendedWaitUntil:
+    visible:
+      id: "timer-start-time-picker"
+    timeout: 3000
+
+# Close the picker (just testing that it opens)
+- tapOn:
+    id: "timer-start-time-picker-done"
+
+# Verify picker closed
+- extendedWaitUntil:
+    notVisible:
+      id: "timer-start-time-picker"
+    timeout: 3000
+
+# Timer should still be running
+- assertVisible:
+    id: "stop-button"
+
+# Stop the timer
+- tapOn:
+    id: "stop-button"
+
+# Verify timer stopped
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000

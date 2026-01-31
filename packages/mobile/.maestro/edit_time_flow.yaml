@@ -1,0 +1,136 @@
+appId: nl.dirkpostma.timetracker
+---
+# Edit Time Entry Flow Test
+# Tests the ability to edit start/end times on an entry
+
+# Login if needed
+- tapOn:
+    id: "email-input"
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign in to continue"
+    commands:
+      - inputText: "test@example.com"
+      - tapOn:
+          id: "password-input"
+      - inputText: "Test1234"
+      - tapOn:
+          id: "login-button"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+
+# Wait for main app
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 30000
+
+# Make sure we have at least one entry - start and stop a timer
+- tapOn:
+    id: "start-button"
+    optional: true
+
+# Handle client picker if it appears
+- tapOn:
+    text: "Test Client"
+    optional: true
+
+# Skip project picker if it appears
+- tapOn:
+    id: "project-skip"
+    optional: true
+
+# If timer is running, stop it
+- extendedWaitUntil:
+    visible:
+      id: "stop-button"
+    timeout: 5000
+    optional: true
+
+- tapOn:
+    id: "stop-button"
+    optional: true
+
+# Wait for timer to stop
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 5000
+
+# Navigate to History tab
+- tapOn:
+    point: "50%,95%"
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000
+
+# Tap on first entry card
+- tapOn:
+    id: "entry-card-.*"
+
+# Wait for entry detail screen
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-screen"
+    timeout: 5000
+
+# Verify time section exists
+- assertVisible:
+    id: "entry-detail-time-section"
+
+# Verify start time is editable (has the edit button)
+- assertVisible:
+    id: "entry-detail-start-time-button"
+
+# Verify end time is editable
+- assertVisible:
+    id: "entry-detail-end-time-button"
+
+# Tap start time to open picker
+- tapOn:
+    id: "entry-detail-start-time-button"
+
+# Wait for time picker modal to appear
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-start-time-picker"
+    timeout: 3000
+
+# Close the picker via Done button
+- tapOn:
+    id: "entry-detail-start-time-done"
+
+# Verify picker closed
+- extendedWaitUntil:
+    notVisible:
+      id: "entry-detail-start-time-picker"
+    timeout: 3000
+
+# Tap end time to open picker
+- tapOn:
+    id: "entry-detail-end-time-button"
+
+# Wait for time picker modal
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-end-time-picker"
+    timeout: 3000
+
+# Close the picker via Done button
+- tapOn:
+    id: "entry-detail-end-time-done"
+
+# Go back to history
+- tapOn:
+    id: "entry-detail-back-button"
+
+# Verify we're back on history
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000

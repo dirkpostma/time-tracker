@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { TimeEntryDisplay } from '../hooks/useTimeEntries';
 import { typography, spacing } from '../design-system/tokens';
 import { useTheme } from '../design-system/themes/ThemeContext';
+import { DSPressable } from '../design-system';
 
 interface TimeEntryCardProps {
   entry: TimeEntryDisplay;
+  onPress?: () => void;
 }
 
 function formatDuration(seconds: number): string {
@@ -26,7 +28,7 @@ function formatTime(date: Date): string {
   });
 }
 
-export function TimeEntryCard({ entry }: TimeEntryCardProps) {
+export function TimeEntryCard({ entry, onPress }: TimeEntryCardProps) {
   const { theme } = useTheme();
   const { colors, shadows, borderRadius } = theme;
 
@@ -77,7 +79,7 @@ export function TimeEntryCard({ entry }: TimeEntryCardProps) {
     marginTop: spacing.sm,
   };
 
-  return (
+  const content = (
     <View style={containerStyle} testID={`entry-card-${entry.id}`}>
       <View style={styles.header}>
         <Text style={clientNameStyle}>{entry.clientName}</Text>
@@ -103,6 +105,20 @@ export function TimeEntryCard({ entry }: TimeEntryCardProps) {
       </Text>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <DSPressable 
+        onPress={onPress} 
+        testID={`entry-card-pressable-${entry.id}`}
+        accessibilityLabel={`View details for ${entry.clientName} entry`}
+      >
+        {content}
+      </DSPressable>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({

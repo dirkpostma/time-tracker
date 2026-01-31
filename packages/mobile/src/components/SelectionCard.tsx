@@ -12,7 +12,7 @@ export function SelectionCard({ selection, onPress }: SelectionCardProps) {
     <DSPressable onPress={onPress} testID="selection-button">
       <DSCard
         variant="flat"
-        style={{ marginBottom: spacing.lg, marginHorizontal: spacing.xxl }}
+        style={{ marginBottom: spacing.lg }}
       >
         {selection ? (
           <DSStack align="center">

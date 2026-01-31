@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import {
   DSButton,
@@ -8,12 +8,14 @@ import {
   DSScreen,
   DSScreenHeader,
   DSStack,
+  DSTimePicker,
   colors,
   spacing,
 } from '../design-system';
 import { SelectionPickerModal } from '../components/SelectionPickerModal';
 import { TimerDisplay } from '../components/TimerDisplay';
 import { SelectionCard } from '../components/SelectionCard';
+import { DescriptionInput } from '../components/DescriptionInput';
 import { useTimer } from '../hooks/useTimer';
 import { useSelectionFlow } from '../hooks/useSelectionFlow';
 import { TimerSelection } from '../types/timer';
@@ -34,10 +36,17 @@ export function TimerScreen() {
     selection,
     startTimer,
     stopTimer,
+    updateStartTime,
     onRefresh,
     handleDescriptionChange,
     formatTime,
   } = useTimer();
+
+  const startedAt = running ? new Date(running.started_at) : new Date();
+
+  const handleStartTimeChange = useCallback(async (newDate: Date) => {
+    await updateStartTime(newDate);
+  }, [updateStartTime]);
 
   const handleTimerStart = useCallback(
     (timerSelection: TimerSelection) => {
@@ -101,16 +110,37 @@ export function TimerScreen() {
         clientName={client?.name}
         projectName={project?.name}
         taskName={task?.name}
-        description={description}
-        onDescriptionChange={handleDescriptionChange}
-        isRunning={!!running}
       />
 
-      {!running && (
-        <SelectionCard selection={selection} onPress={handleSelectionPress} />
+      {running && (
+        <DSStack paddingHorizontal="lg">
+          <DescriptionInput
+            value={description}
+            onChangeText={handleDescriptionChange}
+            editable={true}
+          />
+        </DSStack>
       )}
 
-      <DSStack paddingHorizontal="xxl" paddingVertical="huge">
+      {running && (
+        <DSStack paddingHorizontal="lg" style={styles.startTimeContainer}>
+          <DSTimePicker
+            value={startedAt}
+            onChange={handleStartTimeChange}
+            label="Started at"
+            testID="timer-start-time"
+            maximumDate={new Date()}
+          />
+        </DSStack>
+      )}
+
+      {!running && (
+        <DSStack paddingHorizontal="lg">
+          <SelectionCard selection={selection} onPress={handleSelectionPress} />
+        </DSStack>
+      )}
+
+      <DSStack paddingHorizontal="lg" paddingVertical="huge">
         {running ? (
           <DSButton
             title="Stop"
@@ -154,3 +184,9 @@ export function TimerScreen() {
     </DSScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  startTimeContainer: {
+    marginTop: spacing.md,
+  },
+});

@@ -65,6 +65,7 @@ export interface CreateTimeEntryInput {
 
 export interface UpdateTimeEntryInput {
   description?: string | null;
+  started_at?: string | null;
   ended_at?: string | null;
 }
 

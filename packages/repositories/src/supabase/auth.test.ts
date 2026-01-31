@@ -6,6 +6,10 @@ import os from 'os';
 // Mock the connection module before importing auth
 vi.mock('./connection.js', () => ({
   getSupabaseClient: vi.fn(),
+  formatSupabaseError: vi.fn((error: Error | string) => {
+    if (typeof error === 'string') return error;
+    return error.message;
+  }),
 }));
 
 // Mock the config module for token management tests

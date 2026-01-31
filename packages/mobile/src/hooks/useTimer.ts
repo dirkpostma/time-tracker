@@ -149,6 +149,41 @@ export function useTimer() {
     }
   }, [running, timeEntryRepo]);
 
+  const updateStartTime = useCallback(async (newStartTime: Date) => {
+    if (!running) return;
+
+    // Validate: start time must be in the past
+    if (newStartTime > new Date()) {
+      Alert.alert('Invalid Time', 'Start time cannot be in the future');
+      return false;
+    }
+
+    // Validate: start time shouldn't be more than 24h ago
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    if (newStartTime < twentyFourHoursAgo) {
+      Alert.alert('Invalid Time', 'Start time cannot be more than 24 hours ago');
+      return false;
+    }
+
+    try {
+      await timeEntryRepo.update(running.id, {
+        started_at: newStartTime.toISOString(),
+      });
+      
+      // Update local state
+      setRunning({
+        ...running,
+        started_at: newStartTime.toISOString(),
+      });
+      
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update start time';
+      Alert.alert('Error', message);
+      return false;
+    }
+  }, [running, timeEntryRepo]);
+
   const formatTime = useCallback((seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -177,6 +212,7 @@ export function useTimer() {
     // Actions
     startTimer,
     stopTimer,
+    updateStartTime,
     onRefresh,
     handleDescriptionChange,
     formatTime,

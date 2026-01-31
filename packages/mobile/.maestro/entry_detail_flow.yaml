@@ -1,0 +1,116 @@
+appId: nl.dirkpostma.timetracker
+---
+# Entry Detail Flow Test
+# 
+# Run with helper script (recommended):
+#   .maestro/run-test.sh entry_detail_flow.yaml
+#
+# Or if app is already connected:
+#   maestro test .maestro/entry_detail_flow.yaml
+
+# Note: launchApp may disconnect from Metro with Dev Client
+# Use run-test.sh to auto-reconnect
+
+# If on login screen, log in first
+- tapOn:
+    id: "email-input"
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign in to continue"
+    commands:
+      - inputText: "test@example.com"
+      - tapOn:
+          id: "password-input"
+      - inputText: "Test1234"
+      - tapOn:
+          id: "login-button"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+
+# Wait for main app
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 30000
+
+# Navigate to History tab
+- tapOn:
+    point: "50%,95%"
+
+# Wait for history screen
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000
+
+# Verify history list is visible
+- assertVisible:
+    id: "history-list"
+
+# Tap on first entry card (using testID pattern)
+- tapOn:
+    id: "entry-card-.*"
+
+# Wait for entry detail screen
+- extendedWaitUntil:
+    visible:
+      id: "entry-detail-screen"
+    timeout: 5000
+
+# Verify entry detail elements
+- assertVisible:
+    id: "entry-detail-client"
+
+- assertVisible:
+    id: "entry-detail-date"
+
+- assertVisible:
+    id: "entry-detail-duration"
+
+- assertVisible:
+    id: "entry-detail-description-input"
+
+# Test editing description
+- tapOn:
+    id: "entry-detail-description-input"
+
+# Clear existing text and enter new description
+- eraseText: 100
+- inputText: "Test from Maestro"
+
+# Dismiss keyboard by tapping on the TIME section header (above keyboard)
+- tapOn:
+    text: "TIME"
+
+# Wait a moment for keyboard to dismiss
+- swipe:
+    direction: DOWN
+    duration: 500
+
+# Scroll down to make Save button visible
+- swipe:
+    start: 50%, 60%
+    end: 50%, 30%
+
+# Save changes
+- tapOn:
+    id: "entry-detail-save-button"
+
+# Dismiss the success alert
+- extendedWaitUntil:
+    visible: "OK"
+    timeout: 5000
+- tapOn:
+    text: "OK"
+
+# Wait for save to complete and return to history
+- extendedWaitUntil:
+    visible:
+      id: "history-screen"
+    timeout: 5000
+
+# Verify we're back on history
+- assertVisible:
+    id: "history-list"

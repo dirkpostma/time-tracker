@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextStyle } from 'react-native';
-import { DayGroup } from '../hooks/useTimeEntries';
+import { DayGroup, TimeEntryDisplay } from '../hooks/useTimeEntries';
 import { TimeEntryCard } from './TimeEntryCard';
 import { typography, spacing } from '../design-system/tokens';
 import { useTheme } from '../design-system/themes/ThemeContext';
 
 interface DaySectionProps {
   group: DayGroup;
+  onEntryPress?: (entry: TimeEntryDisplay) => void;
 }
 
 function formatTotalDuration(seconds: number): string {
@@ -19,7 +20,7 @@ function formatTotalDuration(seconds: number): string {
   return `${hours}h ${minutes}m`;
 }
 
-export function DaySection({ group }: DaySectionProps) {
+export function DaySection({ group, onEntryPress }: DaySectionProps) {
   const { theme } = useTheme();
   const { colors } = theme;
 
@@ -43,7 +44,11 @@ export function DaySection({ group }: DaySectionProps) {
         <Text style={totalStyle}>{formatTotalDuration(group.totalDuration)}</Text>
       </View>
       {group.entries.map((entry) => (
-        <TimeEntryCard key={entry.id} entry={entry} />
+        <TimeEntryCard 
+          key={entry.id} 
+          entry={entry} 
+          onPress={onEntryPress ? () => onEntryPress(entry) : undefined}
+        />
       ))}
     </View>
   );

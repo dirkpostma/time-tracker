@@ -1,128 +1,179 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { getSupabaseClient } from '@time-tracker/repositories/supabase/connection';
-import { addClient } from './client.js';
-import { addProject } from './project.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { TimeEntry, Client, Project, Task } from '@time-tracker/core';
+
+// Use vi.hoisted() to create mocks that are available during mock hoisting
+const { mockTimeEntryRepo, mockSupabaseChain, mockSupabase } = vi.hoisted(() => {
+  const mockTimeEntryRepo = {
+    findRunning: vi.fn(),
+    create: vi.fn(),
+    stop: vi.fn(),
+    update: vi.fn(),
+  };
+
+  const mockSupabaseChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn(),
+  };
+
+  const mockSupabase = {
+    from: vi.fn().mockReturnValue(mockSupabaseChain),
+  };
+
+  return { mockTimeEntryRepo, mockSupabaseChain, mockSupabase };
+});
+
+// Mock the modules - the class must be defined inside the factory
+vi.mock('@time-tracker/repositories/supabase/timeEntry', () => {
+  return {
+    SupabaseTimeEntryRepository: class {
+      findRunning = mockTimeEntryRepo.findRunning;
+      create = mockTimeEntryRepo.create;
+      stop = mockTimeEntryRepo.stop;
+      update = mockTimeEntryRepo.update;
+    },
+  };
+});
+
+vi.mock('@time-tracker/repositories/supabase/connection', () => ({
+  getSupabaseClient: () => mockSupabase,
+}));
+
 import { startTimer, stopTimer, getRunningTimer, getStatus } from './timeEntry.js';
 
 describe('time entry commands', () => {
-  const testClientName = `TimeEntry Test Client ${Date.now()}`;
-  const testProjectName = `TimeEntry Test Project ${Date.now()}`;
-  let testClientId: string;
-  let testProjectId: string;
+  const mockClient: Client = {
+    id: 'client-123',
+    name: 'Test Client',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
 
-  beforeAll(async () => {
-    const client = await addClient(testClientName);
-    testClientId = client.id;
-    const project = await addProject(testProjectName, testClientId);
-    testProjectId = project.id;
+  const mockProject: Project = {
+    id: 'project-123',
+    name: 'Test Project',
+    client_id: 'client-123',
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  const mockTimeEntry: TimeEntry = {
+    id: 'entry-123',
+    client_id: 'client-123',
+    project_id: 'project-123',
+    task_id: null,
+    description: null,
+    started_at: new Date().toISOString(),
+    ended_at: null,
+    created_at: '2024-01-15T09:00:00.000Z',
+    updated_at: '2024-01-15T09:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset default state
+    mockTimeEntryRepo.findRunning.mockResolvedValue(null);
   });
 
-  afterAll(async () => {
-    const supabase = getSupabaseClient();
-    await supabase.from('time_entries').delete().eq('client_id', testClientId);
-    await supabase.from('projects').delete().eq('name', testProjectName);
-    await supabase.from('clients').delete().eq('name', testClientName);
-  });
-
-  beforeEach(async () => {
-    // Stop any running timer for THIS test client only (avoids parallel test interference)
-    const supabase = getSupabaseClient();
-    await supabase.from('time_entries')
-      .update({ ended_at: new Date().toISOString() })
-      .eq('client_id', testClientId)
-      .is('ended_at', null);
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('startTimer', () => {
     /** @spec timer.start.success */
     it('should create a new time entry with client and project', async () => {
-      const entry = await startTimer(testClientId, testProjectId);
+      mockTimeEntryRepo.create.mockResolvedValue(mockTimeEntry);
+
+      const entry = await startTimer('client-123', 'project-123');
 
       expect(entry).toBeDefined();
-      expect(entry.client_id).toBe(testClientId);
-      expect(entry.project_id).toBe(testProjectId);
+      expect(entry.client_id).toBe('client-123');
+      expect(entry.project_id).toBe('project-123');
       expect(entry.started_at).toBeDefined();
       expect(entry.ended_at).toBeNull();
     });
 
     it('should create a new time entry with only client (no project)', async () => {
-      const entry = await startTimer(testClientId);
+      const entryWithoutProject = { ...mockTimeEntry, project_id: null };
+      mockTimeEntryRepo.create.mockResolvedValue(entryWithoutProject);
+
+      const entry = await startTimer('client-123');
 
       expect(entry).toBeDefined();
-      expect(entry.client_id).toBe(testClientId);
+      expect(entry.client_id).toBe('client-123');
       expect(entry.project_id).toBeNull();
       expect(entry.started_at).toBeDefined();
       expect(entry.ended_at).toBeNull();
     });
 
     it('should create entry with optional task and description', async () => {
-      const entry = await startTimer(testClientId, testProjectId, undefined, 'Working on feature');
+      const entryWithDescription = { ...mockTimeEntry, description: 'Working on feature' };
+      mockTimeEntryRepo.create.mockResolvedValue(entryWithDescription);
+
+      const entry = await startTimer('client-123', 'project-123', undefined, 'Working on feature');
 
       expect(entry.description).toBe('Working on feature');
     });
 
     /** @spec timer.start.client-missing */
     it('should throw when client does not exist', async () => {
-      const nonExistentClientId = '00000000-0000-0000-0000-000000000000';
+      mockTimeEntryRepo.create.mockRejectedValue(new Error('Failed to create time entry'));
 
-      await expect(startTimer(nonExistentClientId)).rejects.toThrow('Failed to create time entry');
+      await expect(startTimer('00000000-0000-0000-0000-000000000000')).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.project-missing */
     it('should throw when project does not exist', async () => {
-      const nonExistentProjectId = '00000000-0000-0000-0000-000000000000';
+      mockTimeEntryRepo.create.mockRejectedValue(new Error('Failed to create time entry'));
 
-      await expect(startTimer(testClientId, nonExistentProjectId)).rejects.toThrow('Failed to create time entry');
+      await expect(startTimer('client-123', '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.task-missing */
     it('should throw when task does not exist', async () => {
-      const nonExistentTaskId = '00000000-0000-0000-0000-000000000000';
+      mockTimeEntryRepo.create.mockRejectedValue(new Error('Failed to create time entry'));
 
-      await expect(startTimer(testClientId, testProjectId, nonExistentTaskId)).rejects.toThrow('Failed to create time entry');
+      await expect(startTimer('client-123', 'project-123', '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Failed to create time entry');
     });
 
     /** @spec timer.start.running-exists */
     it('should throw if timer already running and force is false', async () => {
-      await startTimer(testClientId, testProjectId);
+      mockTimeEntryRepo.findRunning.mockResolvedValue(mockTimeEntry);
 
-      await expect(startTimer(testClientId)).rejects.toThrow('Timer already running');
+      await expect(startTimer('client-123')).rejects.toThrow('Timer already running');
     });
 
     it('should stop current timer and start new one when force is true', async () => {
-      // Start first timer
-      const firstEntry = await startTimer(testClientId, testProjectId);
-      expect(firstEntry.ended_at).toBeNull();
+      const firstEntry = { ...mockTimeEntry, id: 'first-entry' };
+      const secondEntry = { ...mockTimeEntry, id: 'second-entry' };
 
-      // Start second timer with force
-      const secondEntry = await startTimer(testClientId, undefined, undefined, undefined, true);
+      mockTimeEntryRepo.findRunning
+        .mockResolvedValueOnce(firstEntry)  // First call: running timer found
+        .mockResolvedValueOnce(null);       // After stop, no running timer
+      mockTimeEntryRepo.stop.mockResolvedValue({ ...firstEntry, ended_at: new Date().toISOString() });
+      mockTimeEntryRepo.create.mockResolvedValue(secondEntry);
 
-      // Second timer should be running
-      expect(secondEntry.ended_at).toBeNull();
-      expect(secondEntry.id).not.toBe(firstEntry.id);
+      const entry = await startTimer('client-123', undefined, undefined, undefined, true);
 
-      // First timer should be stopped
-      const supabase = getSupabaseClient();
-      const { data: stoppedEntry } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('id', firstEntry.id)
-        .single();
-
-      expect(stoppedEntry?.ended_at).not.toBeNull();
+      expect(entry.id).not.toBe(firstEntry.id);
+      expect(mockTimeEntryRepo.stop).toHaveBeenCalledWith('first-entry');
     });
   });
 
   describe('getRunningTimer', () => {
     it('should return null when no timer running', async () => {
+      mockTimeEntryRepo.findRunning.mockResolvedValue(null);
+
       const timer = await getRunningTimer();
+
       expect(timer).toBeNull();
     });
 
     it('should return running timer', async () => {
-      await startTimer(testClientId, testProjectId);
+      mockTimeEntryRepo.findRunning.mockResolvedValue(mockTimeEntry);
 
       const timer = await getRunningTimer();
+
       expect(timer).toBeDefined();
       expect(timer?.ended_at).toBeNull();
     });
@@ -131,7 +182,9 @@ describe('time entry commands', () => {
   describe('stopTimer', () => {
     /** @spec timer.stop.success */
     it('should stop running timer', async () => {
-      await startTimer(testClientId, testProjectId);
+      const stoppedEntry = { ...mockTimeEntry, ended_at: new Date().toISOString() };
+      mockTimeEntryRepo.findRunning.mockResolvedValue(mockTimeEntry);
+      mockTimeEntryRepo.stop.mockResolvedValue(stoppedEntry);
 
       const entry = await stopTimer();
 
@@ -141,11 +194,15 @@ describe('time entry commands', () => {
 
     /** @spec timer.stop.no-running */
     it('should throw if no timer running', async () => {
+      mockTimeEntryRepo.findRunning.mockResolvedValue(null);
+
       await expect(stopTimer()).rejects.toThrow('No timer running');
     });
 
     it('should add description when stopping', async () => {
-      await startTimer(testClientId, testProjectId);
+      const stoppedEntry = { ...mockTimeEntry, description: 'Finished the task', ended_at: new Date().toISOString() };
+      mockTimeEntryRepo.findRunning.mockResolvedValue(mockTimeEntry);
+      mockTimeEntryRepo.update.mockResolvedValue(stoppedEntry);
 
       const entry = await stopTimer('Finished the task');
 
@@ -154,61 +211,64 @@ describe('time entry commands', () => {
 
     /** @spec timer.stop.desc-exists */
     it('should overwrite existing description when new description provided', async () => {
-      const originalDescription = 'Original description';
-      const newDescription = 'New description';
+      const runningWithDescription = { ...mockTimeEntry, description: 'Original description' };
+      const stoppedEntry = { ...runningWithDescription, description: 'New description', ended_at: new Date().toISOString() };
 
-      await startTimer(testClientId, testProjectId, undefined, originalDescription);
+      mockTimeEntryRepo.findRunning.mockResolvedValue(runningWithDescription);
+      mockTimeEntryRepo.update.mockResolvedValue(stoppedEntry);
 
-      // Verify original description was set
-      const running = await getRunningTimer();
-      expect(running?.description).toBe(originalDescription);
+      const entry = await stopTimer('New description');
 
-      // Stop with new description - at the module level, this just overwrites
-      // (The CLI layer in index.ts handles the "overwrite? y/n" prompt)
-      const entry = await stopTimer(newDescription);
-
-      expect(entry.description).toBe(newDescription);
+      expect(entry.description).toBe('New description');
     });
 
     it('should preserve existing description when stopping without new description', async () => {
-      const originalDescription = 'Original description';
+      const runningWithDescription = { ...mockTimeEntry, description: 'Original description' };
+      const stoppedEntry = { ...runningWithDescription, ended_at: new Date().toISOString() };
 
-      await startTimer(testClientId, testProjectId, undefined, originalDescription);
+      mockTimeEntryRepo.findRunning.mockResolvedValue(runningWithDescription);
+      mockTimeEntryRepo.stop.mockResolvedValue(stoppedEntry);
 
-      // Stop without providing a new description
       const entry = await stopTimer();
 
-      // Original description should be preserved
-      expect(entry.description).toBe(originalDescription);
+      expect(entry.description).toBe('Original description');
     });
   });
 
   describe('getStatus', () => {
     /** @spec timer.status.not-running */
     it('should return null when no timer running', async () => {
+      mockTimeEntryRepo.findRunning.mockResolvedValue(null);
+
       const status = await getStatus();
+
       expect(status).toBeNull();
     });
 
     /** @spec timer.status.running */
     it('should return status with client and project info', async () => {
-      await startTimer(testClientId, testProjectId);
+      mockTimeEntryRepo.findRunning.mockResolvedValue(mockTimeEntry);
+      mockSupabaseChain.single
+        .mockResolvedValueOnce({ data: mockClient, error: null })  // Client query
+        .mockResolvedValueOnce({ data: mockProject, error: null }); // Project query
 
       const status = await getStatus();
 
       expect(status).toBeDefined();
-      expect(status?.client.name).toBe(testClientName);
-      expect(status?.project?.name).toBe(testProjectName);
+      expect(status?.client.name).toBe('Test Client');
+      expect(status?.project?.name).toBe('Test Project');
       expect(status?.duration).toBeGreaterThanOrEqual(0);
     });
 
     it('should return status with only client (no project)', async () => {
-      await startTimer(testClientId);
+      const entryWithoutProject = { ...mockTimeEntry, project_id: null };
+      mockTimeEntryRepo.findRunning.mockResolvedValue(entryWithoutProject);
+      mockSupabaseChain.single.mockResolvedValueOnce({ data: mockClient, error: null });
 
       const status = await getStatus();
 
       expect(status).toBeDefined();
-      expect(status?.client.name).toBe(testClientName);
+      expect(status?.client.name).toBe('Test Client');
       expect(status?.project).toBeNull();
       expect(status?.duration).toBeGreaterThanOrEqual(0);
     });

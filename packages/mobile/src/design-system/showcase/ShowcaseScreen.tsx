@@ -24,6 +24,7 @@ import { LayoutStories } from './stories/LayoutStories';
 import { AddClientStories } from './stories/AddClientStories';
 import { SettingsRowStories } from './stories/SettingsRowStories';
 import { IconStories } from './stories/IconStories';
+import { TimePickerStories } from './stories/TimePickerStories';
 
 interface Story {
   name: string;
@@ -111,6 +112,13 @@ const STORIES: Record<string, Story[]> = {
     { name: 'Splash Icon', component: IconStories.SplashIcon },
     { name: 'Adaptive Icon', component: IconStories.AdaptiveIcon },
     { name: 'All Sizes', component: IconStories.AllSizes },
+  ],
+  'Time Picker': [
+    { name: 'Default', component: TimePickerStories.Default },
+    { name: 'Without Label', component: TimePickerStories.WithoutLabel },
+    { name: 'Disabled', component: TimePickerStories.Disabled },
+    { name: 'Start & End Time', component: TimePickerStories.StartEnd },
+    { name: 'Inline', component: TimePickerStories.Inline },
   ],
 };
 
