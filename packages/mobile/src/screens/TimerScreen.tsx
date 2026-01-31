@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Alert, View, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -159,22 +159,42 @@ export function TimerScreen() {
         </TouchableOpacity>
       )}
 
-      {showStartTimePicker && running && (
-        <View style={styles.pickerContainer} testID="timer-start-time-picker">
-          <View style={styles.pickerHeader}>
-            <DSText variant="body">Edit Start Time</DSText>
-            <TouchableOpacity onPress={closeStartTimePicker} testID="timer-start-time-picker-done">
-              <DSText variant="body" color="primary">Done</DSText>
-            </TouchableOpacity>
-          </View>
-          <DateTimePicker
-            value={startedAt}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleStartTimeChange}
+      {/* Bottom Sheet Time Picker Modal */}
+      <Modal
+        visible={showStartTimePicker && !!running}
+        transparent
+        animationType="slide"
+        onRequestClose={closeStartTimePicker}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.modalBackdrop} 
+            onPress={closeStartTimePicker}
+            activeOpacity={1}
           />
+          <View style={styles.bottomSheet} testID="timer-start-time-picker">
+            <View style={styles.bottomSheetHeader}>
+              <TouchableOpacity onPress={closeStartTimePicker}>
+                <DSText variant="body" color="secondary">Cancel</DSText>
+              </TouchableOpacity>
+              <DSText variant="body" style={{ fontWeight: '600' }}>Edit Start Time</DSText>
+              <TouchableOpacity onPress={closeStartTimePicker} testID="timer-start-time-picker-done">
+                <DSText variant="body" color="primary">Done</DSText>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.pickerWrapper}>
+              <DateTimePicker
+                value={startedAt}
+                mode="time"
+                display="spinner"
+                onChange={handleStartTimeChange}
+                themeVariant="dark"
+                style={styles.picker}
+              />
+            </View>
+          </View>
         </View>
-      )}
+      </Modal>
 
       {!running && (
         <SelectionCard selection={selection} onPress={handleSelectionPress} />
@@ -230,20 +250,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
   },
-  pickerContainer: {
-    backgroundColor: '#2a2a3e',
-    borderRadius: 12,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    overflow: 'hidden',
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  pickerHeader: {
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  bottomSheet: {
+    backgroundColor: '#1c1c1e',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20, // Safe area
+  },
+  bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3a3a4e',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#3a3a3c',
+  },
+  pickerWrapper: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  picker: {
+    width: '100%',
+    height: 200,
   },
 });
