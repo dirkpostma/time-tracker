@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
-import { Alert, View, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
+import React, { useCallback, useState, useRef, useMemo } from 'react';
+import { Alert, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useAuth } from '../contexts/AuthContext';
 import {
   DSButton,
@@ -30,6 +31,8 @@ function formatStartTime(date: Date): string {
 export function TimerScreen() {
   const { user, signOut } = useAuth();
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['40%'], []);
 
   const {
     running,
@@ -71,8 +74,32 @@ export function TimerScreen() {
   }, [updateStartTime]);
 
   const closeStartTimePicker = useCallback(() => {
+    bottomSheetRef.current?.close();
     setShowStartTimePicker(false);
   }, []);
+
+  const openStartTimePicker = useCallback(() => {
+    setShowStartTimePicker(true);
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleSheetChange = useCallback((index: number) => {
+    if (index === -1) {
+      setShowStartTimePicker(false);
+    }
+  }, []);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
 
   const handleTimerStart = useCallback(
     (timerSelection: TimerSelection) => {
@@ -144,7 +171,7 @@ export function TimerScreen() {
       {running && (
         <TouchableOpacity
           style={styles.startTimeContainer}
-          onPress={() => setShowStartTimePicker(true)}
+          onPress={openStartTimePicker}
           testID="timer-start-time-button"
           accessibilityLabel="Edit start time"
           accessibilityHint="Opens time picker to change when the timer started"
@@ -159,20 +186,19 @@ export function TimerScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Bottom Sheet Time Picker Modal */}
-      <Modal
-        visible={showStartTimePicker && !!running}
-        transparent
-        animationType="slide"
-        onRequestClose={closeStartTimePicker}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={styles.modalBackdrop} 
-            onPress={closeStartTimePicker}
-            activeOpacity={1}
-          />
-          <View style={styles.bottomSheet} testID="timer-start-time-picker">
+      {/* Bottom Sheet Time Picker */}
+      {showStartTimePicker && (
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          onChange={handleSheetChange}
+          enablePanDownToClose
+          backdropComponent={renderBackdrop}
+          backgroundStyle={styles.bottomSheetBackground}
+          handleIndicatorStyle={styles.bottomSheetHandle}
+        >
+          <BottomSheetView style={styles.bottomSheetContent} testID="timer-start-time-picker">
             <View style={styles.bottomSheetHeader}>
               <TouchableOpacity onPress={closeStartTimePicker}>
                 <DSText variant="body" color="secondary">Cancel</DSText>
@@ -192,9 +218,9 @@ export function TimerScreen() {
                 style={styles.picker}
               />
             </View>
-          </View>
-        </View>
-      </Modal>
+          </BottomSheetView>
+        </BottomSheet>
+      )}
 
       {!running && (
         <SelectionCard selection={selection} onPress={handleSelectionPress} />
@@ -250,19 +276,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  bottomSheet: {
+  bottomSheetBackground: {
     backgroundColor: '#1c1c1e',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20, // Safe area
+  },
+  bottomSheetHandle: {
+    backgroundColor: '#5c5c5e',
+    width: 40,
+  },
+  bottomSheetContent: {
+    flex: 1,
   },
   bottomSheetHeader: {
     flexDirection: 'row',
