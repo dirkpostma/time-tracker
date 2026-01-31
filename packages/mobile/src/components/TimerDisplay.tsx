@@ -1,15 +1,11 @@
 import React from 'react';
 import { DSText, DSCenter, DSSpacer } from '../design-system';
-import { DescriptionInput } from './DescriptionInput';
 
 interface TimerDisplayProps {
   formattedTime: string;
   clientName?: string;
   projectName?: string;
   taskName?: string;
-  description: string;
-  onDescriptionChange: (text: string) => void;
-  isRunning: boolean;
 }
 
 export function TimerDisplay({
@@ -17,9 +13,6 @@ export function TimerDisplay({
   clientName,
   projectName,
   taskName,
-  description,
-  onDescriptionChange,
-  isRunning,
 }: TimerDisplayProps) {
   const hasContext = clientName || projectName || taskName;
 
@@ -52,11 +45,6 @@ export function TimerDisplay({
           )}
         </>
       )}
-      <DescriptionInput
-        value={description}
-        onChangeText={onDescriptionChange}
-        editable={isRunning}
-      />
     </DSCenter>
   );
 }

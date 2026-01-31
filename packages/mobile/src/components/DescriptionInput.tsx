@@ -20,12 +20,12 @@ export function DescriptionInput({
   const { colors, borderRadius, shadows } = theme;
 
   const containerStyle: ViewStyle = {
-    marginTop: spacing.xl,
-    marginHorizontal: spacing.lg,
-    backgroundColor: editable ? colors.backgroundCard : colors.backgroundSecondary,
+    marginTop: spacing.lg,
+    backgroundColor: colors.backgroundCard,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
-    ...(editable ? shadows.md : {}),
+    borderWidth: 1,
+    borderColor: colors.border,
   };
 
   const labelStyle: TextStyle = {

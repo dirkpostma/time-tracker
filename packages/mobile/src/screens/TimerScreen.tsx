@@ -15,6 +15,7 @@ import {
 import { SelectionPickerModal } from '../components/SelectionPickerModal';
 import { TimerDisplay } from '../components/TimerDisplay';
 import { SelectionCard } from '../components/SelectionCard';
+import { DescriptionInput } from '../components/DescriptionInput';
 import { useTimer } from '../hooks/useTimer';
 import { useSelectionFlow } from '../hooks/useSelectionFlow';
 import { TimerSelection } from '../types/timer';
@@ -109,10 +110,17 @@ export function TimerScreen() {
         clientName={client?.name}
         projectName={project?.name}
         taskName={task?.name}
-        description={description}
-        onDescriptionChange={handleDescriptionChange}
-        isRunning={!!running}
       />
+
+      {running && (
+        <DSStack paddingHorizontal="lg">
+          <DescriptionInput
+            value={description}
+            onChangeText={handleDescriptionChange}
+            editable={true}
+          />
+        </DSStack>
+      )}
 
       {running && (
         <DSStack paddingHorizontal="lg" style={styles.startTimeContainer}>
@@ -127,10 +135,12 @@ export function TimerScreen() {
       )}
 
       {!running && (
-        <SelectionCard selection={selection} onPress={handleSelectionPress} />
+        <DSStack paddingHorizontal="lg">
+          <SelectionCard selection={selection} onPress={handleSelectionPress} />
+        </DSStack>
       )}
 
-      <DSStack paddingHorizontal="xxl" paddingVertical="huge">
+      <DSStack paddingHorizontal="lg" paddingVertical="huge">
         {running ? (
           <DSButton
             title="Stop"
