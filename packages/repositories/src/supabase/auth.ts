@@ -268,6 +268,9 @@ export function createAuthRepository(): AuthRepository {
  * @returns The current user if session is valid, null otherwise
  */
 export async function initAuthSession(): Promise<User | null> {
+  // Ensure config module is loaded for token persistence
+  await loadConfigModule();
+  
   const tokens = getAuthTokens();
   if (!tokens) return null;
 

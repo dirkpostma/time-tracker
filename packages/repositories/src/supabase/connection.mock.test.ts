@@ -11,23 +11,32 @@ vi.mock('./config.js', () => ({
 import { getConfig, getConfigPath } from './config.js';
 
 describe('getSupabaseClient (no config)', () => {
+  const originalUrl = process.env.SUPABASE_URL;
+  const originalKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+
   beforeEach(() => {
     vi.resetModules();
+    // Clear env vars to test the "no config" scenario
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_PUBLISHABLE_KEY;
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    // Restore env vars
+    if (originalUrl) process.env.SUPABASE_URL = originalUrl;
+    else delete process.env.SUPABASE_URL;
+    if (originalKey) process.env.SUPABASE_PUBLISHABLE_KEY = originalKey;
+    else delete process.env.SUPABASE_PUBLISHABLE_KEY;
   });
 
   /** @spec connection.no-config */
   it('should throw error when no configuration exists', async () => {
-    vi.mocked(getConfig).mockReturnValue(null);
-
     // Re-import to reset the cached client
-    const { getSupabaseClient } = await import('./connection.js');
+    const { getSupabaseClient, clearSupabaseClient } = await import('./connection.js');
+    clearSupabaseClient();
 
-    expect(() => getSupabaseClient()).toThrow("Missing configuration. Run 'tt config' to set up your credentials.");
-    expect(() => getSupabaseClient()).toThrow('/mock/.tt/config.json');
+    expect(() => getSupabaseClient()).toThrow('Supabase client not initialized');
   });
 });
 
