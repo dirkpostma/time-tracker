@@ -101,7 +101,7 @@ appId: nl.dirkpostma.timetracker
 - assertVisible:
     id: "switch-selection-button"
 
-# === Step 2: Switch to a different client ===
+# === Step 2: Switch to a different client (no confirmation needed) ===
 
 # Tap the switch button
 - tapOn:
@@ -138,15 +138,7 @@ appId: nl.dirkpostma.timetracker
 - tapOn:
     id: "project-skip"
 
-# Wait for confirmation alert
-- extendedWaitUntil:
-    visible: "Switch Timer?"
-    timeout: 10000
-
-# Confirm the switch
-- tapOn:
-    text: "Switch"
-
+# Switch happens immediately - no confirmation dialog
 # Wait for timer screen to update
 - extendedWaitUntil:
     visible:
@@ -158,60 +150,6 @@ appId: nl.dirkpostma.timetracker
     id: "stop-button"
 - assertVisible:
     id: "client-name"
-
-# === Step 3: Test cancel switch ===
-
-# Tap the switch button again
-- tapOn:
-    id: "switch-selection-button"
-
-# Wait for selection picker modal
-- extendedWaitUntil:
-    visible:
-      id: "selection-picker-modal"
-    timeout: 10000
-
-# Create third client
-- tapOn:
-    id: "add-client-button"
-- tapOn:
-    id: "new-client-name-input"
-- inputRandomText:
-    length: 4
-- inputText: " SwitchTest3"
-- hideKeyboard
-- tapOn:
-    text: "Add client"
-
-# Dismiss any error alert
-- tapOn:
-    text: "OK"
-    optional: true
-
-# Wait for project step and skip
-- extendedWaitUntil:
-    visible:
-      id: "add-project-button"
-    timeout: 15000
-- tapOn:
-    id: "project-skip"
-
-# Wait for confirmation alert
-- extendedWaitUntil:
-    visible: "Switch Timer?"
-    timeout: 10000
-
-# Cancel the switch
-- tapOn:
-    text: "Cancel"
-
-# Verify timer is still running with previous client (switch was cancelled)
-- extendedWaitUntil:
-    visible:
-      id: "stop-button"
-    timeout: 10000
-- assertVisible:
-    id: "stop-button"
 
 # === Cleanup ===
 
