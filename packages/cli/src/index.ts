@@ -388,9 +388,10 @@ program
 program
   .command('seed')
   .description('Seed database with test data (clients, projects, tasks)')
-  .action(async () => {
+  .option('-f, --force', 'Allow seeding non-local databases (with confirmation)')
+  .action(async (options) => {
     try {
-      await seedDatabase();
+      await seedDatabase({ force: options.force });
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to seed database');
       process.exit(1);

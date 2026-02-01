@@ -1,9 +1,43 @@
 /**
  * Seed command - populate database with test data
+ * 
+ * SAFETY: Only runs on local databases by default.
+ * Use --force to seed remote databases (with confirmation).
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { confirm } from '@inquirer/prompts';
 import { getConfig } from '@time-tracker/repositories/supabase/config';
+
+/**
+ * Check if a Supabase URL is local (safe to seed without confirmation)
+ */
+function isLocalDatabase(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    
+    // Local development patterns
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.endsWith('.local') ||
+      hostname === 'host.docker.internal'
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if URL looks like production
+ */
+function looksLikeProduction(url: string): boolean {
+  const lower = url.toLowerCase();
+  return lower.includes('prod') || lower.includes('production');
+}
 
 interface SeedClient {
   id: string;
@@ -65,11 +99,47 @@ const SEED_TASKS: SeedTask[] = [
   { id: '03000001-0001-4001-8001-000000000012', project_id: '02000001-0001-4001-8001-000000000006', name: 'Performance optimization' },
 ];
 
-export async function seedDatabase(): Promise<void> {
+export async function seedDatabase(options: { force?: boolean } = {}): Promise<void> {
   // Get config from file or env
   const config = getConfig();
   if (!config) {
     throw new Error('Supabase not configured. Run `tt config` first or set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY environment variables.');
+  }
+  
+  const { supabaseUrl } = config;
+  const isLocal = isLocalDatabase(supabaseUrl);
+  const isProdLike = looksLikeProduction(supabaseUrl);
+  
+  // Safety check for non-local databases
+  if (!isLocal) {
+    console.log(`\n⚠️  WARNING: Target database is NOT local!`);
+    console.log(`   URL: ${supabaseUrl}\n`);
+    
+    if (isProdLike) {
+      console.log(`🚨 DANGER: URL contains 'prod' - this looks like a production database!\n`);
+    }
+    
+    if (!options.force) {
+      throw new Error(
+        'Refusing to seed non-local database without --force flag.\n' +
+        'This is a safety measure to prevent accidental data loss.\n\n' +
+        'If you really want to seed this database, run:\n' +
+        '  tt seed --force'
+      );
+    }
+    
+    // Even with --force, require interactive confirmation
+    const confirmed = await confirm({
+      message: isProdLike 
+        ? '🚨 DANGER: This looks like PRODUCTION! Are you absolutely sure?' 
+        : 'Are you sure you want to seed this remote database?',
+      default: false,
+    });
+    
+    if (!confirmed) {
+      console.log('Aborted.');
+      return;
+    }
   }
   
   const supabase = createClient(config.supabaseUrl, config.supabaseKey);
