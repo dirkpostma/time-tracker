@@ -12,7 +12,7 @@ import { getConfig } from '@time-tracker/repositories/supabase/config';
 /**
  * Check if a Supabase URL is local (safe to seed without confirmation)
  */
-function isLocalDatabase(url: string): boolean {
+export function isLocalDatabase(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
@@ -34,7 +34,7 @@ function isLocalDatabase(url: string): boolean {
 /**
  * Check if URL looks like production
  */
-function looksLikeProduction(url: string): boolean {
+export function looksLikeProduction(url: string): boolean {
   const lower = url.toLowerCase();
   return lower.includes('prod') || lower.includes('production');
 }
