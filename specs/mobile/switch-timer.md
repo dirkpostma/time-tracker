@@ -1,5 +1,10 @@
 # Mobile Switch Timer Spec
 
+## Screenshots
+
+![Timer with Switch Card](../../docs/screenshots/switch-timer-card.png)
+![Selection Picker](../../docs/screenshots/switch-timer-picker.png)
+
 ## Overview
 
 When a timer is running, users can switch directly to a different client/project/task without stopping first. This eliminates friction and prevents time gaps between entries.
