@@ -1,5 +1,10 @@
 {
   "ios": {
     "bundleIdentifier": "com.anonymous.time-tracker"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "19821435-1dc8-4f88-9782-e1914e0dcd94"
+    }
   }
 }

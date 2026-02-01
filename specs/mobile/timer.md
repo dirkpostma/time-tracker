@@ -60,6 +60,18 @@ HH:MM:SS
 3. Update UI to stopped state
 4. Reset elapsed time to 0
 
+## Switch Timer Flow
+
+See [switch-timer.md](./switch-timer.md) for full specification.
+
+When timer is running:
+1. User taps "Switch to different client/project..." card
+2. Selection picker opens
+3. User selects new client/project/task
+4. Confirmation alert: "Switch Timer?"
+5. If confirmed: stop current timer, start new timer
+6. If cancelled: continue current timer
+
 ## Default Client Behavior
 
 When starting a timer:

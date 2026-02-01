@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -15,6 +15,7 @@ import {
 import { SelectionPickerModal } from '../components/SelectionPickerModal';
 import { TimerDisplay } from '../components/TimerDisplay';
 import { SelectionCard } from '../components/SelectionCard';
+import { SwitchCard } from '../components/SwitchCard';
 import { DescriptionInput } from '../components/DescriptionInput';
 import { useTimer } from '../hooks/useTimer';
 import { useSelectionFlow } from '../hooks/useSelectionFlow';
@@ -36,11 +37,14 @@ export function TimerScreen() {
     selection,
     startTimer,
     stopTimer,
+    switchTimer,
     updateStartTime,
     onRefresh,
     handleDescriptionChange,
     formatTime,
   } = useTimer();
+
+  const [pendingSwitchSelection, setPendingSwitchSelection] = useState<TimerSelection | null>(null);
 
   const startedAt = running ? new Date(running.started_at) : new Date();
 
@@ -70,6 +74,61 @@ export function TimerScreen() {
       selectionFlow.startFlow();
     }
   }, [running, selectionFlow]);
+
+  // Handle switch timer flow
+  const handleSwitchComplete = useCallback(
+    (newSelection: TimerSelection) => {
+      // Check if switching to the same selection
+      const isSameSelection =
+        running?.client_id === newSelection.clientId &&
+        running?.project_id === newSelection.projectId &&
+        running?.task_id === newSelection.taskId;
+
+      if (isSameSelection) {
+        // No switch needed
+        return;
+      }
+
+      // Store pending selection and show confirmation
+      setPendingSwitchSelection(newSelection);
+
+      const currentLabel = [client?.name, project?.name, task?.name]
+        .filter(Boolean)
+        .join(' / ');
+      const newLabel = [newSelection.clientName, newSelection.projectName, newSelection.taskName]
+        .filter(Boolean)
+        .join(' / ');
+
+      Alert.alert(
+        'Switch Timer?',
+        `Stop tracking "${currentLabel}" and start tracking "${newLabel}"?`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setPendingSwitchSelection(null),
+          },
+          {
+            text: 'Switch',
+            style: 'default',
+            onPress: async () => {
+              await switchTimer(newSelection);
+              setPendingSwitchSelection(null);
+            },
+          },
+        ]
+      );
+    },
+    [running, client, project, task, switchTimer]
+  );
+
+  const switchFlow = useSelectionFlow({ onComplete: handleSwitchComplete });
+
+  const handleSwitchPress = useCallback(() => {
+    if (running) {
+      switchFlow.startFlow();
+    }
+  }, [running, switchFlow]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -134,6 +193,12 @@ export function TimerScreen() {
         </DSStack>
       )}
 
+      {running && (
+        <DSStack paddingHorizontal="lg">
+          <SwitchCard onPress={handleSwitchPress} disabled={actionLoading} />
+        </DSStack>
+      )}
+
       {!running && (
         <DSStack paddingHorizontal="lg">
           <SelectionCard selection={selection} onPress={handleSelectionPress} />
@@ -180,6 +245,12 @@ export function TimerScreen() {
         visible={selectionFlow.showPicker}
         onClose={selectionFlow.handleClose}
         onComplete={selectionFlow.handleComplete}
+      />
+
+      <SelectionPickerModal
+        visible={switchFlow.showPicker}
+        onClose={switchFlow.handleClose}
+        onComplete={switchFlow.handleComplete}
       />
     </DSScreen>
   );
