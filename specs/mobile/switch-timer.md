@@ -1,10 +1,30 @@
 # Mobile Switch Timer Spec
 
-> 📹 **Demo:** [switch-timer-demo.mp4](../../docs/demos/switch-timer-demo.mp4)
-
 ## Overview
 
 When a timer is running, users can switch directly to a different client/project/task without stopping first. This eliminates friction and prevents time gaps between entries.
+
+## Recording a Demo Video
+
+```bash
+# 1. Start simulator recording
+xcrun simctl io booted recordVideo --codec=h264 /tmp/raw_video.mp4 &
+RECORD_PID=$!
+
+# 2. Run the demo flow with Maestro
+cd packages/mobile
+maestro test .maestro/switch_timer_flow.yaml
+
+# 3. Stop recording
+kill -INT $RECORD_PID
+
+# 4. Convert for iOS compatibility
+ffmpeg -y -i /tmp/raw_video.mp4 \
+  -c:v libx264 -profile:v baseline -level 3.0 \
+  -pix_fmt yuv420p -movflags +faststart \
+  -preset fast -crf 28 \
+  /tmp/switch_demo.mp4
+```
 
 ## Screen Elements
 
@@ -67,40 +87,7 @@ Timer Running (Client A / Project X)
    - UI updates
 ```
 
-## UI States
-
-### Timer Running - Switch Available
-
-```
-┌─────────────────────────────────┐
-│  Time Tracker          Logout   │
-├─────────────────────────────────┤
-│                                 │
-│         02:45:33                │
-│                                 │
-│       Client A                  │
-│       project x                 │
-│                                 │
-│   ┌───────────────────────────┐ │
-│   │  Notes (optional)         │ │
-│   └───────────────────────────┘ │
-│                                 │
-│   Started at 2:30 PM   ✎        │
-│                                 │
-│   ┌───────────────────────────┐ │
-│   │  ↻ Switch to different... │ │  <- Tappable card
-│   └───────────────────────────┘ │
-│                                 │
-│  ┌──────────────────────────┐   │
-│  │         Stop             │   │
-│  └──────────────────────────┘   │
-│                                 │
-└─────────────────────────────────┘
-```
-
 ## Database Operations
-
-### Switch Timer
 
 ```sql
 -- Step 1: Stop current timer
