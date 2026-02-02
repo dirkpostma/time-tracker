@@ -17,20 +17,18 @@ The homepage serves as the marketing landing page for the Time Tracker app.
 
 ### Features Section
 
-Five feature cards highlighting key capabilities:
+Three feature cards highlighting key capabilities:
 
 | Feature           | Description                                              |
 |-------------------|----------------------------------------------------------|
 | One-Tap Tracking  | Start and stop time entries with a single tap            |
 | Clients & Projects| Organize work by client and project                      |
 | History & Reports | View time entries by day, week, or month                 |
-| Offline Support   | Track time without internet, syncs when back online      |
-| Beautiful Themes  | Multiple themes to match your style                      |
 
 ### Screenshots Section
 
 Gallery showing app screenshots:
-- Timer screen in 5 different themes (Midnight Aurora, Soft Blossom, Brutalist, Ocean Depth, Sunset Warmth)
+- Timer screen
 - History screen
 - Settings screen
 
@@ -60,7 +58,7 @@ Desktop: Grid layout showing all screenshots
 
 See `e2e/landing.spec.ts`:
 - Hero displays title, tagline, badge, screenshot
-- Features section shows 5 cards with titles
+- Features section shows 3 cards with titles
 - Screenshots gallery loads images
 - CTA section content visible
 - Footer links present

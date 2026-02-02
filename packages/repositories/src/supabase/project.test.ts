@@ -111,6 +111,7 @@ describe('SupabaseProjectRepository', () => {
       expect(result).toBeNull();
     });
 
+    /** @spec repo.project.find-by-id-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.maybeSingle.mockResolvedValue({
         data: null,
@@ -159,6 +160,7 @@ describe('SupabaseProjectRepository', () => {
       expect(result).toBeNull();
     });
 
+    /** @spec repo.project.find-by-name-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.maybeSingle.mockResolvedValue({
         data: null,
@@ -197,6 +199,7 @@ describe('SupabaseProjectRepository', () => {
       expect(result).toEqual([]);
     });
 
+    /** @spec repo.project.find-by-client-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.order.mockResolvedValue({
         data: null,
@@ -221,6 +224,7 @@ describe('SupabaseProjectRepository', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
+    /** @spec repo.project.find-all-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.order.mockResolvedValue({
         data: null,
