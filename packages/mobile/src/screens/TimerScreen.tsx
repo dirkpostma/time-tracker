@@ -44,8 +44,6 @@ export function TimerScreen() {
     formatTime,
   } = useTimer();
 
-  const [pendingSwitchSelection, setPendingSwitchSelection] = useState<TimerSelection | null>(null);
-
   const startedAt = running ? new Date(running.started_at) : new Date();
 
   const handleStartTimeChange = useCallback(async (newDate: Date) => {
@@ -77,7 +75,7 @@ export function TimerScreen() {
 
   // Handle switch timer flow
   const handleSwitchComplete = useCallback(
-    (newSelection: TimerSelection) => {
+    async (newSelection: TimerSelection) => {
       // Check if switching to the same selection
       const isSameSelection =
         running?.client_id === newSelection.clientId &&
@@ -89,37 +87,10 @@ export function TimerScreen() {
         return;
       }
 
-      // Store pending selection and show confirmation
-      setPendingSwitchSelection(newSelection);
-
-      const currentLabel = [client?.name, project?.name, task?.name]
-        .filter(Boolean)
-        .join(' / ');
-      const newLabel = [newSelection.clientName, newSelection.projectName, newSelection.taskName]
-        .filter(Boolean)
-        .join(' / ');
-
-      Alert.alert(
-        'Switch Timer?',
-        `Stop tracking "${currentLabel}" and start tracking "${newLabel}"?`,
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => setPendingSwitchSelection(null),
-          },
-          {
-            text: 'Switch',
-            style: 'default',
-            onPress: async () => {
-              await switchTimer(newSelection);
-              setPendingSwitchSelection(null);
-            },
-          },
-        ]
-      );
+      // Switch directly - user already confirmed by going through selection flow
+      await switchTimer(newSelection);
     },
-    [running, client, project, task, switchTimer]
+    [running, switchTimer]
   );
 
   const switchFlow = useSelectionFlow({ onComplete: handleSwitchComplete });

@@ -10,9 +10,10 @@ import { listTasks, findProjectByName, addTask, findTaskByName } from './task.js
 import { startTimer, stopTimer, getStatus } from './timeEntry.js';
 import { configCommand, ensureConfig, showConfig } from './config.js';
 import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.js';
+import { seedDatabase } from './seed.js';
 
 // Commands that don't require authentication
-const AUTH_EXEMPT = ['config', 'login', 'logout', 'whoami'];
+const AUTH_EXEMPT = ['config', 'login', 'logout', 'whoami', 'seed'];
 
 program
   .name('tt')
@@ -334,6 +335,19 @@ program
   .description('Show current logged-in user')
   .action(async () => {
     await whoamiCommand();
+  });
+
+program
+  .command('seed')
+  .description('Seed database with test data (clients, projects, tasks)')
+  .option('-f, --force', 'Allow seeding non-local databases (with confirmation)')
+  .action(async (options) => {
+    try {
+      await seedDatabase({ force: options.force });
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Failed to seed database');
+      process.exit(1);
+    }
   });
 
 // Default action: show help (no interactive mode)

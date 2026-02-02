@@ -2,27 +2,61 @@
 
 > 📹 **Demo:** [switch-timer-demo.mp4](../../docs/demos/switch-timer-demo.mp4)
 
+## Screenshots
+
+![Timer with Switch Card](../../docs/screenshots/switch-timer-card.png)
+![Selection Picker](../../docs/screenshots/switch-timer-picker.png)
+
 ## Overview
 
 When a timer is running, users can switch directly to a different client/project/task without stopping first. This eliminates friction and prevents time gaps between entries.
+
+## Recording a Demo Video
+
+```bash
+# 1. Start simulator recording
+xcrun simctl io booted recordVideo --codec=h264 /tmp/raw_video.mp4 &
+RECORD_PID=$!
+
+# 2. Run the demo flow with Maestro
+cd packages/mobile
+maestro test .maestro/switch_timer_flow.yaml
+
+# 3. Stop recording
+kill -INT $RECORD_PID
+
+# 4. Convert for iOS compatibility
+ffmpeg -y -i /tmp/raw_video.mp4 \
+  -c:v libx264 -profile:v baseline -level 3.0 \
+  -pix_fmt yuv420p -movflags +faststart \
+  -preset fast -crf 28 \
+  /tmp/switch_demo.mp4
+```
 
 ## Screen Elements
 
 | Element | testID | Description |
 |---------|--------|-------------|
-| Switch Selection Card | `switch-selection-button` | Tappable card showing current selection (visible when timer running) |
-| Switch confirmation | - | Alert asking user to confirm the switch |
+| Switch Selection Card | `switch-selection-button` | Tappable card visible when timer is running |
 
 ## Behavior
 
 ### When Timer is Running
 
-- Show a "Switch" card below the timer display showing current client/project/task
+- Show a "Switch" card below the timer display with ↻ icon
 - Card is tappable to open the selection picker
 - When user completes a new selection:
-  - Show confirmation alert: "Switch Timer? Stop [current] and start [new]?"
-  - If confirmed: stop current timer and immediately start new one
-  - If cancelled: dismiss picker and continue current timer
+  - Switch happens immediately (no confirmation needed)
+  - Old timer stops and new timer starts atomically
+
+### Why No Confirmation?
+
+User intent is clear:
+1. User explicitly taps "Switch to different client/project"
+2. User goes through full client/project/task selection
+3. User completes selection
+
+Adding a confirmation would be redundant friction.
 
 ### Switch Operation
 
@@ -35,20 +69,17 @@ The switch operation is atomic:
 
 | Scenario | Behavior |
 |----------|----------|
-| Switch to same client/project/task | No confirmation needed, no action taken |
-| Network error during stop | Show error, don't start new timer |
-| Network error during start | Show error, old timer already stopped (unfortunate but acceptable) |
+| Switch to same client/project/task | No action taken (silently ignored) |
+| Network error during switch | Show error, refresh state |
 | No timer running + select | Normal start behavior (no switch needed) |
 
-## User Flows
-
-### Switch Timer Flow
+## User Flow
 
 ```
 Timer Running (Client A / Project X)
          |
          v
-    Tap Switch card
+    Tap "↻ Switch to different client/project"
          |
          v
    Selection Picker opens
@@ -57,59 +88,13 @@ Timer Running (Client A / Project X)
    Select Client B / Project Y
          |
          v
-   Confirmation: "Switch timer from Client A to Client B?"
-         |
-    +----+----+
-    |         |
-  Cancel   Confirm
-    |         |
-    v         v
-Continue   Stop Client A timer
-current    Start Client B timer
-timer      Update UI
-```
-
-### Quick Switch (Future Enhancement)
-
-For power users, could add "quick switch" that skips confirmation. This could be:
-- A setting to disable confirmation
-- Long-press on recent entries to switch immediately
-- Shake gesture to switch to last selection
-
-## UI States
-
-### Timer Running - Switch Available
-
-```
-┌─────────────────────────────────┐
-│  Time Tracker          Logout   │
-├─────────────────────────────────┤
-│                                 │
-│         02:45:33                │
-│                                 │
-│       Client A                  │
-│       project x                 │
-│                                 │
-│   ┌───────────────────────────┐ │
-│   │  Notes (optional)         │ │
-│   └───────────────────────────┘ │
-│                                 │
-│   Started at 2:30 PM   ✎        │
-│                                 │
-│   ┌───────────────────────────┐ │
-│   │  ⟳ Switch to different... │ │  <- New tappable card
-│   └───────────────────────────┘ │
-│                                 │
-│  ┌──────────────────────────┐   │
-│  │         Stop             │   │
-│  └──────────────────────────┘   │
-│                                 │
-└─────────────────────────────────┘
+   Timer switches immediately
+   - Client A timer stops
+   - Client B timer starts
+   - UI updates
 ```
 
 ## Database Operations
-
-### Switch Timer
 
 ```sql
 -- Step 1: Stop current timer
@@ -119,16 +104,3 @@ UPDATE time_entries SET ended_at = NOW() WHERE id = ?
 INSERT INTO time_entries (client_id, project_id, task_id, started_at)
 VALUES (?, ?, ?, NOW())
 ```
-
-## Confirmation Dialog
-
-**Title:** Switch Timer?
-
-**Message:**
-```
-Stop tracking "Client A / Project X" and start tracking "Client B / Project Y"?
-```
-
-**Buttons:**
-- Cancel (secondary)
-- Switch (primary)
