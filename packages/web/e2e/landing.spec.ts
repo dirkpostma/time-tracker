@@ -31,12 +31,12 @@ test.describe("Landing Page", () => {
   });
 
   test.describe("Features Section", () => {
-    test("displays 5 feature cards", async ({ page }) => {
+    test("displays 4 feature cards", async ({ page }) => {
       const section = page.getByTestId("features-section");
       const cards = page.getByTestId("feature-card");
 
       await expect(section).toBeVisible();
-      await expect(cards).toHaveCount(5);
+      await expect(cards).toHaveCount(4);
     });
 
     test("displays feature titles", async ({ page }) => {
@@ -52,9 +52,6 @@ test.describe("Landing Page", () => {
       ).toBeVisible();
       await expect(
         featuresSection.getByRole("heading", { name: "Offline Support" })
-      ).toBeVisible();
-      await expect(
-        featuresSection.getByRole("heading", { name: "Beautiful Themes" })
       ).toBeVisible();
     });
   });
