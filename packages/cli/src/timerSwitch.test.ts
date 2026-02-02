@@ -2,18 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { TimeEntry, Client, Project, Task } from '@time-tracker/core';
 import type { TimerStatus } from './timeEntry.js';
 
-// Mock @inquirer/prompts
-vi.mock('@inquirer/prompts', () => ({
-  confirm: vi.fn(),
-}));
-
 // Mock timeEntry module
 vi.mock('./timeEntry.js', () => ({
   getStatus: vi.fn(),
   startTimer: vi.fn(),
 }));
 
-import { confirm } from '@inquirer/prompts';
 import { getStatus, startTimer } from './timeEntry.js';
 import { handleTimerSwitch } from './timerSwitch.js';
 
@@ -98,44 +92,17 @@ describe('timerSwitch', () => {
       expect(startTimer).toHaveBeenCalledWith('client-123', undefined, undefined, undefined, true);
     });
 
-    it('should return non-interactive when not interactive and no force', async () => {
+    /** @spec timer.switch.require-force */
+    it('should return error when timer running and no force flag', async () => {
       vi.mocked(getStatus).mockResolvedValue(mockRunningStatus);
 
       const result = await handleTimerSwitch('client-123', undefined, undefined, undefined, {
-        interactive: false,
+        force: false,
       });
 
       expect(result.switched).toBe(false);
-      expect(result.message).toBe('non-interactive');
-    });
-
-    /** @spec timer.switch.user-confirms */
-    it('should switch when user confirms in interactive mode', async () => {
-      vi.mocked(getStatus).mockResolvedValue(mockRunningStatus);
-      const mockConfirm = vi.fn().mockResolvedValue(true);
-
-      const result = await handleTimerSwitch('client-123', undefined, undefined, undefined, {
-        interactive: true,
-        confirmFn: mockConfirm as any,
-      });
-
-      expect(result.switched).toBe(true);
-      expect(result.message).toBe('switched');
-      expect(result.stoppedTimer).toBeDefined();
-    });
-
-    /** @spec timer.switch.user-declines */
-    it('should keep running when user declines in interactive mode', async () => {
-      vi.mocked(getStatus).mockResolvedValue(mockRunningStatus);
-      const mockConfirm = vi.fn().mockResolvedValue(false);
-
-      const result = await handleTimerSwitch('client-123', undefined, undefined, undefined, {
-        interactive: true,
-        confirmFn: mockConfirm as any,
-      });
-
-      expect(result.switched).toBe(false);
-      expect(result.message).toBe('declined');
+      expect(result.message).toBe('timer-running');
+      expect(startTimer).not.toHaveBeenCalled();
     });
 
     /** @spec timer.switch.detect-running */
@@ -153,18 +120,14 @@ describe('timerSwitch', () => {
       expect(result.stoppedTimer?.duration).toBeGreaterThanOrEqual(0);
     });
 
-    it('should pass correct prompt message to confirm function', async () => {
-      vi.mocked(getStatus).mockResolvedValue(mockRunningStatus);
-      const mockConfirm = vi.fn().mockResolvedValue(true);
+    it('should pass all parameters to startTimer', async () => {
+      vi.mocked(getStatus).mockResolvedValue(null);
 
-      await handleTimerSwitch('client-123', undefined, undefined, undefined, {
-        interactive: true,
-        confirmFn: mockConfirm as any,
+      await handleTimerSwitch('client-123', 'project-123', 'task-123', 'description', {
+        force: false,
       });
 
-      expect(mockConfirm).toHaveBeenCalledWith({
-        message: 'Stop it and start a new one?',
-      });
+      expect(startTimer).toHaveBeenCalledWith('client-123', 'project-123', 'task-123', 'description');
     });
   });
 });

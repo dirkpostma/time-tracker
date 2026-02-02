@@ -4,12 +4,10 @@
  */
 
 import { program } from 'commander';
-import { confirm } from '@inquirer/prompts';
 import { addClient, listClients } from './client.js';
 import { addProject, listProjects, findClientByName } from './project.js';
 import { listTasks, findProjectByName, addTask, findTaskByName } from './task.js';
-import { startTimer, stopTimer, getStatus, getRunningTimer } from './timeEntry.js';
-import { runInteractiveMode } from './interactive.js';
+import { startTimer, stopTimer, getStatus } from './timeEntry.js';
 import { configCommand, ensureConfig, showConfig } from './config.js';
 import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.js';
 
@@ -81,17 +79,10 @@ projectCmd
   .requiredOption('--client <client>', 'Client name')
   .action(async (name: string, options: { client: string }) => {
     try {
-      let client = await findClientByName(options.client);
+      const client = await findClientByName(options.client);
       if (!client) {
-        const shouldCreate = await confirm({
-          message: `Client "${options.client}" doesn't exist. Create it?`,
-        });
-        if (!shouldCreate) {
-          console.log('Cancelled');
-          process.exit(0);
-        }
-        client = await addClient(options.client);
-        console.log(`Client "${client.name}" created (id: ${client.id})`);
+        console.error(`Error: Client "${options.client}" not found`);
+        process.exit(1);
       }
       const project = await addProject(name, client.id);
       console.log(`Project "${project.name}" created for client "${options.client}" (id: ${project.id})`);
@@ -169,85 +160,50 @@ program
     try {
       // Check if a timer is already running
       const runningStatus = await getStatus();
-      let forceStart = options.force || false;
+      const forceStart = options.force || false;
 
       if (runningStatus && !forceStart) {
-        // Check if we can prompt (interactive terminal)
-        if (!process.stdin.isTTY && process.env.FORCE_TTY !== '1') {
-          console.error('Timer already running. Use --force to stop it and start a new one.');
-          process.exit(1);
-        }
-
         const hours = Math.floor(runningStatus.duration / 3600);
         const minutes = Math.floor((runningStatus.duration % 3600) / 60);
         const durationStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 
-        console.log('A timer is already running:');
-        console.log(`  Client: ${runningStatus.client.name}`);
+        console.error('Timer already running:');
+        console.error(`  Client: ${runningStatus.client.name}`);
         if (runningStatus.project) {
-          console.log(`  Project: ${runningStatus.project.name}`);
+          console.error(`  Project: ${runningStatus.project.name}`);
         }
         if (runningStatus.task) {
-          console.log(`  Task: ${runningStatus.task.name}`);
+          console.error(`  Task: ${runningStatus.task.name}`);
         }
-        console.log(`  Duration: ${durationStr}`);
-        console.log('');
-
-        const shouldSwitch = await confirm({
-          message: 'Stop it and start a new one?',
-        });
-
-        if (!shouldSwitch) {
-          console.log('Keeping current timer running.');
-          return;
-        }
-        forceStart = true;
+        console.error(`  Duration: ${durationStr}`);
+        console.error('');
+        console.error('Use --force to stop it and start a new one.');
+        process.exit(1);
       }
-      // Find or create client
-      let client = await findClientByName(options.client);
+
+      // Find client
+      const client = await findClientByName(options.client);
       if (!client) {
-        const shouldCreate = await confirm({
-          message: `Client "${options.client}" doesn't exist. Create it?`,
-        });
-        if (!shouldCreate) {
-          console.log('Cancelled');
-          process.exit(0);
-        }
-        client = await addClient(options.client);
-        console.log(`Client "${client.name}" created`);
+        console.error(`Error: Client "${options.client}" not found`);
+        process.exit(1);
       }
 
-      // Find or create project if provided
+      // Find project if provided
       let projectId: string | undefined;
       if (options.project) {
-        let project = await findProjectByName(options.project, client.id);
+        const project = await findProjectByName(options.project, client.id);
         if (!project) {
-          const shouldCreate = await confirm({
-            message: `Project "${options.project}" doesn't exist. Create it?`,
-          });
-          if (!shouldCreate) {
-            console.log('Cancelled');
-            process.exit(0);
-          }
-          project = await addProject(options.project, client.id);
-          console.log(`Project "${project.name}" created`);
+          console.error(`Error: Project "${options.project}" not found`);
+          process.exit(1);
         }
         projectId = project.id;
 
-        // Find or create task if provided (requires project)
+        // Find task if provided (requires project)
         if (options.task) {
           const existingTask = await findTaskByName(options.task, projectId);
-
           if (!existingTask) {
-            const shouldCreate = await confirm({
-              message: `Task "${options.task}" doesn't exist. Create it?`,
-            });
-            if (!shouldCreate) {
-              console.log('Cancelled');
-              process.exit(0);
-            }
-            const task = await addTask(options.task, projectId);
-            console.log(`Task "${task.name}" created`);
+            console.error(`Error: Task "${options.task}" not found`);
+            process.exit(1);
           }
         }
       } else if (options.task) {
@@ -288,19 +244,13 @@ program
   .command('stop')
   .description('Stop the running timer')
   .option('--description <description>', 'Description')
-  .action(async (options: { description?: string }) => {
+  .option('--force', 'Overwrite existing description without confirmation')
+  .action(async (options: { description?: string; force?: boolean }) => {
     try {
       const status = await getStatus();
-      if (status && status.entry.description && options.description) {
-        const shouldOverwrite = await confirm({
-          message: `Timer already has description "${status.entry.description}". Overwrite?`,
-        });
-        if (!shouldOverwrite) {
-          // Stop without changing description
-          await stopTimer();
-          console.log('Timer stopped');
-          return;
-        }
+      if (status && status.entry.description && options.description && !options.force) {
+        console.error(`Timer already has description "${status.entry.description}". Use --force to overwrite.`);
+        process.exit(1);
       }
 
       const entry = await stopTimer(options.description);
@@ -349,12 +299,14 @@ program
   .command('config')
   .description('Configure Supabase credentials')
   .option('--show', 'Show current configuration')
-  .action(async (options: { show?: boolean }) => {
+  .option('--url <url>', 'Supabase URL')
+  .option('--key <key>', 'Supabase Publishable Key')
+  .action(async (options: { show?: boolean; url?: string; key?: string }) => {
     try {
       if (options.show) {
         await showConfig();
       } else {
-        await configCommand();
+        await configCommand({ url: options.url, key: options.key });
       }
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Failed to configure');
@@ -366,8 +318,10 @@ program
 program
   .command('login')
   .description('Log in to your account')
-  .action(async () => {
-    await loginCommand();
+  .option('--email <email>', 'Email address')
+  .option('--password <password>', 'Password')
+  .action(async (options: { email?: string; password?: string }) => {
+    await loginCommand({ email: options.email, password: options.password });
   });
 
 program
@@ -384,18 +338,9 @@ program
     await whoamiCommand();
   });
 
-// Default action (interactive mode)
-program.action(async () => {
-  try {
-    if (!process.stdin.isTTY && process.env.FORCE_TTY !== '1') {
-      console.error('Interactive mode requires a TTY. Use `tt start --client <client>` instead.');
-      process.exit(1);
-    }
-    await runInteractiveMode();
-  } catch (error) {
-    console.error(error instanceof Error ? error.message : 'Failed');
-    process.exit(1);
-  }
+// Default action: show help (no interactive mode)
+program.action(() => {
+  program.outputHelp();
 });
 
 program.parse();

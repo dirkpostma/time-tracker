@@ -7,13 +7,17 @@
  * - Handle errors with user-friendly messages
  */
 
-import { input, confirm } from '@inquirer/prompts';
 import { createClient } from '@supabase/supabase-js';
 import { getConfig, saveConfig, getConfigPath, Config } from '@time-tracker/repositories/supabase/config';
 
 export interface ValidationResult {
   valid: boolean;
   error?: string;
+}
+
+export interface ConfigOptions {
+  url?: string;
+  key?: string;
 }
 
 /**
@@ -70,7 +74,7 @@ export async function showConfig(): Promise<void> {
   const config = getConfig();
 
   if (!config) {
-    console.log('No configuration found. Run `tt config` to set up.');
+    console.log('No configuration found. Run `tt config --url <url> --key <key>` to set up.');
     return;
   }
 
@@ -85,20 +89,19 @@ export async function showConfig(): Promise<void> {
   console.log(`Config file:  ${getConfigPath()}`);
 }
 
-export async function configCommand(): Promise<void> {
-  const existing = getConfig();
+/**
+ * Config command handler.
+ * Uses --url and --key flags, or falls back to SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY env vars.
+ */
+export async function configCommand(options: ConfigOptions = {}): Promise<void> {
+  // Get credentials from flags or env vars
+  const url = options.url || process.env.SUPABASE_URL;
+  const key = options.key || process.env.SUPABASE_PUBLISHABLE_KEY;
 
-  console.log('Configure time-tracker credentials\n');
-
-  const url = await input({
-    message: 'Supabase URL:',
-    default: existing?.supabaseUrl,
-  });
-
-  const key = await input({
-    message: 'Supabase Publishable Key:',
-    default: existing?.supabaseKey,
-  });
+  if (!url || !key) {
+    console.error('Error: URL and key required. Use --url and --key flags or set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY env vars.');
+    process.exit(1);
+  }
 
   console.log('Validating credentials...');
   const result = await validateCredentials(url, key);
@@ -114,8 +117,8 @@ export async function configCommand(): Promise<void> {
 }
 
 /**
- * Ensures configuration exists, prompting user to set up if missing.
- * Returns the config or exits if user declines setup.
+ * Ensures configuration exists.
+ * Returns the config or exits with error if missing.
  */
 export async function ensureConfig(): Promise<Config> {
   const config = getConfig();
@@ -124,23 +127,6 @@ export async function ensureConfig(): Promise<Config> {
     return config;
   }
 
-  const shouldSetup = await confirm({
-    message: 'No configuration found. Set up now?',
-    default: true,
-  });
-
-  if (!shouldSetup) {
-    console.log("Run 'tt config' when ready.");
-    process.exit(0);
-  }
-
-  await configCommand();
-
-  const newConfig = getConfig();
-  if (!newConfig) {
-    console.log("Configuration not saved. Run 'tt config' when ready.");
-    process.exit(1);
-  }
-
-  return newConfig;
+  console.error("No configuration found. Run 'tt config --url <url> --key <key>' to set up.");
+  process.exit(1);
 }
