@@ -7,12 +7,11 @@
  * - Handle errors with user-friendly messages
  */
 
-import { input, password } from '@inquirer/prompts';
 import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth-cli';
 
 /**
  * Login command handler.
- * Prompts for email and password, authenticates with Supabase.
+ * Reads credentials from TT_EMAIL and TT_PASSWORD environment variables.
  */
 export async function loginCommand(): Promise<void> {
   // Check if already logged in
@@ -23,17 +22,17 @@ export async function loginCommand(): Promise<void> {
     return;
   }
 
-  const email = await input({
-    message: 'Email:',
-  });
+  // Get credentials from env vars
+  const email = process.env.TT_EMAIL;
+  const password = process.env.TT_PASSWORD;
 
-  const pwd = await password({
-    message: 'Password:',
-    mask: '*',
-  });
+  if (!email || !password) {
+    console.error('Error: Missing TT_EMAIL and TT_PASSWORD environment variables');
+    process.exit(1);
+  }
 
   try {
-    const user = await signIn(email, pwd);
+    const user = await signIn(email, password);
     console.log(`Logged in as ${user.email}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Login failed';

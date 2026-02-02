@@ -1,5 +1,7 @@
 # Mobile Switch Timer Spec
 
+> 📹 **Demo:** [switch-timer-demo.mp4](../../docs/demos/switch-timer-demo.mp4)
+
 ## Screenshots
 
 ![Timer with Switch Card](../../docs/screenshots/switch-timer-card.png)

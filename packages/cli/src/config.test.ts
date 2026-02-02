@@ -3,20 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Mock @inquirer/prompts before importing the module
-vi.mock('@inquirer/prompts', () => ({
-  input: vi.fn(),
-  confirm: vi.fn(),
-}));
-
 // Mock @supabase/supabase-js
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(),
 }));
 
 import { configCommand, validateCredentials, ensureConfig } from './config.js';
-import { getConfig, saveConfig } from '@time-tracker/repositories/supabase/config';
-import { input, confirm } from '@inquirer/prompts';
+import { getConfig } from '@time-tracker/repositories/supabase/config';
 import { createClient } from '@supabase/supabase-js';
 
 // Mock config.js for ensureConfig tests
@@ -163,7 +156,6 @@ describe('showConfig', () => {
 
 describe('configCommand', () => {
   const testConfigDir = path.join(os.tmpdir(), `.tt-config-cmd-test-${Date.now()}`);
-  const testConfigPath = path.join(testConfigDir, 'config.json');
 
   // Store original env values
   const originalUrl = process.env.SUPABASE_URL;
@@ -195,10 +187,8 @@ describe('configCommand', () => {
     }
   });
 
-  /** @spec config.auth.exempt-commands */
-  it('configCommand executes normally without prior auth', async () => {
-    // configCommand does not require auth - it's exempt in index.ts preAction
-    const mockInput = vi.mocked(input);
+  /** @spec config.flags */
+  it('configures with --url and --key flags', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         limit: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -206,24 +196,20 @@ describe('configCommand', () => {
     });
     vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
 
-    mockInput
-      .mockResolvedValueOnce('https://test.supabase.co')
-      .mockResolvedValueOnce('test-key');
-
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    // configCommand should execute without requiring auth
-    await configCommand();
+    await configCommand({ url: 'https://test.supabase.co', key: 'test-key' });
 
-    // Verify it executed normally
-    expect(mockInput).toHaveBeenCalledTimes(2);
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
 
     consoleSpy.mockRestore();
   });
 
-  it('prompts for URL and key', async () => {
-    const mockInput = vi.mocked(input);
+  /** @spec config.env-vars */
+  it('reads credentials from env vars when flags not provided', async () => {
+    process.env.SUPABASE_URL = 'https://env.supabase.co';
+    process.env.SUPABASE_PUBLISHABLE_KEY = 'env-key';
+
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         limit: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -231,51 +217,47 @@ describe('configCommand', () => {
     });
     vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
 
-    mockInput
-      .mockResolvedValueOnce('https://prompted.supabase.co')
-      .mockResolvedValueOnce('prompted-key');
-
-    // Capture console output
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await configCommand();
+    await configCommand({});
 
-    // Verify prompts were called
-    expect(mockInput).toHaveBeenCalledTimes(2);
-    expect(mockInput).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      message: 'Supabase URL:',
-    }));
-    expect(mockInput).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      message: 'Supabase Publishable Key:',
-    }));
+    expect(createClient).toHaveBeenCalledWith('https://env.supabase.co', 'env-key');
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
 
     consoleSpy.mockRestore();
   });
 
-  it('saves credentials when validation succeeds', async () => {
-    const mockInput = vi.mocked(input);
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
+  /** @spec config.missing-credentials */
+  it('exits with error when credentials not provided', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
     });
-    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
 
-    mockInput
-      .mockResolvedValueOnce('https://test.supabase.co')
-      .mockResolvedValueOnce('test-key');
+    await expect(configCommand({})).rejects.toThrow('process.exit(1)');
 
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: URL and key required. Use --url and --key flags or set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY env vars.');
 
-    await configCommand();
+    consoleErrorSpy.mockRestore();
+    mockExit.mockRestore();
+  });
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
+  /** @spec config.missing-url */
+  it('exits with error when only key provided', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
 
-    consoleSpy.mockRestore();
+    await expect(configCommand({ key: 'test-key' })).rejects.toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: URL and key required. Use --url and --key flags or set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY env vars.');
+
+    consoleErrorSpy.mockRestore();
+    mockExit.mockRestore();
   });
 
   it('does not save credentials when validation fails', async () => {
-    const mockInput = vi.mocked(input);
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         limit: vi.fn().mockResolvedValue({
@@ -286,14 +268,10 @@ describe('configCommand', () => {
     });
     vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
 
-    mockInput
-      .mockResolvedValueOnce('https://invalid.supabase.co')
-      .mockResolvedValueOnce('invalid-key');
-
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await configCommand();
+    await configCommand({ url: 'https://invalid.supabase.co', key: 'invalid-key' });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid Supabase credentials'));
     expect(consoleSpy).toHaveBeenCalledWith('Credentials not saved.');
@@ -303,7 +281,6 @@ describe('configCommand', () => {
   });
 
   it('shows connection error when network fails', async () => {
-    const mockInput = vi.mocked(input);
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         limit: vi.fn().mockRejectedValue(new TypeError('fetch failed')),
@@ -311,19 +288,36 @@ describe('configCommand', () => {
     });
     vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
 
-    mockInput
-      .mockResolvedValueOnce('https://test.supabase.co')
-      .mockResolvedValueOnce('test-key');
-
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await configCommand();
+    await configCommand({ url: 'https://test.supabase.co', key: 'test-key' });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Could not connect'));
 
     consoleSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+  });
+
+  /** @spec config.auth.exempt-commands */
+  it('configCommand executes normally without prior auth', async () => {
+    // configCommand does not require auth - it's exempt in index.ts preAction
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    });
+    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    // configCommand should execute without requiring auth
+    await configCommand({ url: 'https://test.supabase.co', key: 'test-key' });
+
+    // Verify it executed normally
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('saved'));
+
+    consoleSpy.mockRestore();
   });
 });
 
@@ -340,100 +334,13 @@ describe('ensureConfig', () => {
     const result = await ensureConfig();
 
     expect(result).toEqual(existingConfig);
-    expect(confirm).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 
   /** @spec config.firstrun.no-config */
-  it('prompts with exact message when no config exists', async () => {
+  it('exits with error when no config exists', async () => {
     vi.mocked(getConfig).mockReturnValue(null);
-    vi.mocked(confirm).mockResolvedValue(false);
 
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
-      throw new Error(`process.exit(${code})`);
-    });
-
-    await expect(ensureConfig()).rejects.toThrow('process.exit(0)');
-
-    expect(confirm).toHaveBeenCalledWith({
-      message: 'No configuration found. Set up now?',
-      default: true,
-    });
-
-    consoleSpy.mockRestore();
-    mockExit.mockRestore();
-  });
-
-  /** @spec config.firstrun.user-confirms */
-  it('prompts to set up when no config exists and user accepts', async () => {
-    vi.mocked(getConfig)
-      .mockReturnValueOnce(null) // First call: no config
-      .mockReturnValue({ supabaseUrl: 'https://new.supabase.co', supabaseKey: 'new-key' }); // After setup
-
-    vi.mocked(confirm).mockResolvedValue(true);
-    vi.mocked(input)
-      .mockResolvedValueOnce('https://new.supabase.co')
-      .mockResolvedValueOnce('new-key');
-
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
-    });
-    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
-
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    const result = await ensureConfig();
-
-    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({
-      message: expect.stringContaining('No configuration found'),
-    }));
-    expect(result).toEqual({ supabaseUrl: 'https://new.supabase.co', supabaseKey: 'new-key' });
-
-    consoleSpy.mockRestore();
-  });
-
-  /** @spec config.firstrun.user-declines */
-  it('exits when no config and user declines setup', async () => {
-    vi.mocked(getConfig).mockReturnValue(null);
-    vi.mocked(confirm).mockResolvedValue(false);
-
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
-      throw new Error(`process.exit(${code})`);
-    });
-
-    await expect(ensureConfig()).rejects.toThrow('process.exit(0)');
-
-    expect(consoleSpy).toHaveBeenCalledWith("Run 'tt config' when ready.");
-
-    consoleSpy.mockRestore();
-    mockExit.mockRestore();
-  });
-
-  /** @spec config.firstrun.validation-fails */
-  it('exits with error when user confirms but validation fails', async () => {
-    // getConfig always returns null - config never saved due to validation failure
-    vi.mocked(getConfig).mockReturnValue(null);
-    vi.mocked(confirm).mockResolvedValue(true);
-    vi.mocked(input)
-      .mockResolvedValueOnce('https://test.supabase.co')
-      .mockResolvedValueOnce('invalid-key');
-
-    // Mock validation failure (invalid key)
-    const mockFrom = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Invalid API key', code: 'PGRST301' },
-        }),
-      }),
-    });
-    vi.mocked(createClient).mockReturnValue({ from: mockFrom } as any);
-
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
@@ -441,9 +348,8 @@ describe('ensureConfig', () => {
 
     await expect(ensureConfig()).rejects.toThrow('process.exit(1)');
 
-    expect(consoleSpy).toHaveBeenCalledWith("Configuration not saved. Run 'tt config' when ready.");
+    expect(consoleErrorSpy).toHaveBeenCalledWith("No configuration found. Run 'tt config --url <url> --key <key>' to set up.");
 
-    consoleSpy.mockRestore();
     consoleErrorSpy.mockRestore();
     mockExit.mockRestore();
   });

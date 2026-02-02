@@ -7,13 +7,16 @@
  * - Handle errors with user-friendly messages
  */
 
-import { confirm } from '@inquirer/prompts';
 import { getStatus, startTimer, TimerStatus } from './timeEntry.js';
 
 export interface SwitchResult {
   switched: boolean;
   stoppedTimer?: TimerStatus;
   message: string;
+}
+
+export interface SwitchOptions {
+  force?: boolean;
 }
 
 /**
@@ -25,15 +28,9 @@ export async function handleTimerSwitch(
   projectId?: string,
   taskId?: string,
   description?: string,
-  options?: {
-    force?: boolean;
-    interactive?: boolean;
-    confirmFn?: typeof confirm;
-  }
+  options?: SwitchOptions
 ): Promise<SwitchResult> {
   const runningStatus = await getStatus();
-  const confirmFn = options?.confirmFn ?? confirm;
-  const isInteractive = options?.interactive ?? process.stdin.isTTY;
 
   if (!runningStatus) {
     // No timer running, just start
@@ -48,19 +45,6 @@ export async function handleTimerSwitch(
     return { switched: true, stoppedTimer: runningStatus, message: 'switched' };
   }
 
-  if (!isInteractive) {
-    return { switched: false, message: 'non-interactive' };
-  }
-
-  // Interactive: prompt user
-  const shouldSwitch = await confirmFn({
-    message: 'Stop it and start a new one?',
-  });
-
-  if (!shouldSwitch) {
-    return { switched: false, message: 'declined' };
-  }
-
-  await startTimer(clientId, projectId, taskId, description, true);
-  return { switched: true, stoppedTimer: runningStatus, message: 'switched' };
+  // No force flag and timer running - return error
+  return { switched: false, message: 'timer-running' };
 }
