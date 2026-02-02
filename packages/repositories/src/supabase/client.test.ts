@@ -78,6 +78,7 @@ describe('SupabaseClientRepository', () => {
       expect(result.name).toBe('Test Client');
     });
 
+    /** @spec repo.client.create-error */
     it('should throw RepositoryError on failure', async () => {
       mockSupabase._chain.single.mockResolvedValue({
         data: null,
@@ -114,6 +115,7 @@ describe('SupabaseClientRepository', () => {
       expect(found).toBeNull();
     });
 
+    /** @spec repo.client.find-by-id-error */
     it('should throw RepositoryError when query fails with non-PGRST116 error', async () => {
       mockSupabase._chain.single.mockResolvedValue({
         data: null,
@@ -150,6 +152,7 @@ describe('SupabaseClientRepository', () => {
       expect(found).toBeNull();
     });
 
+    /** @spec repo.client.find-by-name-error */
     it('should throw RepositoryError when query fails with non-PGRST116 error', async () => {
       mockSupabase._chain.single.mockResolvedValue({
         data: null,
@@ -203,6 +206,7 @@ describe('SupabaseClientRepository', () => {
       expect(result.length).toBe(3);
     });
 
+    /** @spec repo.client.find-all-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.order.mockResolvedValue({
         data: null,

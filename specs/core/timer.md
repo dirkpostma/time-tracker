@@ -16,10 +16,10 @@ Core timer functionality for the time-tracking application.
 
 ## Starting a Timer
 
-1. If a timer is already running, prompt to stop it and start the new one (see `cli/timer-switch.md`)
-2. If client doesn't exist, prompt to create it
-3. If project is provided and doesn't exist, prompt to create it
-4. If task is provided and doesn't exist, prompt to create it
+1. If a timer is already running, require `--force` flag to switch (see `cli/timer-switch.md`)
+2. Client must exist (error if not found)
+3. Project must exist if provided (error if not found)
+4. Task must exist if provided (error if not found)
 5. Create a new TimeEntry with `started_at` set to now, `ended_at` null
 6. Optionally set description
 
@@ -27,7 +27,7 @@ Core timer functionality for the time-tracking application.
 
 1. Find the running TimeEntry (where `ended_at` is null)
 2. If no timer is running, notify the user
-3. If description provided and one already exists, warn user (overwrite? y/n)
+3. If description provided with `--force`, overwrite existing description
 4. Set `ended_at` to now
 
 ## Checking Status
@@ -41,10 +41,10 @@ Core timer functionality for the time-tracking application.
 
 | ID | Scenario | Expected |
 |----|----------|----------|
-| timer.start.running-exists | Timer already running | Prompt to stop and start new (see timer-switch.md) |
-| timer.start.client-missing | Client doesn't exist | Prompt to create it |
-| timer.start.project-missing | Project doesn't exist | Prompt to create it |
-| timer.start.task-missing | Task doesn't exist | Prompt to create it |
+| timer.start.running-exists | Timer already running | Error unless --force flag provided (see timer-switch.md) |
+| timer.start.client-missing | Client doesn't exist | Error: "Client '<name>' not found" |
+| timer.start.project-missing | Project doesn't exist | Error: "Project '<name>' not found" |
+| timer.start.task-missing | Task doesn't exist | Error: "Task '<name>' not found" |
 | timer.start.success | All valid, no running timer | Create TimeEntry with started_at=now, ended_at=null |
 
 ### Stopping Timer
@@ -52,7 +52,7 @@ Core timer functionality for the time-tracking application.
 | ID | Scenario | Expected |
 |----|----------|----------|
 | timer.stop.no-running | No timer running | Notify user "No timer is running" |
-| timer.stop.desc-exists | Description provided, one already exists | Warn and prompt "overwrite? y/n" |
+| timer.stop.desc-exists | Description provided, one already exists | Overwrite with --force, otherwise keep existing |
 | timer.stop.success | Timer running | Set ended_at=now |
 
 ### Status Check

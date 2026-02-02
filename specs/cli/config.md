@@ -28,8 +28,8 @@ The `auth` field is optional and managed by the `tt login`/`tt logout` commands.
 ## Commands
 
 ```
-tt config              # Interactive setup
-tt config --show       # Show current config (key masked)
+tt config --url <url> --key <key>   # Set credentials via flags
+tt config --show                     # Show current config (key masked)
 ```
 
 ## Priority
@@ -44,7 +44,7 @@ When saving credentials via `tt config`, the CLI validates them by making a test
 
 ### Behavior
 
-1. User enters Supabase URL and key
+1. User provides Supabase URL and key via flags or env vars
 2. CLI attempts to connect to Supabase (e.g., simple query)
 3. If connection succeeds: save credentials and confirm
 4. If connection fails: show error, do NOT save credentials
@@ -58,23 +58,16 @@ When saving credentials via `tt config`, the CLI validates them by making a test
 | config.validation.invalid-key | Invalid credentials (401/403) | `Invalid Supabase credentials. Check your API key.` |
 | config.validation.api-error | Other API error | `Supabase connection failed: <error details>` |
 
-### Example Interaction
+### Example Usage
 
-```
-$ tt config
-Supabase URL: https://myproject.supabase.co
-Supabase Key: my-anon-key
-Validating credentials...
-Error: Invalid Supabase credentials. Check your API key.
-Credentials not saved.
-```
+```bash
+# Using flags
+tt config --url https://myproject.supabase.co --key my-anon-key
 
-```
-$ tt config
-Supabase URL: https://myproject.supabase.co
-Supabase Key: correct-anon-key
-Validating credentials...
-Credentials saved to ~/.tt/config.json
+# Using environment variables
+export SUPABASE_URL=https://myproject.supabase.co
+export SUPABASE_PUBLISHABLE_KEY=my-anon-key
+tt config
 ```
 
 ## Runtime Credential Errors
@@ -106,31 +99,12 @@ Commands exempt from authentication: `config`, `login`, `logout`, `whoami`
 | config.auth.token-refresh | Token expired but refreshable | Refresh token, save to config, continue |
 | config.auth.token-expired | Token expired and cannot refresh | Clear tokens, require re-login |
 
-## First-Run Setup
-
-When no configuration exists and the user runs any command:
-
-1. Detect missing config before executing the command
-2. Prompt: "No configuration found. Set up now? [Y/n]"
-3. If yes: run `tt config` flow, then continue with original command
-4. If no: exit with message "Run 'tt config' when ready."
+## Scenarios
 
 | ID | Scenario | Expected |
 |----|----------|----------|
-| config.firstrun.no-config | No config exists, user runs command | Prompt "No configuration found. Set up now? [Y/n]" |
-| config.firstrun.user-confirms | User confirms setup (y) | Run config flow, then continue with original command |
-| config.firstrun.user-declines | User declines setup (n) | Exit with "Run 'tt config' when ready." |
-| config.firstrun.validation-fails | User confirms but credentials invalid | Exit with "Configuration not saved. Run 'tt config' when ready." |
-
-### Example
-
-```
-$ tt
-No configuration found. Set up now? (Y/n) y
-Supabase URL: https://myproject.supabase.co
-Supabase Key: my-anon-key
-Validating credentials...
-Credentials saved to ~/.tt/config.json
-
-[continues with interactive mode]
-```
+| config.flags | tt config --url X --key Y | Validate and save credentials |
+| config.env-vars | tt config (with env vars set) | Use env vars as fallback |
+| config.missing-credentials | tt config (no flags or env vars) | Error: "URL and key required" |
+| config.missing-url | tt config --key Y (no URL) | Error: "URL required" |
+| config.firstrun.no-config | No config exists, user runs command | Error: "No configuration found. Run 'tt config --url X --key Y'" |

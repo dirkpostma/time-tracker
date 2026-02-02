@@ -5,7 +5,7 @@ Command name: `tt`
 ## Time Tracking
 
 ```
-tt start --client <client> [--project <project>] [--task <task>] [--description <description>]
+tt start --client <client> [--project <project>] [--task <task>] [--description <description>] [--force]
 tt stop [--description <description>]
 tt status
 ```
@@ -33,25 +33,23 @@ tt task list --client <client> --project <project>
 ## Authentication
 
 ```
-tt login          # Log in with email/password
+tt login          # Log in using TT_EMAIL and TT_PASSWORD env vars
 tt logout         # Log out and clear session
 tt whoami         # Show current logged-in user
 ```
 
 All commands except `config`, `login`, `logout`, and `whoami` require authentication.
 
-## Interactive Mode
-
-See `interactive-mode.md` for details.
+## Default Behavior
 
 ```
-tt                # Launch interactive selection flow
+tt                # Show help (no interactive mode)
 ```
 
 ## Name Matching
 
 - `--client`, `--project`, and `--task` match by name
-- If not found, prompt user: "<Entity> 'X' doesn't exist. Create it? [y/n]"
+- If not found, command fails with error message
 
 ## Scenarios
 
@@ -79,7 +77,10 @@ tt                # Launch interactive selection flow
 
 | ID | Scenario | Expected |
 |----|----------|----------|
-| auth.login.success | tt login | Prompt for email/password, authenticate |
+| auth.login.env-vars | tt login (with TT_EMAIL/TT_PASSWORD set) | Authenticate using env vars |
+| auth.login.missing-credentials | tt login (no env vars) | Error: "Missing TT_EMAIL and TT_PASSWORD environment variables" |
+| auth.login.missing-email | tt login (only TT_PASSWORD set) | Error: "Missing TT_EMAIL environment variable" |
+| auth.login.missing-password | tt login (only TT_EMAIL set) | Error: "Missing TT_PASSWORD environment variable" |
 | auth.logout.success | tt logout | Clear session |
 | auth.whoami.logged-in | tt whoami (logged in) | Show current user email |
 | auth.whoami.not-logged-in | tt whoami (not logged in) | Show "Not logged in" |
@@ -89,4 +90,4 @@ tt                # Launch interactive selection flow
 | ID | Scenario | Expected |
 |----|----------|----------|
 | entity.name-match.found | Entity name exists | Use matched entity |
-| entity.name-match.not-found | Entity name doesn't exist | Prompt "<Entity> 'X' doesn't exist. Create it? [y/n]" |
+| entity.name-match.not-found | Entity name doesn't exist | Error: "<Entity> '<name>' not found" |

@@ -112,6 +112,7 @@ describe('SupabaseTaskRepository', () => {
       expect(result).toBeNull();
     });
 
+    /** @spec repo.task.find-by-id-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.maybeSingle.mockResolvedValue({
         data: null,
@@ -157,6 +158,7 @@ describe('SupabaseTaskRepository', () => {
       expect(result).toBeNull();
     });
 
+    /** @spec repo.task.find-by-name-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.maybeSingle.mockResolvedValue({
         data: null,
@@ -213,6 +215,7 @@ describe('SupabaseTaskRepository', () => {
       expect(mockSupabase._chain.order).toHaveBeenCalledWith('name');
     });
 
+    /** @spec repo.task.find-by-project-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.order.mockResolvedValue({
         data: null,
@@ -237,6 +240,7 @@ describe('SupabaseTaskRepository', () => {
       expect(tasks.length).toBeGreaterThanOrEqual(2);
     });
 
+    /** @spec repo.task.find-all-error */
     it('should throw RepositoryError when query fails', async () => {
       mockSupabase._chain.order.mockResolvedValue({
         data: null,
