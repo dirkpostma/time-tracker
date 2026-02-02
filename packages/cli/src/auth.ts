@@ -9,16 +9,11 @@
 
 import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth-cli';
 
-export interface LoginOptions {
-  email?: string;
-  password?: string;
-}
-
 /**
  * Login command handler.
- * Uses --email and --password flags, or falls back to TT_EMAIL and TT_PASSWORD env vars.
+ * Reads credentials from TT_EMAIL and TT_PASSWORD environment variables.
  */
-export async function loginCommand(options: LoginOptions = {}): Promise<void> {
+export async function loginCommand(): Promise<void> {
   // Check if already logged in
   const currentUser = await getCurrentUser();
   if (currentUser) {
@@ -27,12 +22,12 @@ export async function loginCommand(options: LoginOptions = {}): Promise<void> {
     return;
   }
 
-  // Get credentials from flags or env vars
-  const email = options.email || process.env.TT_EMAIL;
-  const password = options.password || process.env.TT_PASSWORD;
+  // Get credentials from env vars
+  const email = process.env.TT_EMAIL;
+  const password = process.env.TT_PASSWORD;
 
   if (!email || !password) {
-    console.error('Error: Email and password required. Use --email and --password flags or set TT_EMAIL and TT_PASSWORD env vars.');
+    console.error('Error: Missing TT_EMAIL and TT_PASSWORD environment variables');
     process.exit(1);
   }
 

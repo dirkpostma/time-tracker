@@ -317,11 +317,9 @@ program
 // Auth commands
 program
   .command('login')
-  .description('Log in to your account')
-  .option('--email <email>', 'Email address')
-  .option('--password <password>', 'Password')
-  .action(async (options: { email?: string; password?: string }) => {
-    await loginCommand({ email: options.email, password: options.password });
+  .description('Log in to your account (uses TT_EMAIL and TT_PASSWORD env vars)')
+  .action(async () => {
+    await loginCommand();
   });
 
 program

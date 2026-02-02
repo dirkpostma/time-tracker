@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock the auth repository
 vi.mock('@time-tracker/repositories/supabase/auth-cli', () => ({
@@ -12,18 +12,36 @@ import { loginCommand, logoutCommand, whoamiCommand, ensureAuth } from './auth.j
 import { signIn, signOut, getCurrentUser, initAuthSession } from '@time-tracker/repositories/supabase/auth-cli';
 
 describe('loginCommand', () => {
+  // Store original env values
+  const originalEmail = process.env.TT_EMAIL;
+  const originalPassword = process.env.TT_PASSWORD;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    // Clear env vars before each test
+    delete process.env.TT_EMAIL;
+    delete process.env.TT_PASSWORD;
   });
 
-  /** @spec auth.login.flags */
-  it('logs in with --email and --password flags', async () => {
+  afterEach(() => {
+    // Restore original env values
+    if (originalEmail) process.env.TT_EMAIL = originalEmail;
+    else delete process.env.TT_EMAIL;
+    if (originalPassword) process.env.TT_PASSWORD = originalPassword;
+    else delete process.env.TT_PASSWORD;
+  });
+
+  /** @spec auth.login.env-vars */
+  it('logs in with TT_EMAIL and TT_PASSWORD env vars', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     vi.mocked(signIn).mockResolvedValue({ id: 'user-123', email: 'test@example.com' });
 
+    process.env.TT_EMAIL = 'test@example.com';
+    process.env.TT_PASSWORD = 'password123';
+
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await loginCommand({ email: 'test@example.com', password: 'password123' });
+    await loginCommand();
 
     expect(signIn).toHaveBeenCalledWith('test@example.com', 'password123');
     expect(consoleSpy).toHaveBeenCalledWith('Logged in as test@example.com');
@@ -31,75 +49,56 @@ describe('loginCommand', () => {
     consoleSpy.mockRestore();
   });
 
-  /** @spec auth.login.env-vars */
-  it('reads credentials from env vars when flags not provided', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
-    vi.mocked(signIn).mockResolvedValue({ id: 'user-123', email: 'env@example.com' });
-
-    const originalEmail = process.env.TT_EMAIL;
-    const originalPassword = process.env.TT_PASSWORD;
-    process.env.TT_EMAIL = 'env@example.com';
-    process.env.TT_PASSWORD = 'envpassword';
-
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    await loginCommand({});
-
-    expect(signIn).toHaveBeenCalledWith('env@example.com', 'envpassword');
-    expect(consoleSpy).toHaveBeenCalledWith('Logged in as env@example.com');
-
-    // Restore env
-    if (originalEmail) process.env.TT_EMAIL = originalEmail;
-    else delete process.env.TT_EMAIL;
-    if (originalPassword) process.env.TT_PASSWORD = originalPassword;
-    else delete process.env.TT_PASSWORD;
-
-    consoleSpy.mockRestore();
-  });
-
   /** @spec auth.login.missing-credentials */
-  it('exits with error when credentials not provided', async () => {
+  it('exits with error when env vars not set', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
-
-    const originalEmail = process.env.TT_EMAIL;
-    const originalPassword = process.env.TT_PASSWORD;
-    delete process.env.TT_EMAIL;
-    delete process.env.TT_PASSWORD;
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
     });
 
-    await expect(loginCommand({})).rejects.toThrow('process.exit(1)');
+    await expect(loginCommand()).rejects.toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Email and password required. Use --email and --password flags or set TT_EMAIL and TT_PASSWORD env vars.');
-
-    // Restore env
-    if (originalEmail) process.env.TT_EMAIL = originalEmail;
-    if (originalPassword) process.env.TT_PASSWORD = originalPassword;
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Missing TT_EMAIL and TT_PASSWORD environment variables');
 
     consoleErrorSpy.mockRestore();
     mockExit.mockRestore();
   });
 
   /** @spec auth.login.missing-email */
-  it('exits with error when only password provided', async () => {
+  it('exits with error when only TT_PASSWORD is set', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
 
-    const originalEmail = process.env.TT_EMAIL;
-    delete process.env.TT_EMAIL;
+    process.env.TT_PASSWORD = 'password123';
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
     });
 
-    await expect(loginCommand({ password: 'password123' })).rejects.toThrow('process.exit(1)');
+    await expect(loginCommand()).rejects.toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Email and password required. Use --email and --password flags or set TT_EMAIL and TT_PASSWORD env vars.');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Missing TT_EMAIL and TT_PASSWORD environment variables');
 
-    if (originalEmail) process.env.TT_EMAIL = originalEmail;
+    consoleErrorSpy.mockRestore();
+    mockExit.mockRestore();
+  });
+
+  /** @spec auth.login.missing-password */
+  it('exits with error when only TT_EMAIL is set', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+
+    process.env.TT_EMAIL = 'test@example.com';
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+
+    await expect(loginCommand()).rejects.toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Missing TT_EMAIL and TT_PASSWORD environment variables');
 
     consoleErrorSpy.mockRestore();
     mockExit.mockRestore();
@@ -109,12 +108,15 @@ describe('loginCommand', () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     vi.mocked(signIn).mockRejectedValue(new Error('Invalid login credentials'));
 
+    process.env.TT_EMAIL = 'test@example.com';
+    process.env.TT_PASSWORD = 'wrongpassword';
+
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
     });
 
-    await expect(loginCommand({ email: 'test@example.com', password: 'wrongpassword' })).rejects.toThrow('process.exit(1)');
+    await expect(loginCommand()).rejects.toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Invalid login credentials');
 
@@ -125,9 +127,12 @@ describe('loginCommand', () => {
   it('does not login if already logged in', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({ id: 'user-123', email: 'existing@example.com' });
 
+    process.env.TT_EMAIL = 'new@example.com';
+    process.env.TT_PASSWORD = 'password123';
+
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await loginCommand({ email: 'new@example.com', password: 'password123' });
+    await loginCommand();
 
     expect(signIn).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith('Already logged in as existing@example.com');
@@ -288,8 +293,20 @@ describe('ensureAuth', () => {
  * These tests verify that exempt commands can execute without authentication.
  */
 describe('auth-exempt commands', () => {
+  const originalEmail = process.env.TT_EMAIL;
+  const originalPassword = process.env.TT_PASSWORD;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    delete process.env.TT_EMAIL;
+    delete process.env.TT_PASSWORD;
+  });
+
+  afterEach(() => {
+    if (originalEmail) process.env.TT_EMAIL = originalEmail;
+    else delete process.env.TT_EMAIL;
+    if (originalPassword) process.env.TT_PASSWORD = originalPassword;
+    else delete process.env.TT_PASSWORD;
   });
 
   /** @spec config.auth.exempt-commands */
@@ -297,10 +314,13 @@ describe('auth-exempt commands', () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     vi.mocked(signIn).mockResolvedValue({ id: 'user-123', email: 'test@example.com' });
 
+    process.env.TT_EMAIL = 'test@example.com';
+    process.env.TT_PASSWORD = 'password123';
+
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // loginCommand does not call ensureAuth internally - it's exempt in index.ts preAction
-    await loginCommand({ email: 'test@example.com', password: 'password123' });
+    await loginCommand();
 
     // Verify it executed normally
     expect(signIn).toHaveBeenCalled();
