@@ -22,13 +22,6 @@ const features = [
     icon: "chart",
     color: "from-primary to-accent",
   },
-  {
-    title: "Offline Support",
-    description:
-      "Track time even without internet. Everything syncs when you're back online.",
-    icon: "cloud",
-    color: "from-accent-light to-accent",
-  },
 ];
 
 function FeatureIcon({ icon, colorClass }: { icon: string; colorClass: string }) {
@@ -84,21 +77,6 @@ function FeatureIcon({ icon, colorClass }: { icon: string; colorClass: string })
         />
       </svg>
     ),
-    cloud: (
-      <svg
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-        />
-      </svg>
-    ),
   };
 
   return (
@@ -121,7 +99,7 @@ export function Features() {
         </p>
       </div>
 
-      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <div
             key={feature.title}
