@@ -149,6 +149,61 @@ export function useTimer() {
     }
   }, [running, timeEntryRepo]);
 
+  const switchTimer = useCallback(
+    async (timerSelection: TimerSelection): Promise<boolean> => {
+      if (!running) {
+        // No timer running, just start normally
+        await startTimer(timerSelection);
+        return true;
+      }
+
+      // Check if switching to the same selection
+      const isSameSelection =
+        running.client_id === timerSelection.clientId &&
+        running.project_id === timerSelection.projectId &&
+        running.task_id === timerSelection.taskId;
+
+      if (isSameSelection) {
+        // No need to switch, already tracking this
+        return false;
+      }
+
+      setActionLoading(true);
+      try {
+        // Stop current timer
+        await timeEntryRepo.stop(running.id);
+
+        // Start new timer immediately
+        const entry = await timeEntryRepo.create({
+          client_id: timerSelection.clientId,
+          project_id: timerSelection.projectId ?? null,
+          task_id: timerSelection.taskId ?? null,
+        });
+
+        // Set running entry with relation names from the selection
+        setRunning({
+          ...entry,
+          client_name: timerSelection.clientName,
+          project_name: timerSelection.projectName ?? null,
+          task_name: timerSelection.taskName ?? null,
+        });
+        setDescription('');
+
+        await updateSelection(timerSelection);
+        return true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to switch timer';
+        Alert.alert('Error', message);
+        // Refresh state in case partial operation occurred
+        await fetchRunningTimer();
+        return false;
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [running, startTimer, updateSelection, timeEntryRepo, fetchRunningTimer]
+  );
+
   const updateStartTime = useCallback(async (newStartTime: Date) => {
     if (!running) return;
 
@@ -212,6 +267,7 @@ export function useTimer() {
     // Actions
     startTimer,
     stopTimer,
+    switchTimer,
     updateStartTime,
     onRefresh,
     handleDescriptionChange,

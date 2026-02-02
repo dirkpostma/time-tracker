@@ -15,6 +15,7 @@ import {
 import { SelectionPickerModal } from '../components/SelectionPickerModal';
 import { TimerDisplay } from '../components/TimerDisplay';
 import { SelectionCard } from '../components/SelectionCard';
+import { SwitchCard } from '../components/SwitchCard';
 import { DescriptionInput } from '../components/DescriptionInput';
 import { useTimer } from '../hooks/useTimer';
 import { useSelectionFlow } from '../hooks/useSelectionFlow';
@@ -36,6 +37,7 @@ export function TimerScreen() {
     selection,
     startTimer,
     stopTimer,
+    switchTimer,
     updateStartTime,
     onRefresh,
     handleDescriptionChange,
@@ -70,6 +72,34 @@ export function TimerScreen() {
       selectionFlow.startFlow();
     }
   }, [running, selectionFlow]);
+
+  // Handle switch timer flow
+  const handleSwitchComplete = useCallback(
+    async (newSelection: TimerSelection) => {
+      // Check if switching to the same selection
+      const isSameSelection =
+        running?.client_id === newSelection.clientId &&
+        running?.project_id === newSelection.projectId &&
+        running?.task_id === newSelection.taskId;
+
+      if (isSameSelection) {
+        // No switch needed
+        return;
+      }
+
+      // Switch directly - user already confirmed by going through selection flow
+      await switchTimer(newSelection);
+    },
+    [running, switchTimer]
+  );
+
+  const switchFlow = useSelectionFlow({ onComplete: handleSwitchComplete });
+
+  const handleSwitchPress = useCallback(() => {
+    if (running) {
+      switchFlow.startFlow();
+    }
+  }, [running, switchFlow]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -134,6 +164,12 @@ export function TimerScreen() {
         </DSStack>
       )}
 
+      {running && (
+        <DSStack paddingHorizontal="lg">
+          <SwitchCard onPress={handleSwitchPress} disabled={actionLoading} />
+        </DSStack>
+      )}
+
       {!running && (
         <DSStack paddingHorizontal="lg">
           <SelectionCard selection={selection} onPress={handleSelectionPress} />
@@ -180,6 +216,12 @@ export function TimerScreen() {
         visible={selectionFlow.showPicker}
         onClose={selectionFlow.handleClose}
         onComplete={selectionFlow.handleComplete}
+      />
+
+      <SelectionPickerModal
+        visible={switchFlow.showPicker}
+        onClose={switchFlow.handleClose}
+        onComplete={switchFlow.handleComplete}
       />
     </DSScreen>
   );
